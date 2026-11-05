@@ -14,8 +14,14 @@ Pelo terminal (opcional):
 
 Primeira vez numa máquina nova: `npm install` na pasta e dentro de `frontend\`.
 
-## Site publicado (GitHub Pages)
-O frontend também sai como site estático (`npm --prefix frontend run build:pages`), que usa o Estúdio aberto no PC (motor híbrido). Passo a passo e limites: `docs\PUBLICAR-NO-PAGES.md`.
+## Site sem backend (GitHub Pages, PC e celular)
+Esta pasta é a **versão web**: o mesmo Estúdio também roda inteiro dentro do navegador, sem servidor. O próprio backend é empacotado para o navegador e as séries ficam no armazenamento do site ou numa pasta do computador. Sem chave, tudo funciona no modo simulado (nada é cobrado); com a chave do OpenRouter (colada ou pelo botão "Entrar com OpenRouter"), gera de verdade, sempre com cotação antes.
+- Como funciona: `docs\MOTOR-NAVEGADOR.md`.
+- Publicar: `docs\PUBLICAR-NO-PAGES.md`.
+- Andamento: `docs\PROGRESSO.md`.
+- Testar como publicado: `npm --prefix frontend run build:pages` e `npm --prefix frontend run preview:pages` (http://127.0.0.1:5296).
+
+Ainda precisam do Estúdio do PC: vozes, mixagem, miniaturas da Mesa e montagem final.
 
 ## Onde ficam as coisas
 - **Séries:** `E:\EstudioSeriesDados\series\<série>\`, uma pasta por série.

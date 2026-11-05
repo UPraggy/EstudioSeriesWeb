@@ -1,5 +1,7 @@
 # Publicar o Estúdio no GitHub Pages sem backend (análise de 04/11/2026)
 
+> **Andamento (05/11/2026):** etapas **1 a 4** feitas nesta pasta (`EstudioSeriesWeb`). O caminho escolhido na etapa 2 foi diferente do sugerido abaixo: em vez de portar os módulos para ESM à mão, o esbuild empacota o próprio backend para o navegador (uma fonte de verdade só). Detalhes em `docs/MOTOR-NAVEGADOR.md`; registro em `docs/PROGRESSO.md`. Próximas: 5 (Mesa sem ffmpeg), 6 (voz), 8 (PWA e zip), 7 (render).
+
 Pergunta do Rafael: "quero ver se é possível lançar no GitHub sem backend e ainda assim rodar ele", pensando no **PC** (Windows, Chrome/Edge) e no **celular** (Galaxy S23 com Chrome; iPhone/Safari quando der).
 
 Análise só de leitura do código + testes **gratuitos** feitos hoje. Nenhuma chamada paga, nenhuma chave usada. "(3º)" marca informação de blog ou fonte de terceiros, não da documentação oficial. "Estimativa" = número calculado, não medido.

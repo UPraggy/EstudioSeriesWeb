@@ -1,22 +1,26 @@
-# Publicar o Estúdio no GitHub Pages (motor híbrido) — 04/11/2026
+# Publicar o Estúdio de Séries Web no GitHub Pages
 
-Primeiro passo do plano de `PUBLICAR-SEM-BACKEND.md`. O site publicado é **a interface**; o trabalho pesado (pastas das séries, vozes, IA, montagem) continua no **Estúdio do PC** (`Abrir Estudio.vbs`). O site procura o PC em `http://127.0.0.1:4190` e:
+O site publicado **roda sozinho no navegador** (motor do navegador, `docs/MOTOR-NAVEGADOR.md`), no PC e no celular. Quem abre sem chave cai no **modo simulado**: explora tudo e nada é cobrado. O "Estúdio do PC" (`Abrir Estudio.vbs`) continua existindo e pode ser ligado em **Configurações → Onde o Estúdio roda**.
 
 | Situação | O que o site faz |
 |---|---|
-| Estúdio aberto no PC | Conecta, avisa "Conectado ao Estúdio do PC" e funciona igual ao `http://127.0.0.1:5190` |
-| Estúdio fechado | Mostra a tela "Conecte o Estúdio do seu PC": o que falta, como resolver, botão "Procurar de novo" e "Mudar endereço" |
-| Celular | Ainda não alcança o PC (ver `PUBLICAR-SEM-BACKEND.md` §5.2). Por enquanto, use pelo computador |
+| Visita normal (PC ou celular) | Abre o motor do navegador: séries guardadas no próprio navegador (OPFS), modo simulado até ter chave |
+| Com chave (colada ou "Entrar com OpenRouter") | Gera de verdade, sempre com cotação antes e confirmação |
+| "Usar uma pasta do computador" (Chrome/Edge no PC) | Trabalha direto na pasta escolhida (ex.: `E:\EstudioSeriesDados`) |
+| Configurações → "Estúdio do PC" | Procura o Estúdio em `http://127.0.0.1:4190` (motor híbrido de 04/11) |
 
-O motor que roda **dentro do navegador** (sem o PC) é a próxima etapa (etapas 2–4 do plano).
+## Antes de publicar (conferido em 05/11/2026)
+- `git grep -n "sk-or-"` só acha a chave **falsa** dos testes (`backend/test/fixtures/openrouter-ajuda.js`), o teste dela, o filtro que apaga chaves (`backend/src/openrouter/erros.js`), os textos da tela que explicam o formato (`Configuracoes.jsx`, `chave.js`) e esta documentação.
+- Nenhum dado de série vai junto: as séries ficam no navegador de cada um ou em `E:\EstudioSeriesDados` (fora do repositório). `docs/exemplos/` tem o roteiro de exemplo do Farol (texto), que fica público junto com o código.
+- Autor dos commits: só o Rafael (`100146657+UPraggy@users.noreply.github.com`). O gancho `.githooks/commit-msg` recusa co-autor de IA.
 
-## Como funciona (para quem mexer no código)
-- `frontend/.env.pages`: `VITE_DESTINO=pages` e o endereço padrão do PC (`VITE_AJUDANTE`). Nada secreto.
-- `frontend/vite.config.js`: no modo `pages`, caminhos relativos (`base: './'`, serve em qualquer `/<repositório>/`), saída em `frontend/dist-pages` e o arquivo `.nojekyll`.
-- `frontend/src/components/funcionalidades/motor.js`: procura o PC (`GET /api/Saude`, espera até 20 s porque o Chrome pode abrir uma pergunta de permissão) e troca `GlobalVar.serverBase`. Ponto único: `fetchFunc.js` e as URLs de mídia só usam o `serverBase`.
-- `frontend/src/routes.jsx`: no Pages usa `HashRouter` (as rotas ficam depois do `#`, então recarregar não dá 404) e mostra `SemMotor.jsx` enquanto não houver PC.
-- `backend/src/index.js`: CORS libera a própria máquina e `https://upraggy.github.io` (troque com `ESTUDIO_ORIGENS="https://outro.github.io"`), e responde `Access-Control-Allow-Private-Network: true` ao pré-voo de rede local do Chrome. Testado em `backend/test/saude.test.js`.
-- Rodando local, nada muda: `npm run dev` e o `Abrir Estudio.vbs` continuam com `/api` na mesma origem.
+## Passo a passo
+1. Criar o repositório na conta **UPraggy** (nome sugerido: `EstudioSeriesWeb`). No plano grátis, o Pages exige repositório **público** (o código fica visível; chaves e séries não).
+2. `git remote add origin https://github.com/UPraggy/EstudioSeriesWeb.git` e `git push -u origin main`.
+3. No GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+4. O workflow `.github/workflows/pages.yml` instala, roda `npm test` (backend + motor do navegador) e publica `frontend/dist-pages`. Ele roda a cada push na `main` que mexa em `frontend/`, `backend/` ou no próprio workflow (ou à mão em Actions → "Run workflow").
+5. O site fica em `https://upraggy.github.io/EstudioSeriesWeb/`.
+6. Para usar o "Estúdio do PC" a partir do site publicado: no PC, o backend já libera `https://upraggy.github.io` (troque com `ESTUDIO_ORIGENS` se o endereço mudar). Na primeira vez o Chrome pergunta se o site pode **acessar apps e serviços do dispositivo**: Permitir.
 
 ## Testar como se estivesse publicado
 ```bash
@@ -25,17 +29,9 @@ npm --prefix frontend run build:pages
 ```bash
 npm --prefix frontend run preview:pages
 ```
-Abra `http://127.0.0.1:5196/`. Com o Estúdio aberto ele conecta; para ver a tela sem PC, use "Mudar endereço" com uma porta qualquer (ex.: `127.0.0.1:4999`).
-
-## Publicar (quando o Rafael decidir)
-1. Criar o repositório no GitHub (conta **UPraggy**). No plano grátis o Pages exige repositório **público**: o código fica visível, mas **nenhum dado de série e nenhuma chave** vão junto (os dados ficam em `E:\EstudioSeriesDados`; a chave só no ambiente do PC; `.gitignore` já exclui `logs/`, `dist`, `.env`).
-2. Antes do primeiro commit: conferir que não há chave em nenhum arquivo (`git grep -n "sk-or-"` tem que voltar vazio).
-3. Commit e push da pasta `EstudioSeries` para a branch `main` (autor só o Rafael).
-4. No GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**. O workflow `.github/workflows/pages.yml` compila o `frontend` no modo `pages` e publica.
-5. O site fica em `https://upraggy.github.io/<nome-do-repositório>/`. Se o nome da conta mudar, ajuste `ESTUDIO_ORIGENS` no PC.
-6. No PC, com o Estúdio aberto, abrir o site. Na primeira vez o Chrome pergunta se o site pode **acessar apps e serviços do dispositivo**: Permitir.
+Abra http://127.0.0.1:5296/ (portas desta pasta: 5296 prévia, 5297 desenvolvimento com recarga, `npm --prefix frontend run dev:pages`; o `EstudioSeries` original usa 5196).
 
 ## Limites conhecidos
-- Navegadores: Chrome e Edge funcionam. O Safari costuma bloquear um site HTTPS chamando `http://127.0.0.1`.
-- O site publicado só funciona no mesmo PC onde o Estúdio está aberto (o backend escuta só em `127.0.0.1`, de propósito).
-- Quem abrir o site sem o Estúdio vê só a tela de conexão: nada da série nem da chave fica exposto.
+- **Vozes, mixagem, miniaturas da Mesa e montagem** ainda precisam do Estúdio do PC (etapas 5 a 7 de `PUBLICAR-SEM-BACKEND.md`). No site elas avisam e não fazem nada.
+- **iPhone/Safari**: sem escolher pasta; as séries ficam no navegador e o Safari apaga dados de sites não usados há 7 dias, a menos que o site seja adicionado à Tela de Início.
+- O **download do vídeo pronto** pelo navegador só será confirmado na primeira geração paga (pode vir de outro domínio; ver `MOTOR-NAVEGADOR.md`, "Dinheiro no navegador").

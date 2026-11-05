@@ -10,23 +10,48 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
   4. OpenRouter no navegador (chave colada ou login PKCE, cotação em 2 passos, livro de custos, jobs, retomar, download).
 - Regras do brief: o projeto novo fica em `EstudioSeriesWeb`, **sem mexer no `EstudioSeries` original** (outro agente trabalha nele). Publicar no GitHub da conta **UPraggy**, autor só o Rafael, sem co-autor Claude. Repositório **público só com o OK dele**. Login no GitHub, repositório público e gasto real: perguntar a ele.
 
-## Feito
-- **05/11 06:00** — cópia do `EstudioSeries` (estado de 04/11 à noite) para `EstudioSeriesWeb`, sem `logs/`, `dist/` e `dist-pages/`.
-- **05/11 06:05** — varredura de segredos na cópia: nenhuma chave real. A única ocorrência de `sk-or-` em código é a chave **falsa** dos testes (`backend/test/fixtures/openrouter-ajuda.js`) e o filtro que apaga chaves das mensagens (`backend/src/openrouter/erros.js`).
-- **05/11 06:06** — `git init` local (branch `main`), autor `Rafael Moreira Ramos De Rezende <100146657+UPraggy@users.noreply.github.com>` (credita na conta UPraggy) e o gancho `.githooks/commit-msg` que recusa co-autor de IA.
+## Estado (05/11/2026, manhã)
+**Etapas 1 a 4: feitas e conferidas localmente.** Falta só publicar no GitHub (depende do Rafael: criar o repositório e o OK para ficar público).
+
+| Etapa | Situação |
+|---|---|
+| 1. Base do Pages | ✅ `base: './'`, `HashRouter`, `.nojekyll`, CSP por `<meta>` no build, workflow do Actions que roda `npm test` antes de publicar, modo simulado como padrão (sem chave) |
+| 2. Backend no navegador | ✅ o próprio backend empacotado pelo esbuild (`vite-plugin-motor.js`), com substitutos de `fs`, `path`, `crypto`, `os`, `stream`, `child_process`, `process` e `Buffer` |
+| 3. Armazém | ✅ OPFS (padrão), pasta real do computador (`showDirectoryPicker`, com tela "Reabrir a pasta"), IndexedDB (Safari), `persist()`, mídias por service worker com Range |
+| 4. OpenRouter no navegador | ✅ chave colada (lembrar ou só na aba), "Entrar com OpenRouter" (PKCE), modo simulado forçado, cotação em 2 passos, tetos, livro, jobs gravados, retomar pendentes ao abrir, download |
+| Testes | ✅ `npm test`: **257/257** (250 do backend + 3 dos substitutos + 10 do sistema de arquivos virtual + 7 de ponta a ponta do motor, que empacota e roda o motor no Node) |
+| Navegador | ✅ conferido no navegador do app (PC e 375 px): criar série, Sala, recarregar e continuar lá, Geração simples simulada com vídeo tocando pelo service worker, Custos, Configurações, gerações pendentes; console sem erros |
+
+## Feito (com hora)
+- **06:00** — cópia do `EstudioSeries` (estado de 04/11 à noite) para `EstudioSeriesWeb`, sem `logs/`, `dist/` e `dist-pages/`.
+- **06:05** — varredura de segredos: nenhuma chave real. `sk-or-` só na chave **falsa** dos testes, no filtro de `erros.js` e em textos de tela/doc.
+- **06:06** — `git init` (branch `main`), autor `Rafael Moreira Ramos De Rezende <100146657+UPraggy@users.noreply.github.com>`, gancho `.githooks/commit-msg` contra co-autor de IA. Commit `c9474cc` (ponto de partida).
+- **06:30** — substitutos `buffer.js`, `caminho.js`, `cripto.js` (SHA-1/SHA-256/HMAC síncronos), comparados com o Node.
+- **06:50** — `vfs.js` (sistema de arquivos virtual com fila de gravação) e `armazens.js` (memória, OPFS/pasta, IndexedDB). Casos difíceis cobertos: gravação atômica (tmp + rename), lixeira movendo pasta com vídeo grande duas vezes antes da fila andar, erro de disco que não some.
+- **07:10** — `backend/src/routes.js` dividido: o mapa de rotas foi para `controllersMapa.js` (o motor usa o mesmo mapa sem o Express). Backend: 250/250.
+- **07:20** — `vite-plugin-motor.js` + `entrada.js`: pacote do backend para o navegador (742 KB sem minificar; 157 KB gzip no site). Teste de ponta a ponta no Node: séries, catálogo, imagem e vídeo simulados com token de uso único, lixeira e restauração, e **modo real com fetch falso** (a chave só no `Authorization`, um único POST pago, vídeo baixado, custo no livro, chave em nenhum arquivo). Commit `c7bb57d`.
+- **07:20** — corrigido texto com acentos quebrados em `backend/src/edicao/midia.js` (bug que já existia no original: "nÃ£o").
+- **07:50** — telas: `motor.js` com o motor `navegador`, `fetchFunc.js`, service worker `sw-midia.js`, `Configuracoes.jsx`, `MotorTelas.jsx`, `SemMotor.jsx` com "Usar só o navegador", Séries e Custos falando onde as séries/chave ficam, link "Configurações" no menu. CSP e workflow novo. Commit `d5c87e7`.
+- **08:10** — documentação: `MOTOR-NAVEGADOR.md` (novo), `PUBLICAR-NO-PAGES.md` (reescrito para esta versão), README, CLAUDE.md, andamento no topo do `PUBLICAR-SEM-BACKEND.md`.
 
 ## Fazendo agora
-- Motor do navegador (etapas 2 e 3): o **mesmo código do backend** roda no navegador, empacotado pelo esbuild, com um sistema de arquivos virtual por cima do OPFS ou de uma pasta real. Desenho em `docs/MOTOR-NAVEGADOR.md`.
+- Publicar: criar o repositório `UPraggy/EstudioSeriesWeb`, push e Pages. Esperando o Rafael (login e OK para público).
 
 ## Próximos passos
-1. Sistema de arquivos virtual + armazéns (memória, OPFS, pasta real) com testes.
-2. Substitutos de `Buffer`, `path`, `crypto` (SHA-1, SHA-256, HMAC) e `process` com testes.
-3. Pacote do backend para o navegador (plugin do Vite) + teste de ponta a ponta no Node.
-4. Frontend: motor "navegador" no `motor.js`/`fetchFunc.js`, service worker para as mídias, tela de Configurações (motor, armazém, chave, login OpenRouter).
-5. Etapa 1: CSP, workflow do GitHub Actions, modo simulado como padrão.
-6. Conferir no navegador (PC e largura de celular).
-7. Publicar: criar o repositório na UPraggy (perguntar ao Rafael), push, Pages.
+1. **Rafael:** criar o repositório (ou deixar eu criar pelo navegador já logado) e dizer se pode ser **público** (o Pages grátis exige). Depois: push, Settings → Pages → Source: GitHub Actions.
+2. **Rafael (gasto real, com OK e custo antes):** 1ª geração paga pelo navegador para confirmar o download do vídeo (domínio do arquivo e CORS) e o `frame_images` com data URL.
+3. Testar no S23 (Chrome) e, se houver, no iPhone.
+4. Etapa 5: Mesa sem ffmpeg (miniaturas, onda e quadro por canvas e Web Audio).
+5. Etapa 6: voz (Piper Cadu em WASM; Edge só no Edge) e tratamento do áudio.
+6. Etapa 8: PWA (instalar e offline) + exportar/importar `.zip` (inclusive para levar séries do OPFS para a pasta e vice-versa).
+7. Etapa 7: render (ffmpeg.wasm), depois 10 (WebCodecs).
 
 ## Decisões
 - **Mesmo código, não porte à mão.** Em vez de reescrever ~11 mil linhas do backend em ESM, o esbuild empacota os módulos CommonJS do backend para o navegador e troca `fs`, `path`, `crypto` etc. por versões do navegador. Uma única fonte de verdade: os testes do backend continuam valendo para o motor do navegador.
-- **No Pages, o padrão é o motor do navegador.** O "Estúdio do PC" (ajudante em 127.0.0.1) vira opção na tela de Configurações, para o visitante comum não receber a pergunta de "acesso à rede local" do Chrome.
+- **No Pages, o padrão é o motor do navegador.** O "Estúdio do PC" (127.0.0.1) virou opção em Configurações, para o visitante comum não receber a pergunta de "acesso à rede local" do Chrome.
+- **Mídias por service worker**, não por URLs `blob:`: as telas continuam montando URLs comuns (nenhuma tela mudou para isso) e o `<video>` ganha Range de verdade.
+- **Portas desta pasta:** 5296 (prévia do Pages) e 5297 (desenvolvimento); o original usa 5196/4190.
+- **Chave "lembrada" por padrão** ao colar (com aviso e opção de não lembrar): sem isso, cada recarga pediria a chave de novo. A proteção real é o limite de crédito da chave.
+
+## Pendências fora desta pasta (para o `EstudioSeries` original, não mexi)
+- O mesmo acento quebrado em `backend/src/edicao/midia.js` ("Arquivo nÃ£o encontrado").
