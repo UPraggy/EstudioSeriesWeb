@@ -8,8 +8,10 @@ import MesaEditor from './components/mesa/MesaEditor';
 import GeracaoSimples from './components/GeracaoSimples';
 import Custos from './components/Custos';
 import SemMotor from './components/SemMotor';
+import Configuracoes from './components/Configuracoes';
+import { MotorAbrindo, MotorPermissao, MotorErro } from './components/MotorTelas';
 import { Pagina, Avisos, avisar } from './components/subComponents/Movimento';
-import { NO_PAGES, estadoMotor, ouvirMotor, motorPronto } from './components/funcionalidades/motor';
+import { NO_PAGES, estadoMotor, ouvirMotor, motorPronto, modoPronto } from './components/funcionalidades/motor';
 
 // Rotas:
 //   /                         -> Minhas séries
@@ -17,17 +19,22 @@ import { NO_PAGES, estadoMotor, ouvirMotor, motorPronto } from './components/fun
 //   /serie/:id/ep/:n          -> Mesa de decupagem / editor do episódio
 //   /geracao-simples          -> Geração simples (anexos + pedido)
 //   /custos                   -> Custos e saldo
+//   /configuracoes            -> Onde o Estúdio roda, onde ficam as séries, chave do OpenRouter
 // Uma única entrada orquestrada por troca de página (<Pagina/>); o resto do movimento responde a ações.
 // No site publicado (GitHub Pages) as rotas vão depois do "#" (HashRouter): recarregar não dá 404.
 const Roteador = NO_PAGES ? HashRouter : BrowserRouter;
 
-// Estado do motor híbrido (motor.js): "local", "ajudante", "procurando" ou "sem-motor".
+// Estado do motor (motor.js): "local", "navegador", "ajudante" e os de passagem ("iniciando", "procurando",
+// "precisa-permissao", "sem-motor", "erro").
 function useMotor() {
     const [m, setM] = useState(estadoMotor());
     const anterior = useRef(m.modo);
     useEffect(() => {
         const parar = ouvirMotor((novo) => {
             if (NO_PAGES && novo.modo === 'ajudante' && anterior.current !== 'ajudante') avisar('Conectado ao Estúdio do PC');
+            if (novo.modo === 'navegador' && anterior.current !== 'navegador' && novo.login) {
+                avisar(novo.login.ok ? 'Conta do OpenRouter conectada: chave criada e ativa' : novo.login.erro, novo.login.ok ? 'ok' : 'erro', 6000);
+            }
             anterior.current = novo.modo;
             setM(novo);
         });
@@ -41,7 +48,12 @@ function useMotor() {
 function Paginas({ ativaResp }) {
     const location = useLocation();
     const motor = useMotor();
-    if (NO_PAGES && motor.modo !== 'ajudante') return <SemMotor estado={motor} />;
+    if (NO_PAGES && !modoPronto(motor)) {
+        if (motor.modo === 'procurando' || motor.modo === 'sem-motor') return <SemMotor estado={motor} />;
+        if (motor.modo === 'precisa-permissao') return <MotorPermissao estado={motor} />;
+        if (motor.modo === 'erro') return <MotorErro estado={motor} />;
+        return <MotorAbrindo estado={motor} />;
+    }
     return (
         <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
@@ -50,6 +62,7 @@ function Paginas({ ativaResp }) {
                 <Route path="/serie/:id/ep/:n" element={<Pagina className="pagina-mesa"><MesaEditor ativaResp={ativaResp} /></Pagina>} />
                 <Route path="/geracao-simples" element={<Pagina><GeracaoSimples ativaResp={ativaResp} /></Pagina>} />
                 <Route path="/custos" element={<Pagina><Custos ativaResp={ativaResp} /></Pagina>} />
+                <Route path="/configuracoes" element={<Pagina><Configuracoes ativaResp={ativaResp} /></Pagina>} />
             </Routes>
         </AnimatePresence>
     );

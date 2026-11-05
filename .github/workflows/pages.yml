@@ -1,12 +1,14 @@
-# Publica o frontend do Estúdio no GitHub Pages (modo "pages": motor híbrido que procura o Estúdio do PC).
+# Testa e publica o Estúdio de Séries Web no GitHub Pages.
+# O site roda SEM backend: o próprio backend (backend/src) é empacotado para rodar dentro do navegador
+# (frontend/vite-plugin-motor.js). Por isso mudanças no backend também republicam o site.
 # Só roda depois que o repositório existir no GitHub e o Pages estiver com "Source: GitHub Actions".
-# Nada secreto entra aqui: a chave do OpenRouter continua só no PC (variável de ambiente do backend).
-name: Publicar no GitHub Pages
+# Nada secreto entra aqui: a chave do OpenRouter fica no navegador de quem usa (ou no PC, no modo Estúdio do PC).
+name: Testar e publicar no GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths: ['frontend/**', '.github/workflows/pages.yml']
+    paths: ['frontend/**', 'backend/**', 'package.json', 'package-lock.json', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -27,9 +29,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+      - run: npm ci
       - run: npm ci
         working-directory: frontend
+      # Testes do backend e do motor do navegador (rodam sem rede e sem chave).
+      - run: npm test
       - run: npm run build:pages
         working-directory: frontend
       - uses: actions/upload-pages-artifact@v3

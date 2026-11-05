@@ -12,6 +12,7 @@ const LINKS = [
     { para: '/', rotulo: 'Séries', icone: Ico.series, fim: true },
     { para: '/geracao-simples', rotulo: 'Geração simples', icone: Ico.geracaoSimples },
     { para: '/custos', rotulo: 'Custos', icone: Ico.custos },
+    { para: '/configuracoes', rotulo: 'Configurações', icone: Ico.config },
 ];
 
 // "Séries" continua marcado dentro de uma série (sala e Mesa).
@@ -37,6 +38,7 @@ function migalhasDe(caminho, titulo) {
     }
     if (caminho.startsWith('/geracao-simples')) return [{ rotulo: 'Geração simples', para: caminho }];
     if (caminho.startsWith('/custos')) return [{ rotulo: 'Custos', para: caminho }];
+    if (caminho.startsWith('/configuracoes')) return [{ rotulo: 'Configurações', para: caminho }];
     return [{ rotulo: 'Séries', para: '/' }];
 }
 
@@ -129,11 +131,13 @@ export default function TopMenu({ ativaResp }) {
     // e quando o site publicado se conecta ao Estúdio do PC (motor híbrido: "estudio:motor").
     useEffect(() => {
         carregarSaldo();
-        const aoMotor = (e) => { if (e.detail && e.detail.modo === 'ajudante') carregarSaldo(); };
+        const aoMotor = (e) => { if (e.detail && (e.detail.modo === 'ajudante' || e.detail.modo === 'navegador')) carregarSaldo(); };
         window.addEventListener('estudio:gasto', carregarSaldo);
+        window.addEventListener('estudio:chave', carregarSaldo);
         window.addEventListener('estudio:motor', aoMotor);
         return () => {
             window.removeEventListener('estudio:gasto', carregarSaldo);
+            window.removeEventListener('estudio:chave', carregarSaldo);
             window.removeEventListener('estudio:motor', aoMotor);
         };
     }, [carregarSaldo]);

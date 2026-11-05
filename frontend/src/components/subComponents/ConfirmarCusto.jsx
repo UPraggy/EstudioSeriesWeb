@@ -133,7 +133,7 @@ export default function ConfirmarCusto({
                 </ul>
             )}
             {modoSimulado && (
-                <p className="dlg-aviso"><Ico.simulado aria-hidden="true" /><span><strong>Modo simulado.</strong> Nada é cobrado e nada vai para a rede: o servidor devolve um resultado de exemplo.</span></p>
+                <p className="dlg-aviso"><Ico.simulado aria-hidden="true" /><span><strong>Modo simulado.</strong> Nada é cobrado e nada vai para a rede: o Estúdio devolve um resultado de exemplo.</span></p>
             )}
             {arquivos.length > 0 && (
                 <div className="cc-arquivos">

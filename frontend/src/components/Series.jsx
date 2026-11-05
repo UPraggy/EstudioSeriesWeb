@@ -226,7 +226,7 @@ function EsqueletoSeries() {
 }
 
 // ---------- nova série (diálogo) ----------
-function NovaSerie({ aberto, pastaDados, onFechar, onCriada }) {
+function NovaSerie({ aberto, pastaDados, ondeNavegador, onFechar, onCriada }) {
     const navegar = useNavigate();
     const [titulo, setTitulo] = useState('');
     const [genero, setGenero] = useState('');
@@ -242,7 +242,8 @@ function NovaSerie({ aberto, pastaDados, onFechar, onCriada }) {
     }, [aberto]);
 
     const id = GlobalVar.slug(titulo);
-    const raiz = `${pastaDados || 'E:\\EstudioSeriesDados'}\\series\\`;
+    const sep = ondeNavegador ? '/' : '\\';
+    const raiz = ondeNavegador ? 'series/' : `${pastaDados || 'E:\\EstudioSeriesDados'}\\series\\`;
 
     async function criar(e) {
         e.preventDefault();
@@ -279,7 +280,7 @@ function NovaSerie({ aberto, pastaDados, onFechar, onCriada }) {
                 <p className="dlg-nota" style={{ fontSize: 'var(--t-sm)', color: 'var(--texto)' }}>
                     <strong>{criada.titulo}</strong> está pronta para a etapa 1 (ideia). Pasta criada:
                 </p>
-                <pre className="dlg-arvore">{`${raiz}${criada.id}\\\n${ARQUIVOS_NOVA.map((a) => `  ${a}`).join('\n')}`}</pre>
+                <pre className="dlg-arvore">{`${raiz}${criada.id}${sep}\n${ARQUIVOS_NOVA.map((a) => `  ${a}`).join('\n')}`}</pre>
             </Dialogo>
         );
     }
@@ -322,7 +323,7 @@ function NovaSerie({ aberto, pastaDados, onFechar, onCriada }) {
                 </label>
                 <div className="dlg-campo">
                     <span>Pasta que será criada</span>
-                    <pre className="dlg-arvore" aria-live="polite">{`${raiz}${id || '<título>'}\\\n${ARQUIVOS_NOVA.map((a) => `  ${a}`).join('\n')}`}</pre>
+                    <pre className="dlg-arvore" aria-live="polite">{`${raiz}${id || '<título>'}${sep}\n${ARQUIVOS_NOVA.map((a) => `  ${a}`).join('\n')}`}</pre>
                 </div>
                 {erro && <p className="dlg-erro" role="alert"><Ico.erro aria-hidden="true" />{erro}</p>}
             </form>
@@ -335,13 +336,18 @@ export default function Series({ ativaResp }) {
     const [series, setSeries] = useState(null);
     const [erro, setErro] = useState('');
     const [pastaDados, setPastaDados] = useState('');
+    const [ondeNavegador, setOndeNavegador] = useState(''); // site sem backend: nome do armazém do navegador
     const [novaAberta, setNovaAberta] = useState(false);
     const [recarregar, setRecarregar] = useState(0);
     const [lugar] = useState(() => lerUltimoLugar());
 
     useEffect(() => {
         let vivo = true;
-        Saude().then((r) => { if (vivo && !erroDe(r)) setPastaDados(r.dados || ''); });
+        Saude().then((r) => {
+            if (!vivo || erroDe(r)) return;
+            if (r.motor === 'navegador') setOndeNavegador(r.dados || '');
+            else setPastaDados(r.dados || '');
+        });
         ListarSeries().then(async (r) => {
             if (!vivo) return;
             if (erroDe(r)) { setErro(erroDe(r)); setSeries([]); return; }
@@ -416,7 +422,9 @@ export default function Series({ ativaResp }) {
                     </Lista>
                     <p className="series-pasta">
                         <Ico.pasta aria-hidden="true" />
-                        Cada série é uma pasta em <code>{pastaDados ? `${pastaDados}\\series` : 'series/'}</code>
+                        {ondeNavegador
+                            ? <>As séries ficam em <code>{ondeNavegador}</code>. Para trocar, abra <Link to="/configuracoes">Configurações</Link>.</>
+                            : <>Cada série é uma pasta em <code>{pastaDados ? `${pastaDados}\\series` : 'series/'}</code></>}
                     </p>
                 </section>
             )}
@@ -424,6 +432,7 @@ export default function Series({ ativaResp }) {
             <NovaSerie
                 aberto={novaAberta}
                 pastaDados={pastaDados}
+                ondeNavegador={ondeNavegador}
                 onFechar={() => setNovaAberta(false)}
                 onCriada={() => setRecarregar((v) => v + 1)}
             />

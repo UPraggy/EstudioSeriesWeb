@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Ico } from './subComponents/icones';
 import { Expandir, Girador, motion, MOV } from './subComponents/Movimento';
-import { procurarMotor, definirEndereco, enderecoAjudante } from './funcionalidades/motor';
+import { procurarMotor, definirEndereco, enderecoAjudante, trocarMotor } from './funcionalidades/motor';
 import '../assets/css/SemMotor.css';
 
-// Tela do site publicado (GitHub Pages) quando o Estúdio do PC não respondeu.
-// Honesta: diz o que falta, como resolver e o que (ainda) não funciona sem o PC.
+// Tela do site publicado (GitHub Pages) quando o usuário escolheu o "Estúdio do PC" e ele não respondeu.
+// Honesta: diz o que falta, como resolver e que o motor do navegador continua disponível.
 export default function SemMotor({ estado }) {
     const procurando = estado.modo === 'procurando';
     const [editando, setEditando] = useState(false);
@@ -36,8 +36,8 @@ export default function SemMotor({ estado }) {
                 </div>
                 <h1 id="sem-motor-titulo">{procurando ? 'Procurando o Estúdio do seu PC' : 'Conecte o Estúdio do seu PC'}</h1>
                 <p className="sem-motor-lead">
-                    Este site é a interface. O trabalho de verdade (as pastas das séries, as vozes, a IA e a montagem) roda no
-                    Estúdio instalado no seu computador.
+                    Você escolheu usar o Estúdio instalado no computador (pastas das séries, vozes, IA e montagem rodando no PC).
+                    Se preferir, o site também roda sozinho, dentro do navegador.
                 </p>
 
                 <p className={`sem-motor-estado ${procurando ? 'procurando' : 'falhou'}`} role="status" aria-live="polite">
@@ -64,6 +64,10 @@ export default function SemMotor({ estado }) {
                         <Ico.config aria-hidden="true" />
                         Mudar endereço
                     </button>
+                    <button type="button" className="btn fantasma" onClick={() => trocarMotor('navegador')}>
+                        <Ico.series aria-hidden="true" />
+                        Usar só o navegador
+                    </button>
                 </div>
 
                 <Expandir aberto={editando}>
@@ -81,11 +85,12 @@ export default function SemMotor({ estado }) {
                 <div className="sem-motor-limites">
                     <h2><Ico.info aria-hidden="true" />O que funciona sem o PC</h2>
                     <p>
-                        Por enquanto, nada. O motor que roda dentro do navegador (séries guardadas no próprio navegador, IA com a
-                        sua chave, vozes e montagem) é a próxima etapa do plano.
+                        Com "Usar só o navegador": séries, bíblia, roteiro, elenco, showrunner com IA, imagens, vídeos, cotação e
+                        custos, com a sua chave do OpenRouter (ou no modo simulado, sem gastar). Vozes, mixagem, miniaturas da
+                        Mesa e a montagem final ainda precisam do Estúdio do PC.
                     </p>
                     <p>
-                        No celular, o site ainda não alcança o Estúdio do PC: por enquanto, use pelo computador.
+                        No celular, o site ainda não alcança o Estúdio do PC: use o motor do navegador.
                     </p>
                 </div>
             </motion.section>

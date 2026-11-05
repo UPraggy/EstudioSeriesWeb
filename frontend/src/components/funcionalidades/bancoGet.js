@@ -66,3 +66,6 @@ export const ApagarEpisodio = ({ serie, ep }) => fetchPost('/ApagarEpisodio', { 
 export const RefazerRoteiro = ({ serie, ep, duracaoAlvoS, semEscolha, apagarDerivados = true }) => fetchPost('/RefazerRoteiro', { serie, ep, duracaoAlvoS, semEscolha, apagarDerivados });
 export const ListarLixeira = () => fetchGet('/ListarLixeira');
 export const RestaurarDaLixeira = ({ item }) => fetchPost('/RestaurarDaLixeira', { item });
+
+// ---- Gerações pendentes: consulta (grátis) os vídeos que ficaram no OpenRouter e baixa o que ficou pronto ----
+export const RetomarJobs = ({ serie } = {}) => fetchPost('/RetomarJobs', serie ? { serie } : {});

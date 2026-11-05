@@ -39,3 +39,8 @@
   .sem-motor-cartao { padding: var(--e5); }
   .sem-motor h1 { font-size: var(--t-xl); }
 }
+
+/* Motor do navegador abrindo as séries: barra fina de progresso (motion só por transform). */
+.motor-barra { height: 4px; border-radius: 999px; background: var(--superficie-2); overflow: hidden; }
+.motor-barra span { display: block; height: 100%; background: var(--texto); transform-origin: left center;
+  transition: transform 240ms var(--ease-standard); }

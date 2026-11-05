@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import GlobalVar from './subComponents/GlobalVar';
 import { saldoDisponivel } from './subComponents/ConfirmarCusto';
 import { ListarCustos, ListarSeries, LerSerie, SaldoOpenRouter, rotaIndisponivel } from './funcionalidades/bancoGet';
+import { estadoMotor } from './funcionalidades/motor';
 import { erroDe } from './funcionalidades/fetchFunc';
 import { capaDaSerie } from './sala/serieUtil';
 import { Ico } from './subComponents/icones';
@@ -63,8 +64,10 @@ function Chave({ saldo }) {
             <p className="nota-aviso">
                 <Ico.simulado aria-hidden="true" />
                 <span>
-                    <strong>Modo simulado.</strong> O servidor está rodando sem gastar: nenhuma chamada paga é feita e o saldo da chave não é consultado.
-                    {saldo.chaveConfigurada ? ' A chave existe no ambiente; desligue o simulado para ver o saldo.' : ' Nenhuma chave configurada no ambiente.'}
+                    <strong>Modo simulado.</strong> O Estúdio está rodando sem gastar: nenhuma chamada paga é feita e o saldo da chave não é consultado.
+                    {estadoMotor().modo === 'navegador'
+                        ? <> Para gerar de verdade, entre com o OpenRouter ou cole uma chave em <Link to="/configuracoes">Configurações</Link>.</>
+                        : (saldo.chaveConfigurada ? ' A chave existe no ambiente; desligue o simulado para ver o saldo.' : ' Nenhuma chave configurada no ambiente.')}
                 </span>
             </p>
         );
@@ -179,12 +182,12 @@ export default function Custos({ ativaResp }) {
             <Resumo saldo={saldo} series={series} />
 
             <section className="secao" aria-labelledby="h-chave">
-                <div className="secao-cab"><h2 id="h-chave"><Ico.saldo aria-hidden="true" />Chave do OpenRouter</h2><p><Ico.bloqueado aria-hidden="true" />Só números: a chave nunca sai do servidor.</p></div>
+                <div className="secao-cab"><h2 id="h-chave"><Ico.saldo aria-hidden="true" />Chave do OpenRouter</h2><p><Ico.bloqueado aria-hidden="true" />{estadoMotor().modo === 'navegador' ? 'Só números: a chave fica neste navegador (Configurações).' : 'Só números: a chave nunca sai do servidor.'}</p></div>
                 <Chave saldo={saldo} />
             </section>
 
             <section className="secao" aria-labelledby="h-tetos">
-                <div className="secao-cab"><h2 id="h-tetos"><Ico.series aria-hidden="true" />Tetos por série</h2><p>Definidos em <code>serie.json → orcamento</code>. O servidor recusa qualquer pedido acima deles.</p></div>
+                <div className="secao-cab"><h2 id="h-tetos"><Ico.series aria-hidden="true" />Tetos por série</h2><p>Definidos em <code>serie.json → orcamento</code>. O Estúdio recusa qualquer pedido acima deles.</p></div>
                 {series === null && <div className="custos-esq-tabela"><Esqueleto altura={40} /><Esqueleto altura={56} /><Esqueleto altura={56} /></div>}
                 {series && series.length === 0 && (
                     <div className="custos-vazio"><Vazio icone={Ico.series} titulo="Nenhuma série ainda" texto="Os tetos aparecem aqui quando você criar a primeira série."><Link to="/" className="btn"><Ico.novo aria-hidden="true" />Ir para Séries</Link></Vazio></div>
