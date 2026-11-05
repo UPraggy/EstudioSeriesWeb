@@ -36,7 +36,8 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - **08:30** — risco achado na revisão: duas abas abertas sobrescreveriam uma à outra. Agora o motor trava em **uma aba por vez** (Web Locks) com "Usar nesta aba"; a aba antiga para na hora. Conferido com duas abas reais.
 
 ## Fazendo agora
-- Publicar: criar o repositório `UPraggy/EstudioSeriesWeb`, push e Pages. Esperando o Rafael (login e OK para público).
+- **08:40 — Rafael decidiu: repositório PÚBLICO + Pages** ("Público + Pages", eu crio pelo navegador logado).
+- O único Chrome conectado ao Claude in Chrome é o de **outro computador** (deviceId `3dd22683…`), então não usei. No navegador do app, o GitHub pediu login: esperando o Rafael entrar na conta UPraggy em github.com (painel do navegador do app) para eu criar `UPraggy/EstudioSeriesWeb`, fazer o push e ligar o Pages.
 
 ## Próximos passos
 1. **Rafael:** criar o repositório (ou deixar eu criar pelo navegador já logado) e dizer se pode ser **público** (o Pages grátis exige). Depois: push, Settings → Pages → Source: GitHub Actions.
