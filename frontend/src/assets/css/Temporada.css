@@ -1,0 +1,89 @@
+/* Mapa da temporada: trilha de episódios com o losango A/B entre eles. Rola para os lados dentro da moldura. */
+.temporada .trilha-moldura {
+  overflow-x: auto; padding: var(--e4); background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio);
+  scroll-snap-type: x proximity; scroll-padding: var(--e4);
+}
+.temporada .trilha { display: flex; align-items: center; width: max-content; margin: 0; padding: 0; list-style: none; }
+.temporada .trilha-item { scroll-snap-align: start; }
+
+.temporada .no-ep {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--e1); width: 172px; min-height: 132px; padding: var(--e3);
+  background: var(--superficie-2); border: 1px solid var(--borda); border-radius: var(--raio); color: var(--texto);
+  font: inherit; text-align: left; cursor: pointer;
+  transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard);
+}
+.temporada .no-ep:hover { border-color: var(--texto-3); background: var(--superficie-3); }
+.temporada .no-ep:active { transform: scale(0.98); }
+.temporada .no-ep.selecionado { border-color: var(--acao); box-shadow: inset 0 0 0 1px var(--acao); background: var(--superficie-3); }
+.temporada .no-ep-n { font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); }
+.temporada .no-ep-titulo { font-size: var(--t-md); font-weight: 750; font-stretch: 78%; line-height: 1.15; }
+.temporada .no-ep:not(.criado) .no-ep-titulo { color: var(--texto-2); }
+.temporada .no-ep-fase {
+  font-size: var(--t-xs); line-height: 1.4; color: var(--texto-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.temporada .no-ep .estado { margin-top: auto; padding-top: var(--e1); }
+
+.temporada .trilha-elo { position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.temporada .trilha-elo::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--borda-forte); }
+.temporada .losango {
+  position: relative; width: 26px; height: 26px; padding: 0; transform: rotate(45deg);
+  background: var(--superficie); border: 1px solid var(--texto-2); border-radius: 3px; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), transform var(--motion-base) var(--ease-spring);
+}
+.temporada .losango span { display: block; transform: rotate(-45deg); font: 700 9px/1 var(--fonte); letter-spacing: .02em; color: var(--texto); }
+.temporada .losango:hover { background: var(--superficie-3); border-color: var(--acao); transform: rotate(45deg) scale(1.12); }
+.temporada .losango.decidido { background: var(--acao); border-color: var(--acao); }
+.temporada .losango.decidido span { color: var(--acao-texto); font-size: 11px; }
+.temporada .losango:focus-visible { outline-offset: 3px; }
+.temporada .trilha-fim {
+  display: inline-flex; align-items: center; gap: 6px; padding-left: var(--e3); margin-left: var(--e3); border-left: 1px solid var(--borda-forte);
+  font-size: var(--t-xs); color: var(--texto-2); white-space: nowrap;
+}
+.temporada .trilha-fim svg { width: 14px; height: 14px; }
+.temporada .trilha-legenda { display: flex; align-items: center; gap: 6px; margin-top: var(--e2); font-size: var(--t-xs); color: var(--texto-2); }
+.temporada .trilha-legenda svg { width: 14px; height: 14px; flex: none; }
+
+/* detalhe do episódio escolhido */
+.temporada .ep-detalhe { margin-top: var(--e5); }
+.temporada .ep-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--e4); flex-wrap: wrap; }
+.temporada .ep-sobre { font-size: var(--t-sm); font-weight: 550; color: var(--texto-2); }
+.temporada .ep-titulo { margin-top: 2px; font-size: 34px; font-weight: 800; font-stretch: 70%; line-height: 1; letter-spacing: -0.005em; }
+.temporada .ep-meta { display: inline-flex; align-items: center; gap: 6px; margin-top: var(--e2) !important; font-size: var(--t-sm); color: var(--texto-2); }
+.temporada .ep-meta svg { width: 15px; height: 15px; color: var(--texto-3); }
+.temporada .ep-cab .btn { text-decoration: none; }
+.temporada .ep-quadros { display: flex; gap: var(--e2); margin: var(--e5) 0 0; padding: 0 0 var(--e1); list-style: none; overflow-x: auto; }
+.temporada .ep-quadros li { flex: 0 0 84px; display: flex; flex-direction: column; gap: 4px; }
+.temporada .ep-quadro-img { aspect-ratio: 9 / 16; overflow: hidden; border-radius: var(--raio-sm); background: var(--superficie-2); }
+.temporada .ep-quadro-img .foto { transition: transform var(--motion-slow) var(--ease-emphasized); }
+.temporada .ep-quadro-img:hover .foto { transform: scale(1.05); }
+.temporada .ep-quadro-img .sem-foto svg { width: 18px; height: 18px; }
+.temporada .ep-quadros span { font-size: var(--t-xs); color: var(--texto-2); white-space: nowrap; }
+.temporada .ep-quadro-rot b { display: block; font-weight: 650; color: var(--texto); }
+.temporada .ep-texto { margin-top: var(--e4); display: flex; flex-direction: column; gap: var(--e2); max-width: 760px; font-size: var(--t-md); line-height: 1.6; }
+.temporada .ep-gancho strong { font-weight: 650; }
+
+.temporada .ep-escolha { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e3); margin-top: var(--e5); }
+.temporada .opcao { display: flex; gap: var(--e3); padding: var(--e3) var(--e4); border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--superficie-2); font-size: var(--t-sm); }
+.temporada .opcao strong { font-weight: 700; letter-spacing: .01em; }
+.temporada .opcao p { margin-top: 2px; color: var(--texto-2); }
+.temporada .opcao-letra {
+  flex: none; min-width: 30px; height: 30px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+  border: 1px solid var(--texto-2); border-radius: var(--raio-sm); color: var(--texto); font-weight: 750; font-size: var(--t-md);
+}
+.temporada .opcao-letra svg { width: 14px; height: 14px; stroke-width: 3; }
+.temporada .opcao.venceu { border-color: var(--ok-borda); background: var(--ok-suave); }
+.temporada .opcao.venceu .opcao-letra { background: var(--ok); border-color: var(--ok); color: var(--acao-texto); }
+.temporada .ep-votacao { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: var(--e3); flex-wrap: wrap; padding-top: var(--e1); }
+.temporada .ep-sem-escolha { margin-top: var(--e4); font-size: var(--t-sm); }
+
+.votacao-form { display: flex; flex-direction: column; gap: var(--e4); }
+.votacao-previa { margin: 0; padding: var(--e2) var(--e3); border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--superficie-2); font-size: var(--t-sm); font-weight: 600; }
+
+@media (max-width: 767px) {
+  .temporada .trilha-moldura { margin: 0 -16px; border-left: 0; border-right: 0; border-radius: 0; }
+  .temporada .no-ep { width: 156px; }
+  .temporada .ep-titulo { font-size: 28px; }
+  .temporada .ep-escolha { grid-template-columns: 1fr; }
+  .temporada .ep-cab .acoes { width: 100%; }
+}

@@ -1,0 +1,182 @@
+/* LINHA DO TEMPO: uma caixa de rolagem; régua presa no topo e nomes das faixas presos à esquerda.
+   Cor só nas faixas (personagem), vermelho só no cursor e no "gerando", ação em branco-papel. */
+.lt { flex: 0 0 auto; height: clamp(300px, 44vh, 460px); display: flex; flex-direction: column; background: var(--ed-painel); border-top: 1px solid var(--ed-borda); min-height: 0; }
+
+/* ---------- barra de ferramentas ---------- */
+.lt-barra { flex: 0 0 40px; display: flex; align-items: center; gap: var(--e3); padding: 0 var(--e2) 0 var(--e3); border-bottom: 1px solid var(--ed-borda); }
+.lt-grupo { display: flex; align-items: center; gap: 4px; }
+.lt-sep { width: 1px; height: 18px; margin: 0 4px; background: var(--ed-borda); }
+.lt-info { flex: 1 1 auto; min-width: 0; display: flex; justify-content: center; font-size: 12px; color: var(--ed-texto-3); white-space: nowrap; overflow: hidden; }
+.lt-dica { display: inline-flex; align-items: center; gap: 6px; }
+.lt-dica svg { width: 13px; height: 13px; }
+.lt-info-trecho { display: inline-flex; align-items: baseline; gap: 8px; color: var(--ed-texto); }
+.lt-info-rotulo { font-weight: 600; color: var(--ed-texto-2); }
+.lt-zoom { margin-left: auto; }
+.mesa input.lt-zoom-faixa { width: 112px; height: 4px; margin: 0 2px; padding: 0; cursor: pointer; }
+
+/* atalhos do teclado (flutua: leva sombra) */
+.lt-atalhos-ancora { position: relative; }
+.lt-atalhos {
+  position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 30; width: 392px; padding: var(--e2) var(--e3) var(--e3);
+  background: var(--superficie-3); border-radius: var(--raio); box-shadow: var(--sombra-flutuante); transform-origin: bottom right;
+}
+.lt-atalhos-cab { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid var(--borda-forte); }
+.lt-atalhos-cab strong { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 640; }
+.lt-atalhos-cab strong svg { width: 15px; height: 15px; color: var(--ed-texto-2); }
+.lt-atalhos dl { margin: 0; display: flex; flex-direction: column; }
+.lt-atalho { display: grid; grid-template-columns: 118px 1fr; align-items: center; gap: 10px; padding: 3px 0; }
+.lt-atalho dt { display: flex; gap: 3px; flex-wrap: wrap; }
+.lt-atalho dd { margin: 0; font-size: 12px; color: var(--ed-texto-2); }
+
+/* ---------- área rolável ---------- */
+.lt-rolagem { flex: 1 1 auto; min-height: 0; overflow: auto; position: relative; background: var(--ed-fundo); overscroll-behavior: contain; }
+.lt-conteudo { position: relative; min-height: 100%; user-select: none; }
+.lt-linha { display: flex; position: relative; border-bottom: 1px solid rgba(255, 255, 255, 0.035); }
+.lt-linha-regua { position: sticky; top: 0; z-index: 4; height: 40px; background: var(--ed-painel); border-bottom: 1px solid var(--ed-borda); }
+
+.lt-cab {
+  position: sticky; left: 0; z-index: 3; flex: 0 0 148px; width: 148px; display: flex; align-items: center; gap: 8px;
+  padding: 0 10px 0 12px; background: var(--ed-painel); border-right: 1px solid var(--ed-borda); font-size: 12px; color: var(--ed-texto-2);
+  white-space: nowrap; overflow: hidden;
+}
+/* a cor do personagem / faixa aparece no ícone e numa régua fina à esquerda */
+.lt-cab.com-cor::before { content: ""; position: absolute; left: 0; top: 5px; bottom: 5px; width: 3px; border-radius: 0 2px 2px 0; background: var(--cor-faixa); }
+.lt-cab-ico { width: 14px; height: 14px; flex: none; color: var(--cor-faixa, var(--ed-texto-3)); }
+.lt-cab-nome { overflow: hidden; text-overflow: ellipsis; }
+.lt-cab.canto { z-index: 5; }
+.lt-canto-tc { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ed-texto-3); }
+.lt-canto-tc svg { width: 13px; height: 13px; }
+.lt-cab.video { color: var(--ed-texto); font-weight: 600; }
+.lt-cab.video .lt-cab-ico { color: var(--ed-texto-2); }
+
+/* ---------- régua ---------- */
+.lt-regua { position: relative; height: 100%; flex: 0 0 auto; cursor: crosshair; }
+.lt-marca { position: absolute; top: 0; height: 22px; border-left: 1px solid rgba(255, 255, 255, 0.08); }
+.lt-marca.forte { border-left-color: rgba(255, 255, 255, 0.2); }
+.lt-marca span { position: absolute; left: 4px; top: 4px; font-size: 10.5px !important; color: var(--ed-texto-3); white-space: nowrap; }
+.lt-quadro { position: absolute; top: 16px; height: 6px; border-left: 1px solid rgba(255, 255, 255, 0.07); }
+.lt-planos { position: absolute; left: 0; right: 0; bottom: 0; height: 17px; }
+.lt-plano {
+  position: absolute; top: 0; bottom: 2px; border-left: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.025);
+  font-size: 10.5px; font-weight: 600; line-height: 15px; color: var(--ed-texto-3); padding-left: 5px; overflow: hidden; white-space: nowrap;
+  border-radius: 0 2px 0 0; transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
+}
+.lt-plano.par { background: rgba(255, 255, 255, 0.05); }
+.lt-plano.sel { background: var(--ed-selecao); color: var(--ed-texto); }
+.lt-alvo { position: absolute; top: 0; bottom: 0; border-left: 1px dashed rgba(237, 235, 230, 0.45); pointer-events: none; }
+.lt-alvo::before { content: ""; position: absolute; left: -4px; top: 0; border: 4px solid transparent; border-top: 5px solid rgba(237, 235, 230, 0.6); }
+.lt-trecho-regua { position: absolute; top: 0; height: 22px; background: rgba(237, 235, 230, 0.2); border-left: 1px solid var(--acao); border-right: 1px solid var(--acao); pointer-events: none; }
+
+/* ---------- faixas ---------- */
+.lt-lane { position: relative; height: 100%; flex: 0 0 auto; }
+.lt-linha.f-video .lt-lane { background: rgba(255, 255, 255, 0.015); }
+.lt-alem { position: absolute; top: 0; bottom: 0; right: 0; background: rgba(0, 0, 0, 0.32); pointer-events: none; }
+
+.lt-clipe {
+  position: absolute; top: 3px; bottom: 3px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 5px; background: var(--ed-painel-2);
+  overflow: hidden; cursor: grab;
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), opacity var(--motion-fast);
+}
+.lt-clipe:hover { border-color: rgba(237, 235, 230, 0.42); }
+/* entrada: na primeira carga em cascata (atraso inline); depois, só o clipe NOVO (dividir, soltar do acervo) entra.
+   A seleção soma uma animação à lista sem reiniciar a de entrada. */
+.lt-clipe { animation: lt-entra var(--motion-slow) var(--ease-emphasized) both; transform-origin: left center; }
+@keyframes lt-entra { from { opacity: 0; transform: translateY(5px) scaleX(0.94); } }
+.lt-clipe.sel {
+  border-color: var(--acao); box-shadow: 0 0 0 1px var(--acao); z-index: 2;
+  animation: lt-entra var(--motion-slow) var(--ease-emphasized) both, lt-sel var(--motion-base) var(--ease-emphasized);
+}
+@keyframes lt-sel { from { box-shadow: 0 0 0 4px rgba(237, 235, 230, 0); border-color: rgba(237, 235, 230, 0.4); } }
+.lt-clipe.movendo { z-index: 3; opacity: 0.92; cursor: grabbing; }
+.lt-clipe.novo:not(.sel) { border-color: var(--ok-borda); }
+.lt-clipe.sem-audio { border-style: dashed; }
+.lt-clipe.f-texto { background: var(--ed-painel-3); border-color: rgba(255, 255, 255, 0.12); }
+.lt-clipe.f-ab { background: rgba(231, 185, 95, 0.12); border-color: rgba(231, 185, 95, 0.45); }
+.lt-clipe.f-ambiente { background: rgba(139, 154, 136, 0.13); border-color: rgba(139, 154, 136, 0.42); }
+.lt-clipe.f-legenda { background: var(--ed-painel); }
+.lt-clipe.f-legenda.manual { border-style: dashed; }
+.lt-clipe.f-efeitos { border-color: rgba(224, 122, 110, 0.5); }
+.lt-clipe.sel.f-texto, .lt-clipe.sel.f-ab, .lt-clipe.sel.f-legenda, .lt-clipe.sel.f-ambiente, .lt-clipe.sel.f-efeitos { border-color: var(--acao); }
+
+/* alças de aparar: aparecem no hover, com o cursor certo */
+.lt-borda { position: absolute; top: 0; bottom: 0; width: 7px; cursor: ew-resize; z-index: 2; }
+.lt-borda::after {
+  content: ""; position: absolute; top: 50%; width: 2px; height: 50%; max-height: 20px; border-radius: 1px; background: var(--acao);
+  transform: translateY(-50%) scaleY(0.4); opacity: 0;
+  transition: opacity var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-emphasized);
+}
+.lt-borda.ini { left: 0; } .lt-borda.ini::after { left: 2px; }
+.lt-borda.fim { right: 0; } .lt-borda.fim::after { right: 2px; }
+.lt-clipe:hover .lt-borda::after, .lt-clipe.sel .lt-borda::after { opacity: 0.55; transform: translateY(-50%) scaleY(1); }
+.lt-borda:hover::after { opacity: 1 !important; }
+.lt-clipe.estreito .lt-borda::after { display: none; }
+
+.lt-rotulo {
+  position: absolute; left: 6px; right: 6px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px;
+  font-size: 11.5px; line-height: 15px; color: var(--ed-texto); white-space: nowrap; overflow: hidden; pointer-events: none; z-index: 1;
+}
+.lt-linha.f-video .lt-rotulo { top: 4px; transform: none; }
+.lt-rotulo-txt { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.lt-rotulo.sobre { right: auto; max-width: calc(100% - 12px); background: rgba(10, 10, 11, 0.72); padding: 1px 6px; border-radius: var(--raio-sm); }
+/* nas faixas de áudio o rótulo fica numa plaquinha por cima da onda, para ler */
+.lt-clipe.f-narracao .lt-rotulo, .lt-clipe.f-falas .lt-rotulo, .lt-clipe.f-efeitos .lt-rotulo {
+  right: auto; max-width: calc(100% - 12px); background: rgba(10, 10, 11, 0.62); padding: 0 5px; border-radius: var(--raio-sm);
+}
+/* alça de arrastar: entra deslizando no hover (o rótulo anda junto) */
+.lt-alca {
+  width: 0; height: 12px; flex: none; margin-right: -4px; color: var(--ed-texto-2); opacity: 0;
+  transition: width var(--motion-fast) var(--ease-emphasized), margin var(--motion-fast) var(--ease-emphasized), opacity var(--motion-fast) var(--ease-standard);
+}
+.lt-clipe:hover .lt-alca, .lt-clipe.sel .lt-alca { width: 12px; margin-right: 0; opacity: 1; }
+.lt-clipe.estreito .lt-alca { display: none; }
+.lt-selo-ico { width: 12px; height: 12px; flex: none; color: var(--ed-texto-2); }
+.lt-selo { display: inline-flex; align-items: center; gap: 3px; flex: none; font-size: 10.5px; font-weight: 600; color: var(--ed-texto-2); }
+.lt-selo svg { width: 11px; height: 11px; }
+.lt-selo.aviso { color: var(--aviso); }
+
+/* tira de quadros e onda chegam do servidor: aparecem com um fade curto em vez de "pular" na tela */
+.lt-minis, .lt-mini-img { position: absolute; inset: 0; animation: mesa-aparece var(--motion-slow) var(--ease-standard) both; }
+.lt-onda { animation: mesa-aparece var(--motion-slow) var(--ease-standard) both; }
+@keyframes mesa-aparece { from { opacity: 0; } }
+.lt-mini { position: absolute; top: 0; background-repeat: no-repeat; opacity: 0.92; }
+.lt-mini-img { background-repeat: repeat-x; background-position: left center; opacity: 0.92; }
+.lt-onda { position: absolute; left: 0; top: 2px; pointer-events: none; }
+
+/* regeração em andamento: ponto vivo vermelho (o vermelho é do "gerando") */
+.lt-gerando {
+  position: absolute; top: 3px; bottom: 3px; z-index: 3; border: 1px dashed var(--sinal); border-radius: 5px; background: rgba(229, 72, 77, 0.12);
+  display: flex; align-items: center; justify-content: center; pointer-events: none; overflow: hidden;
+}
+.lt-gerando .estado { color: var(--sinal); background: rgba(10, 10, 11, 0.78); padding: 2px 7px; border-radius: var(--raio-sm); }
+.lt-soltar { position: absolute; top: 0; bottom: 0; border-left: 2px solid var(--acao); pointer-events: none; z-index: 4; }
+.lt-soltar::before { content: ""; position: absolute; left: -6px; top: 0; border: 5px solid transparent; border-top: 6px solid var(--acao); }
+
+/* ---------- trecho, guia do imã e cursor ---------- */
+.lt-trecho {
+  position: absolute; top: 40px; bottom: 0; z-index: 1; pointer-events: none;
+  background: var(--ed-selecao); border-left: 1px solid var(--acao); border-right: 1px solid var(--acao);
+}
+.lt-guia { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px solid var(--aviso); z-index: 3; pointer-events: none; }
+.lt-cursor-linha { position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: var(--ed-cursor); z-index: 2; pointer-events: none; will-change: transform; }
+.lt-cursor-cabeca { position: sticky; top: 0; height: 0; width: 0; z-index: 6; will-change: transform; }
+.lt-cursor-linha.pula, .lt-cursor-cabeca.pula { transition: transform 140ms var(--ease-emphasized); }
+.lt-cursor-pega {
+  position: absolute; left: -7px; top: 1px; width: 14px; height: 16px; background: var(--ed-cursor); cursor: ew-resize;
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%); border-radius: 2px 2px 0 0;
+  transition: transform var(--motion-fast) var(--ease-spring);
+}
+.lt-cursor-pega:hover, .lt-cursor-cabeca.arrastando .lt-cursor-pega { transform: scale(1.15); }
+.lt-cursor-cabeca::after { content: ''; position: absolute; left: -1px; top: 15px; height: 25px; width: 2px; background: var(--ed-cursor); pointer-events: none; }
+.lt-cursor-tc {
+  position: absolute; left: 10px; top: 1px; padding: 0 6px; border-radius: var(--raio-sm); background: rgba(10, 10, 11, 0.92); color: #fff;
+  border: 1px solid var(--ed-cursor);
+  font-size: 11px !important; font-weight: 600; line-height: 15px; white-space: nowrap; pointer-events: none;
+  opacity: 0; transform: translateX(-4px); transition: opacity var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-emphasized);
+}
+.lt-cursor-cabeca.arrastando .lt-cursor-tc { opacity: 1; transform: none; }
+
+/* cursor do mouse enquanto arrasta (vale para a página toda) */
+body[data-mesa-arrasto="mover"], body[data-mesa-arrasto="mover"] * { cursor: grabbing !important; }
+body[data-mesa-arrasto="aparar"], body[data-mesa-arrasto="aparar"] *,
+body[data-mesa-arrasto="percorrer"], body[data-mesa-arrasto="percorrer"] * { cursor: ew-resize !important; }
+body[data-mesa-arrasto="trecho"], body[data-mesa-arrasto="trecho"] * { cursor: crosshair !important; }

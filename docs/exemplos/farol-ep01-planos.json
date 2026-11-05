@@ -1,0 +1,97 @@
+{
+  "versao": 1,
+  "ordemGeracao": [3, 6, 5, 2, 8],
+  "resumoCusto": { "videoUsd": 0.72, "apresentadorUsd": 0.8, "quadrosChaveUsd": 0.12, "totalUsd": 1.64 },
+  "planos": [
+    {
+      "n": 1, "tipo": "reaproveitar", "duracaoS": 5,
+      "prompt": "Clipe existente do Flow: farol na ilhota à noite (maquetes/img/farol.jpg). Usar 5 s com aproximação lenta, sem som original.",
+      "descricaoPt": "Reaproveita o clipe do farol que já existe (o farol não tem problema de rosto).",
+      "ancoras": ["farol"],
+      "quadroChave": null, "quadroFinal": null, "modelo": null, "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0, "dependeDe": [], "takes": [], "takeEscolhido": null
+    },
+    {
+      "n": 2, "tipo": "apresentador", "duracaoS": 10,
+      "prompt": "The narrator sits in the leather armchair, calm, slight lean forward, speaking to the camera; soft golden lamp light.",
+      "descricaoPt": "Narrador na poltrona fala para a câmera (lip-sync com a voz Florian já gerada).",
+      "ancoras": ["narrador", "biblioteca"],
+      "quadroChave": { "origem": "ref", "caminho": "elenco/narrador/ref/padrao-frente.png", "aprovado": false },
+      "quadroFinal": null, "modelo": "heygen/avatar-iv", "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0.5, "dependeDe": [], "takes": [], "takeEscolhido": null
+    },
+    {
+      "n": 3, "tipo": "video_ia", "duracaoS": 8,
+      "promptPartes": {
+        "camera": "Medium shot from the side at eye level, slow push-in",
+        "sujeito": "Mara, a woman in her early 30s, dark hair tied back in a low bun, dark waterproof work jacket with a reflective strip, tired but firm face, seen in profile, mouth closed",
+        "acao": "she turns the dial of the grey marine VHF radio and freezes, listening; through the large window behind her, city districts go dark one block at a time",
+        "contexto": "lighthouse control room at night, old green metal control panel, large window facing the sea and the distant city, cold light",
+        "estilo": "cinematic and realistic, muted teal and amber palette, quiet suspense, vertical 9:16, no on-screen text, no blood"
+      },
+      "prompt": "Camera: Medium shot from the side at eye level, slow push-in. Subject: Mara, a woman in her early 30s, dark hair tied back in a low bun, dark waterproof work jacket with a reflective strip, tired but firm face, seen in profile, mouth closed. Action: she turns the dial of the grey marine VHF radio and freezes, listening; through the large window behind her, city districts go dark one block at a time. Context: lighthouse control room at night, old green metal control panel, large window facing the sea and the distant city, cold light. Style: cinematic and realistic, muted teal and amber palette, quiet suspense, vertical 9:16, no on-screen text, no blood.",
+      "descricaoPt": "Mara de perfil no rádio; pela janela a cidade apaga. Define o visual da Mara: gerar e aprovar primeiro.",
+      "ancoras": ["mara", "sala", "radio"],
+      "quadroChave": { "origem": "imagem_ia", "caminho": "quadros/p03.png", "aprovado": false },
+      "quadroFinal": null, "modelo": "google/veo-3.1-lite", "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0.24, "dependeDe": [], "takes": [], "takeEscolhido": null
+    },
+    {
+      "n": 4, "tipo": "reaproveitar", "duracaoS": 6,
+      "prompt": "Clipe existente do Flow: POV de binóculos no cais do terminal (maquetes/img/cais-binoculos.jpg). Cortar antes do contato com o socorrista.",
+      "descricaoPt": "Reaproveita o POV dos binóculos (não mostra a Mara).",
+      "ancoras": ["cidade"],
+      "quadroChave": null, "quadroFinal": null, "modelo": null, "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0, "dependeDe": [], "takes": [], "takeEscolhido": null
+    },
+    {
+      "n": 5, "tipo": "video_ia", "duracaoS": 8,
+      "promptPartes": {
+        "camera": "Medium-wide shot from behind, static camera, low angle",
+        "sujeito": "Mara, a woman in her early 30s, dark hair tied back in a low bun, dark waterproof work jacket with a reflective strip, dark cargo pants, black rubber boots, seen from behind",
+        "acao": "she slides a heavy rusty metal bar across the steel dock door to lock it, then rests her forehead against the door for one breath",
+        "contexto": "lighthouse ground floor at night, steel dock door, emergency hatch above, damp stone wall, a single caged work lamp",
+        "estilo": "cinematic and realistic, cold blue light with a warm lamp, tense, vertical 9:16, no on-screen text, no blood"
+      },
+      "prompt": "Camera: Medium-wide shot from behind, static camera, low angle. Subject: Mara, a woman in her early 30s, dark hair tied back in a low bun, dark waterproof work jacket with a reflective strip, dark cargo pants, black rubber boots, seen from behind. Action: she slides a heavy rusty metal bar across the steel dock door to lock it, then rests her forehead against the door for one breath. Context: lighthouse ground floor at night, steel dock door, emergency hatch above, damp stone wall, a single caged work lamp. Style: cinematic and realistic, cold blue light with a warm lamp, tense, vertical 9:16, no on-screen text, no blood.",
+      "descricaoPt": "Mara de costas trava a porta do cais com a barra. Depois do plano 3 (mesma Mara aprovada).",
+      "ancoras": ["mara", "porta", "barra"],
+      "quadroChave": { "origem": "imagem_ia", "caminho": "quadros/p05.png", "aprovado": false },
+      "quadroFinal": null, "modelo": "google/veo-3.1-lite", "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0.24, "dependeDe": [3], "takes": [], "takeEscolhido": null
+    },
+    {
+      "n": 6, "tipo": "video_ia", "duracaoS": 8,
+      "promptPartes": {
+        "camera": "Wide shot from the stern, handheld, slight sway",
+        "sujeito": "Davi, a man in his mid 20s, short wet brown hair, yellow rain jacket over an orange ferry-terminal safety vest, seen from behind holding a handheld radio; a small child wrapped in a grey blanket; a middle-aged man in a dark coat",
+        "acao": "Davi raises the radio and calls out toward the dark sea; behind him the man in the dark coat quietly pulls his sleeve down over a bandaged wrist",
+        "contexto": "small aluminium motorboat at night in the east channel, reefs breaking the surface nearby, rough waves, light rain, the unlit lighthouse silhouette in the distance",
+        "estilo": "cinematic and realistic, dark blue night, suspense, vertical 9:16, no on-screen text, no blood"
+      },
+      "prompt": "Camera: Wide shot from the stern, handheld, slight sway. Subject: Davi, a man in his mid 20s, short wet brown hair, yellow rain jacket over an orange ferry-terminal safety vest, seen from behind holding a handheld radio; a small child wrapped in a grey blanket; a middle-aged man in a dark coat. Action: Davi raises the radio and calls out toward the dark sea; behind him the man in the dark coat quietly pulls his sleeve down over a bandaged wrist. Context: small aluminium motorboat at night in the east channel, reefs breaking the surface nearby, rough waves, light rain, the unlit lighthouse silhouette in the distance. Style: cinematic and realistic, dark blue night, suspense, vertical 9:16, no on-screen text, no blood.",
+      "descricaoPt": "Davi de costas no rádio; o passageiro esconde o pulso enfaixado (segredo do público). Define o visual do Davi. Plano de 9 s com clipe de 8 s (esticar 1,13× na montagem).",
+      "ancoras": ["davi", "canal", "lancha"],
+      "quadroChave": { "origem": "imagem_ia", "caminho": "quadros/p06.png", "aprovado": false },
+      "quadroFinal": null, "modelo": "google/veo-3.1-lite", "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0.24, "dependeDe": [], "takes": [], "takeEscolhido": null
+    },
+    {
+      "n": 7, "tipo": "reaproveitar", "duracaoS": 8,
+      "prompt": "Clipe existente do Flow: mão sobre o interruptor (maquetes/img/mao-interruptor.jpg). Os cartões A/B entram na montagem aos 48 s.",
+      "descricaoPt": "Reaproveita a mão no interruptor (só a mão: sem problema de rosto).",
+      "ancoras": ["sala", "interruptor"],
+      "quadroChave": null, "quadroFinal": null, "modelo": null, "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0, "dependeDe": [], "takes": [], "takeEscolhido": null
+    },
+    {
+      "n": 8, "tipo": "apresentador", "duracaoS": 6,
+      "prompt": "The narrator leans forward and points at the camera, serious; golden lamp light.",
+      "descricaoPt": "Narrador aponta: \"Comente A ou B.\"",
+      "ancoras": ["narrador", "biblioteca"],
+      "quadroChave": { "origem": "ref", "caminho": "elenco/narrador/ref/padrao-frente.png", "aprovado": false },
+      "quadroFinal": null, "modelo": "heygen/avatar-iv", "resolucao": "720p", "audio": false,
+      "custoPrevistoUsd": 0.3, "dependeDe": [], "takes": [], "takeEscolhido": null
+    }
+  ]
+}

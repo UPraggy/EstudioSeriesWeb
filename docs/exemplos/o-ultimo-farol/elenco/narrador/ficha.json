@@ -1,0 +1,10 @@
+{
+  "versao": 1, "id": "narrador", "tipo": "personagem", "nome": "O Narrador", "papel": "Apresentador da série (biblioteca); abre, situa e fecha cada episódio",
+  "apresentador": true,
+  "ancora": "homem de ~40 anos, cabelo escuro penteado para trás, barba curta, camisa preta, poltrona de couro numa biblioteca com abajur dourado e globo",
+  "ancoraEn": "man in his 40s, dark slicked-back hair, short beard, black shirt, sitting in a leather armchair in a dark library with a golden lamp and a globe",
+  "voz": "de-DE-FlorianMultilingualNeural", "tom": "-4Hz",
+  "estados": [ { "id": "padrao", "desde": "ep01", "descricao": "camisa preta, poltrona",
+                 "refs": { "frente": "ref/padrao-frente.png", "corpo": "ref/padrao-corpo.png" } } ],
+  "estadoAtual": "padrao", "canonica": "ref/padrao-frente.png", "origem": "importada"
+}

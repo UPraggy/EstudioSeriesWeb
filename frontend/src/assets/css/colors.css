@@ -1,0 +1,81 @@
+/* Tokens visuais do Estúdio de Séries — TEMA ESCURO por padrão (pedido do Rafael, 04/11/2026).
+   Ideia: uma ilha de edição. Fundo grafite NEUTRO (não tinge a cor do vídeo, como no DaVinci/Avid),
+   interface monocromática em branco-papel e a cor fica para o conteúdo: miniaturas, personagens e estados.
+   Regras: sem gradiente decorativo, sem brilho/vidro, sem emoji; ação = branco-papel; vermelho = cursor/gravando.
+   Guia completo: docs/GUIA-VISUAL.md */
+:root {
+  color-scheme: dark;
+
+  /* casca (grafite neutro em camadas: quanto mais alto, mais claro) */
+  --fundo: #1A1B1D;
+  --superficie: #212225;
+  --superficie-2: #292A2E;
+  --superficie-3: #323438;
+  --texto: #EDEBE6;
+  --texto-2: #ABA8A1;
+  --texto-3: #8B8983;
+  --borda: #303236;
+  --borda-forte: #45484D;
+
+  /* ação = branco-papel (botão principal cheio; o resto é contorno ou texto) */
+  --acao: #EDEBE6;
+  --acao-hover: #FFFFFF;
+  --acao-texto: #18191B;
+  --acao-suave: rgba(237, 235, 230, 0.10);
+  --foco: #EDEBE6;
+
+  /* estados (sempre com ícone junto, nunca só a cor) */
+  --perigo: #F2786D;
+  --perigo-suave: rgba(242, 120, 109, 0.12);
+  --perigo-borda: rgba(242, 120, 109, 0.38);
+  --ok: #72C793;
+  --ok-suave: rgba(114, 199, 147, 0.12);
+  --ok-borda: rgba(114, 199, 147, 0.36);
+  --aviso: #E7B95F;
+  --aviso-suave: rgba(231, 185, 95, 0.12);
+  --aviso-borda: rgba(231, 185, 95, 0.36);
+  --sinal: #E5484D; /* cursor da linha do tempo, "gravando", "gerando" */
+
+  /* editor (um degrau mais escuro que a casca: o vídeo é o que mais brilha) */
+  --ed-fundo: #141517;
+  --ed-painel: #1B1C1F;
+  --ed-painel-2: #232428;
+  --ed-borda: #2C2E32;
+  --ed-texto: #EAE7E0;
+  --ed-texto-2: #A29E96;
+  --ed-cursor: #E5484D;
+  --ed-selecao: rgba(237, 235, 230, 0.14);
+
+  /* cores por personagem / faixa (iguais às legendas) */
+  --cor-narrador: #E3DCCB;
+  --cor-mara: #E3A94B;
+  --cor-davi: #7FB3D5;
+  --cor-radio: #E07A6E;
+  --cor-ambiente: #8B9A88;
+  --cor-video: #5E7A99;
+
+  /* tipografia: Archivo (variável, com largura) na interface; Courier Prime só na página de roteiro */
+  --fonte: "Archivo Variable", "Segoe UI", system-ui, sans-serif;
+  --fonte-roteiro: "Courier Prime", "Courier New", monospace;
+  --fonte-mono: "Cascadia Mono", Consolas, "SF Mono", monospace; /* só timecode */
+  --t-xs: 12px; --t-sm: 13px; --t-md: 15px; --t-lg: 18px; --t-xl: 24px; --t-2xl: 32px;
+  --largura-titulo: 86%; /* font-stretch dos títulos: levemente condensado, como crédito de filme */
+
+  /* forma: o raio cresce com a camada (controle < painel < diálogo) */
+  --raio-sm: 4px; --raio: 8px; --raio-lg: 12px;
+  --e1: 4px; --e2: 8px; --e3: 12px; --e4: 16px; --e5: 24px; --e6: 32px; --e7: 48px;
+  --sombra: none; /* nada flutua na casca */
+  --sombra-flutuante: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--borda-forte);
+
+  /* motion (gerado pelo VisualInspector: motion_tokens_generate) */
+  --motion-instant: 80ms;
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 400ms;
+  --motion-slower: 640ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}

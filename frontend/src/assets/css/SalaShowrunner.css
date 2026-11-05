@@ -1,0 +1,113 @@
+/* Sala do showrunner: cabeçalho de cena (quadros da série sob um véu escuro + título como cartaz) e abas. */
+.sala { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.sala .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- cabeçalho de cena ---------- */
+.sala-cena {
+  position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: flex-end;
+  min-height: 380px; background: var(--fundo); border-bottom: 1px solid var(--borda);
+}
+.sala-cena .cena-quadros {
+  position: absolute; z-index: -2; top: 0; right: 0; bottom: 0; width: min(66%, 980px);
+  display: flex; flex-direction: row-reverse; gap: 2px; /* a capa (primeiro quadro) fica na ponta direita, a mais visível */
+}
+.sala-cena .cena-quadro { flex: none; height: 100%; aspect-ratio: 9 / 16; overflow: hidden; background: var(--superficie-2); }
+.sala-cena .cena-quadro img { display: block; width: 100%; height: 100%; object-fit: cover;
+  animation: cena-quadro-entra var(--motion-slower) var(--ease-emphasized) both; animation-delay: calc(var(--i, 0) * 70ms + 60ms); }
+/* entrada única da tela: cada quadro clareia e assenta (a capa primeiro, na ponta direita) */
+@keyframes cena-quadro-entra { from { opacity: 0; transform: scale(1.08); } }
+.sala-cena .cena-titulo { animation: cena-titulo-entra var(--motion-slow) var(--ease-emphasized) both; animation-delay: 40ms; }
+@keyframes cena-titulo-entra { from { opacity: 0; transform: translateY(10px); } }
+/* véu: só para dar leitura ao título (função, não enfeite) — neutro, do fundo para transparente */
+.sala-cena .cena-veu {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--fundo) 0%, var(--fundo) 30%, rgba(26, 27, 29, 0.86) 44%, rgba(26, 27, 29, 0.5) 66%, rgba(26, 27, 29, 0.2) 100%),
+    linear-gradient(0deg, var(--fundo) 0%, rgba(26, 27, 29, 0) 42%);
+}
+.sala-cena .cena-int {
+  width: 100%; max-width: 1200px; margin: 0 auto; padding: 64px 24px 32px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--e3);
+}
+.sala-cena .cena-genero { margin: 0; font-size: var(--t-sm); font-weight: 550; color: var(--texto-2); }
+.sala-cena .cena-titulo {
+  margin: 0; max-width: 16ch; font-size: clamp(44px, 6.2vw, 80px); line-height: 0.92; font-weight: 800; font-stretch: 70%;
+  letter-spacing: -0.012em; color: var(--texto); text-wrap: balance;
+}
+.sala-cena .cena-premissa {
+  margin: 0; max-width: 58ch; font-size: var(--t-md); line-height: 1.55; color: rgba(237, 235, 230, 0.84);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.sala-cena .cena-fatos { display: flex; flex-wrap: wrap; gap: var(--e2) var(--e5); margin: var(--e1) 0 0; padding: 0; list-style: none; }
+.sala-cena .cena-fatos li { display: inline-flex; align-items: center; gap: var(--e2); font-size: var(--t-sm); color: var(--texto-2); white-space: nowrap; }
+.sala-cena .cena-fatos svg { width: 16px; height: 16px; flex: none; color: var(--texto-3); }
+.sala-cena .cena-fatos strong { color: var(--texto); font-weight: 650; }
+.sala-cena .cena-acoes { display: flex; flex-wrap: wrap; gap: var(--e2); margin-top: var(--e3); }
+.sala-cena .cena-acoes .btn { height: 40px; padding: 0 var(--e4); font-size: var(--t-md); }
+.sala-cena .cena-acoes .btn svg { width: 18px; height: 18px; }
+.sala-cena .btn { text-decoration: none; }
+
+/* esqueleto do cabeçalho enquanto carrega */
+.sala-cena-esq { background: var(--superficie); }
+.sala-cena-esq .cena-int { gap: var(--e4); }
+.sala .sala-esq-grade { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e5); margin-top: var(--e5); }
+
+/* ---------- corpo, abas e conteúdo ---------- */
+.sala .sala-corpo { padding-top: var(--e5); }
+.sala .sala-abas-faixa { margin-bottom: var(--e1); }
+.sala .sala-abas { gap: var(--e6); }
+.sala .sala-abas button { padding: 14px 0; font-size: var(--t-md); }
+.sala .sala-abas button svg { width: 17px; height: 17px; transition: transform var(--motion-base) var(--ease-spring); }
+.sala .sala-abas button:hover svg { transform: translateY(-1px); }
+.sala .sala-abas button:focus-visible { outline-offset: 2px; }
+.sala .sala-abas .abas-contador {
+  min-width: 20px; height: 20px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 10px;
+  background: var(--superficie-3); color: var(--texto); font-size: var(--t-xs); font-weight: 650;
+}
+.sala .sala-conteudo { padding-top: var(--e6); }
+
+/* correções da casca clara antiga (Telas.css) dentro da Sala */
+.sala .foto { background: var(--superficie-2); }
+.sala .btn { transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard),
+  color var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard), opacity var(--motion-fast) var(--ease-standard); }
+.sala a.btn { text-decoration: none; }
+.sala .rotulo { text-transform: none; letter-spacing: 0; font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); }
+.sala .tela .vazio, .sala .vazio { padding: var(--e7) var(--e5); }
+.sala .btn-link { color: var(--texto); text-decoration: underline; text-decoration-color: var(--borda-forte); text-underline-offset: 3px; }
+.sala .btn-link:hover { text-decoration-color: currentColor; }
+
+/* estados em texto (cores do guia) */
+.sala .estado.acao { color: var(--acao); }
+.sala .estado.andamento { color: var(--texto-2); }
+
+/* toque: alvos maiores (botões pequenos ficam com 40 px de altura no dedo) */
+@media (pointer: coarse) {
+  .sala .btn.mini { height: 40px; padding: 0 var(--e3); }
+  .sala .btn.mini.icone { width: 40px; padding: 0; }
+  .sala .btn { min-height: 40px; }
+}
+
+@media (max-width: 900px) {
+  .sala-cena { min-height: 340px; }
+  .sala-cena .cena-quadros { width: 100%; }
+  .sala-cena .cena-veu {
+    background:
+      linear-gradient(90deg, rgba(26, 27, 29, 0.9) 0%, rgba(26, 27, 29, 0.62) 60%, rgba(26, 27, 29, 0.4) 100%),
+      linear-gradient(0deg, var(--fundo) 0%, rgba(26, 27, 29, 0.2) 60%);
+  }
+}
+@media (max-width: 767px) {
+  .sala-cena { min-height: 0; }
+  .sala-cena .cena-int { padding: 112px 16px 24px; gap: var(--e2); }
+  .sala-cena .cena-titulo { font-size: 46px; }
+  .sala-cena .cena-premissa { font-size: var(--t-sm); }
+  .sala-cena .cena-fatos { gap: var(--e1) var(--e4); }
+  .sala-cena .cena-acoes { width: 100%; }
+  .sala-cena .cena-acoes .btn { flex: 1 1 auto; }
+  .sala .sala-abas-faixa { margin: 0 -16px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+  .sala .sala-abas-faixa::-webkit-scrollbar { display: none; }
+  .sala .sala-abas { gap: var(--e5); width: max-content; min-width: 100%; overflow: visible; }
+  .sala .sala-abas button { white-space: nowrap; font-size: var(--t-sm); }
+  .sala .sala-conteudo { padding-top: var(--e5); }
+  .sala .sala-esq-grade { grid-template-columns: 1fr; }
+}

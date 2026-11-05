@@ -1,0 +1,23 @@
+{
+  "versao": 1,
+  "id": "barra",
+  "tipo": "objeto",
+  "nome": "Barra de metal",
+  "ancora": "barra de metal pesada e enferrujada que trava a porta do cais",
+  "ancoraEn": "heavy rusty metal bar that locks the dock door",
+  "onde": "porta",
+  "fixo": false,
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "",
+      "refs": {
+        "geral": "ref/barra.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/barra.png",
+  "origem": "gerada"
+}

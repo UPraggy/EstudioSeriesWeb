@@ -1,0 +1,10 @@
+#!/bin/sh
+# Diretriz do Rafael: NADA commitado com o Claude (nem outra IA) como coautor, colaborador ou "feito com".
+# Recusa: trailers Co-Authored-By/Signed-off-by/Reviewed-by/Assisted-by/Generated-by de IA e a marca "Generated with … Claude Code".
+# Ativar numa cópia nova do repositório: git config core.hooksPath .githooks
+if grep -qiE '^(co-authored-by|signed-off-by|reviewed-by|assisted-by|generated-by|made-with):.*(claude|anthropic|copilot|chatgpt|openai|gemini|codex|cursor|devin)' "$1" \
+  || grep -qiE 'generated with.*(claude|anthropic)|noreply@anthropic\.com|claude\.com/claude-code' "$1"; then
+  echo "commit recusado: o Rafael não quer IA como coautora/colaboradora nem a marca 'Generated with Claude Code' (diretriz). Tire essas linhas." >&2
+  exit 1
+fi
+exit 0

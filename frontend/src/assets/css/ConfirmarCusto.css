@@ -1,0 +1,51 @@
+/* Confirmação de gasto: o valor é a notícia (número grande que corre), itens alinhados,
+   saldo antes/depois e a barra do teto. Vermelho só no que bloqueia. */
+.cc-destaque { display: flex; flex-direction: column; gap: 2px; padding-bottom: var(--e1); }
+.cc-destaque-rot { color: var(--texto-2); font-size: var(--t-sm); }
+.cc-destaque-valor { color: var(--texto); font-size: 44px; font-weight: 760; font-stretch: 72%; line-height: 1.05; letter-spacing: -0.01em; }
+.cc-destaque.bloqueado .cc-destaque-valor { color: var(--perigo); }
+
+.cc-itens { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
+.cc-itens td, .cc-itens th { padding: var(--e2) 0; border-bottom: 1px solid var(--borda); vertical-align: top; text-align: left; }
+.cc-itens tr:first-child td { border-top: 1px solid var(--borda); }
+.cc-itens td.num { text-align: right; white-space: nowrap; padding-left: var(--e4); font-variant-numeric: tabular-nums; color: var(--texto); }
+.cc-est { color: var(--texto-3); font-size: var(--t-xs); }
+
+.cc-resumo { margin: 0; display: grid; gap: var(--e3); padding: var(--e3) var(--e4); border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie-2); }
+.cc-resumo > div { display: grid; grid-template-columns: 148px 1fr; gap: var(--e3); align-items: baseline; }
+.cc-resumo dt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-sm); font-weight: 600; color: var(--texto-2); }
+.cc-resumo dt svg { width: 15px; height: 15px; flex: none; position: relative; top: 2px; }
+.cc-resumo dd { margin: 0; font-size: var(--t-sm); }
+.cc-resumo .num { font-variant-numeric: tabular-nums; }
+.cc-saldo { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0 2px; }
+.cc-seta { width: 14px; height: 14px; color: var(--texto-3); margin: 0 6px; }
+.cc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.cc-perigo { color: var(--perigo); }
+.cc-consultando { display: inline-flex; align-items: center; gap: 6px; }
+.cc-consultando .girador { width: 14px; height: 14px; }
+
+/* barra do teto: o que já foi gasto (cinza) + este pedido (branco; vermelho se passa) */
+.cc-teto { display: flex; height: 4px; margin-top: var(--e2); border-radius: 2px; background: var(--borda-forte); overflow: hidden; }
+.cc-teto-gasto { display: block; height: 100%; background: var(--texto-3); }
+.cc-teto-pedido { display: block; height: 100%; background: var(--acao); }
+.cc-teto.passa .cc-teto-pedido { background: var(--perigo); }
+
+.cc-avisos { margin: 0; padding: 0; list-style: none; font-size: var(--t-xs); color: var(--aviso); display: grid; gap: 4px; }
+.cc-avisos li { display: flex; gap: 6px; align-items: flex-start; }
+.cc-avisos svg { width: 14px; height: 14px; flex: none; margin-top: 2px; }
+.cc-arquivos { display: flex; flex-wrap: wrap; gap: 6px var(--e2); align-items: baseline; font-size: var(--t-xs); }
+.cc-arquivos code { font-family: var(--fonte-mono); color: var(--texto-2); background: var(--fundo); border: 1px solid var(--borda); border-radius: var(--raio-sm); padding: 1px 6px; word-break: break-all; }
+.cc-rot { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--texto-2); }
+.cc-rot svg { width: 14px; height: 14px; position: relative; top: 2px; }
+.cc-nota { display: flex; gap: 6px; align-items: flex-start; }
+.cc-nota svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+
+/* "gerando": o vermelho de sinal, como o ponto de gravação */
+.cc-gerando { width: 7px; height: 7px; border-radius: 50%; background: var(--sinal); flex: none; animation: pulsar-ponto 1.6s var(--ease-standard) infinite; }
+.cc-confirmar { min-width: 160px; }
+
+@media (max-width: 520px) {
+  .cc-destaque-valor { font-size: 38px; }
+  .cc-resumo > div { grid-template-columns: 1fr; gap: 2px; }
+  .cc-confirmar { flex: 1; }
+}

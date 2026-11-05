@@ -1,0 +1,147 @@
+/* Elenco, locais e objetos: fichas como retratos/cartazes (imagem grande, nome condensado sobre um véu),
+   rosto canônico escolhido numa grade com anel que desliza, locais e objetos em pôsteres 9:16. */
+.elenco > .nota-erro, .elenco > .nota-aviso { margin-bottom: var(--e4); }
+
+/* ---------- seletor Elenco / Locais / Objetos (o fundo do ativo desliza) ---------- */
+.elenco .elenco-sub { display: inline-flex; gap: 2px; padding: 3px; margin-bottom: var(--e5); border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); }
+.elenco .elenco-sub button {
+  position: relative; display: inline-flex; align-items: center; gap: var(--e2); height: 34px; padding: 0 var(--e4); border: 0; border-radius: var(--raio-sm);
+  background: none; color: var(--texto-2); font: 550 var(--t-sm)/1 var(--fonte); cursor: pointer;
+  transition: color var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard);
+}
+.elenco .elenco-sub button > :not(.elenco-sub-marca) { position: relative; z-index: 1; }
+.elenco .elenco-sub button svg { width: 16px; height: 16px; }
+.elenco .elenco-sub button:hover { color: var(--texto); }
+.elenco .elenco-sub button:active { transform: scale(0.97); }
+.elenco .elenco-sub button.ativo { color: var(--texto); }
+.elenco .elenco-sub-marca { position: absolute; inset: 0; border-radius: var(--raio-sm); background: var(--superficie-3); }
+.elenco .elenco-sub-n { font-size: var(--t-xs); color: var(--texto-3); }
+.elenco .elenco-sub button.ativo .elenco-sub-n { color: var(--texto-2); }
+
+/* sem imagem: lugar reservado com o ícone do tipo */
+.elenco .sem-foto { gap: var(--e2); background: var(--superficie-2); color: var(--texto-2); font-size: var(--t-sm); }
+.elenco .sem-foto-ico { width: 32px; height: 32px; color: var(--texto-3); stroke-width: 1.5; }
+.elenco .sem-foto small { max-width: 22ch; font-size: var(--t-xs); color: var(--texto-2); line-height: 1.4; }
+
+/* ---------- ficha de personagem (retrato) ---------- */
+.elenco .fichas { display: flex; flex-direction: column; gap: var(--e6); }
+.elenco .ficha {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--e6); scroll-margin-top: 72px;
+  padding: var(--e5); background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio);
+  transition: border-color var(--motion-base) var(--ease-standard);
+}
+.elenco .ficha.destaque, .elenco .cartao-ficha.destaque { border-color: var(--texto-2); }
+.elenco .ficha-midia { display: flex; flex-direction: column; gap: var(--e3); min-width: 0; }
+
+.elenco .retrato, .elenco .cartao-ficha-img { position: relative; isolation: isolate; aspect-ratio: 9 / 16; overflow: hidden; border-radius: var(--raio-sm); background: var(--superficie-2); }
+.elenco .retrato .foto, .elenco .cartao-ficha-img .foto { position: absolute; inset: 0; transition: transform var(--motion-slow) var(--ease-emphasized); }
+.elenco .retrato:hover .foto, .elenco .cartao-ficha:hover .cartao-ficha-img .foto { transform: scale(1.03); }
+.elenco .retrato .sem-foto, .elenco .cartao-ficha-img .sem-foto { position: absolute; inset: 0; padding-bottom: 30%; }
+/* sem imagem ainda: o retrato encolhe (nada de um quadro vazio enorme) */
+.elenco .retrato.sem { aspect-ratio: auto; min-height: 260px; border: 1px dashed var(--borda-forte); }
+.elenco .retrato.sem .sem-foto { padding-bottom: 96px; }
+.elenco .retrato-veu { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.82) 100%); }
+.elenco .retrato-topo { position: absolute; z-index: 1; top: 10px; left: 10px; }
+.elenco .retrato-txt { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 14px; }
+.elenco .retrato-txt h3 { margin: 0; font-size: 40px; font-weight: 800; font-stretch: 68%; line-height: 0.95; letter-spacing: -0.005em; color: #EDEBE6; text-wrap: balance; }
+.elenco .retrato-txt p { margin: 6px 0 0; font-size: var(--t-sm); line-height: 1.35; color: rgba(237, 235, 230, 0.86); }
+
+.elenco .ficha-selo {
+  display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 8px; border-radius: var(--raio-sm);
+  background: rgba(0, 0, 0, 0.66); color: #EDEBE6; font-size: var(--t-xs); font-weight: 600;
+}
+.elenco .ficha-selo svg { width: 14px; height: 14px; }
+.elenco .ficha-selo.ok svg { color: var(--ok); }
+.elenco .ficha-selo.aviso svg { color: var(--aviso); }
+.elenco .ficha-selo.falta svg { color: #ABA8A1; }
+
+.elenco .ficha-refs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e2); margin: 0; padding: 0; list-style: none; }
+.elenco .ficha-refs li { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.elenco .ficha-ref-img { aspect-ratio: 9 / 16; overflow: hidden; border-radius: var(--raio-sm); background: var(--superficie-2); }
+.elenco .ficha-ref-img .foto { transition: transform var(--motion-slow) var(--ease-emphasized); }
+.elenco .ficha-ref-img:hover .foto { transform: scale(1.04); }
+.elenco .ficha-refs span { font-size: var(--t-xs); color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.elenco .ficha-gerar { display: flex; flex-direction: column; gap: var(--e2); }
+.elenco .ficha-gerar .btn { width: 100%; height: 38px; }
+.elenco .ficha-gerar small { font-size: var(--t-xs); color: var(--texto-2); line-height: 1.45; }
+
+.elenco .ficha-corpo { display: flex; flex-direction: column; gap: var(--e5); min-width: 0; }
+.elenco .ficha-obs { display: flex; gap: var(--e2); align-items: flex-start; margin: 0; padding: var(--e2) var(--e3); border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--superficie-2); color: var(--texto-2); font-size: var(--t-sm); }
+.elenco .ficha-obs svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+
+/* rosto canônico: grade de candidatas; o anel desliza até a escolhida e o visto entra com mola */
+.elenco .candidatas { margin: 0; padding: 0; border: 0; min-width: 0; }
+.elenco .candidatas legend { display: flex; align-items: center; flex-wrap: wrap; gap: var(--e2); padding: 0; margin-bottom: var(--e3); font-size: var(--t-md); font-weight: 650; }
+.elenco .candidatas legend svg { width: 18px; height: 18px; }
+.elenco .candidatas legend .suave { font-size: var(--t-sm); font-weight: 400; }
+.elenco .candidatas ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e3); margin: 0; padding: 0; list-style: none; }
+.elenco .candidatas li { display: flex; flex-direction: column; gap: var(--e2); min-width: 0; }
+.elenco .candidata {
+  position: relative; display: block; width: 100%; aspect-ratio: 9 / 16; padding: 0; overflow: visible; cursor: pointer;
+  background: var(--superficie-2); border: 0; border-radius: var(--raio-sm);
+  transition: transform var(--motion-instant) var(--ease-standard);
+}
+.elenco .candidata .foto { position: absolute; inset: 0; border-radius: var(--raio-sm); transition: transform var(--motion-slow) var(--ease-emphasized), opacity var(--motion-base) var(--ease-standard), filter var(--motion-base) var(--ease-standard); }
+.elenco .candidata::after { content: ""; position: absolute; inset: 0; border-radius: var(--raio-sm); border: 1px solid var(--borda); pointer-events: none; transition: border-color var(--motion-fast) var(--ease-standard); }
+.elenco .candidata:hover:not(:disabled)::after { border-color: var(--texto-2); }
+.elenco .candidata:hover:not(:disabled) .foto { transform: scale(1.02); }
+.elenco .candidata:active:not(:disabled) { transform: scale(0.98); }
+.elenco .candidata:disabled { cursor: progress; }
+.elenco .candidatas li.canonica .candidata { cursor: default; }
+.elenco .candidatas li.fora .candidata .foto { opacity: 0.42; filter: grayscale(0.6); }
+.elenco .candidatas li.fora .candidata:hover:not(:disabled) .foto { opacity: 1; filter: none; }
+.elenco .candidata-anel { position: absolute; inset: -4px; z-index: 1; border: 2px solid var(--ok); border-radius: calc(var(--raio-sm) + 3px); pointer-events: none; }
+.elenco .candidata-marca {
+  position: absolute; z-index: 2; top: 8px; right: 8px; width: 26px; height: 26px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--ok); color: var(--acao-texto);
+}
+.elenco .candidata-marca svg { width: 18px; height: 18px; }
+.elenco .candidata-girando { position: absolute; z-index: 2; inset: 0; display: grid; place-items: center; border-radius: var(--raio-sm); background: rgba(0, 0, 0, 0.45); color: #EDEBE6; }
+.elenco .candidata-girando .girador { width: 22px; height: 22px; }
+.elenco .candidata-rot { min-height: 18px; }
+.elenco .candidatas .nota-erro { margin-top: var(--e3); }
+
+.elenco .ficha-voz { display: grid; grid-template-columns: minmax(0, 1fr) 152px; gap: var(--e4); }
+.elenco .campo-erro { color: var(--perigo) !important; }
+.elenco .ficha-estado { display: flex; gap: var(--e2); align-items: flex-start; font-size: var(--t-sm); color: var(--texto-2); }
+.elenco .ficha-estado svg { width: 16px; height: 16px; flex: none; margin-top: 2px; color: var(--texto-3); }
+.elenco .ficha-estado strong { color: var(--texto); font-weight: 600; }
+.elenco .ficha-rodape { display: flex; justify-content: flex-end; align-items: center; gap: var(--e3); margin-top: auto; padding-top: var(--e4); border-top: 1px solid var(--borda); }
+.elenco .ficha-salvo { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-sm); font-weight: 600; color: var(--ok); }
+
+/* ---------- locais e objetos: pôsteres 9:16 ---------- */
+.elenco .grade-fichas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)); gap: var(--e6) var(--e5); align-items: start; }
+.elenco .cartao-ficha { display: flex; flex-direction: column; gap: var(--e3); scroll-margin-top: 72px; border: 1px solid transparent; border-radius: var(--raio); transition: border-color var(--motion-base) var(--ease-standard); }
+.elenco .cartao-ficha .cartao-ficha-img { border-radius: var(--raio); }
+.elenco .cartao-ficha .retrato-txt h3 { font-size: 26px; }
+.elenco .cartao-ficha.sem-imagem .retrato-veu { display: none; }
+.elenco .cartao-ficha.sem-imagem .retrato-txt h3 { color: var(--texto); }
+.elenco .cartao-ficha-corpo { display: flex; flex-direction: column; gap: var(--e2); padding: 0 2px; }
+.elenco .cartao-ficha-onde { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: var(--t-xs); color: var(--texto-2); }
+.elenco .cartao-ficha-onde svg { width: 14px; height: 14px; flex: none; }
+.elenco .cartao-ficha-ancora { margin: 0; font-size: var(--t-xs); line-height: 1.5; color: var(--texto-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.elenco .cartao-ficha-edicao { display: flex; flex-direction: column; gap: var(--e2); padding-top: 2px; }
+.elenco .cartao-ficha-edicao textarea { font-size: var(--t-sm); }
+.elenco .cartao-ficha-acoes { display: flex; gap: var(--e2); flex-wrap: wrap; padding-top: 2px; }
+
+@media (max-width: 900px) {
+  .elenco .ficha, .elenco .cartao-ficha { scroll-margin-top: 120px; }
+}
+@media (max-width: 860px) {
+  .elenco .ficha { grid-template-columns: 1fr; gap: var(--e5); padding: var(--e4); }
+  .elenco .ficha-midia { display: grid; grid-template-columns: 168px minmax(0, 1fr); align-items: start; gap: var(--e3); }
+  .elenco .ficha-midia .retrato { grid-row: span 2; }
+  .elenco .retrato-txt h3 { font-size: 30px; }
+  .elenco .ficha-voz { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .elenco .elenco-sub { display: flex; }
+  .elenco .elenco-sub button { flex: 1; justify-content: center; padding: 0 var(--e2); }
+  .elenco .ficha-midia { grid-template-columns: 1fr; }
+  .elenco .ficha-midia .retrato { width: 100%; max-width: 280px; grid-row: auto; }
+  .elenco .ficha-refs { max-width: 280px; }
+  .elenco .candidatas ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .elenco .grade-fichas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e5) var(--e3); }
+  .elenco .cartao-ficha .retrato-txt h3 { font-size: 21px; }
+  .elenco .retrato-txt { left: 12px; right: 12px; bottom: 12px; }
+}

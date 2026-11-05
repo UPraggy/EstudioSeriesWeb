@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "id": "porta",
+  "tipo": "local",
+  "nome": "Porta inferior do cais",
+  "ancora": "porta de aço do cais no térreo do farol, barra de metal para travar, escotilha de emergência no alto, parede de pedra úmida, uma lâmpada de grade",
+  "ancoraEn": "steel dock door on the lighthouse ground floor, heavy metal locking bar, emergency hatch above, damp stone wall, a single caged work lamp",
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "noite",
+      "refs": {
+        "geral": "ref/porta.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/porta.png",
+  "origem": "gerada"
+}

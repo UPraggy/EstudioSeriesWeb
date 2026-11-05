@@ -1,0 +1,90 @@
+/* Barra do topo: marca (símbolo 9:16 + nome condensado), migalhas, navegação com ícones e marca que desliza,
+   saldo que corre quando muda. Gaveta do celular animada pelo framer (TopMenu.jsx). */
+.topo { position: sticky; top: 0; z-index: 30; background: var(--fundo); border-bottom: 1px solid var(--borda); }
+.topo-int { display: flex; align-items: center; gap: var(--e4); height: 56px; padding: 0 var(--e5); }
+
+/* marca */
+.topo-marca { display: inline-flex; align-items: center; gap: 10px; color: var(--texto); text-decoration: none; white-space: nowrap; border-radius: var(--raio-sm); }
+.topo-marca:hover { color: var(--texto); }
+.topo-simbolo { width: 26px; height: 26px; flex: none; color: var(--texto); transition: transform var(--motion-slow) var(--ease-emphasized); }
+.topo-marca:hover .topo-simbolo { transform: scale(0.88); } /* o visor "fecha" no quadro */
+.topo-marca-nome { font-size: 19px; font-weight: 760; font-stretch: 72%; letter-spacing: -0.005em; line-height: 1; }
+
+/* migalhas */
+.topo-migalhas { flex: 1; min-width: 0; padding-left: var(--e4); border-left: 1px solid var(--borda); line-height: 20px; }
+.topo-migalhas ol { display: flex; align-items: center; margin: 0; padding: 0; list-style: none; white-space: nowrap; overflow: hidden; font-size: var(--t-sm); }
+.topo-migalhas li { display: inline-flex; align-items: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.topo-migalhas-sep { width: 14px; height: 14px; margin: 0 6px; color: var(--texto-3); flex: none; }
+.topo-migalhas a { color: var(--texto-2); text-decoration: none; transition: color var(--motion-fast) var(--ease-standard); }
+.topo-migalhas a:hover { color: var(--texto); text-decoration: underline; text-decoration-color: var(--borda-forte); }
+.topo-migalhas [aria-current="page"] { color: var(--texto); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+
+/* navegação: ícone + texto; a marca branca desliza até o item ativo */
+.topo-nav { display: flex; align-self: stretch; gap: var(--e1); }
+.topo-nav a {
+  position: relative; display: flex; align-items: center; gap: 7px; padding: 0 var(--e3);
+  color: var(--texto-2); font-size: var(--t-sm); font-weight: 550; white-space: nowrap; text-decoration: none;
+  transition: color var(--motion-fast) var(--ease-standard);
+}
+.topo-nav a svg { width: 16px; height: 16px; flex: none; transition: transform var(--motion-base) var(--ease-spring); }
+.topo-nav a:hover { color: var(--texto); }
+.topo-nav a:hover svg { transform: translateY(-1px); }
+.topo-nav a.ativo { color: var(--texto); }
+.topo-nav a:focus-visible { outline-offset: -4px; }
+.topo-nav-marca { position: absolute; left: var(--e3); right: var(--e3); bottom: -1px; height: 2px; border-radius: 2px; background: var(--acao); }
+
+/* saldo: atalho para Custos */
+.topo-saldo {
+  position: relative; display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 var(--e3);
+  border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--superficie);
+  color: var(--texto-2); font-size: var(--t-sm); white-space: nowrap; text-decoration: none;
+  transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+}
+.topo-saldo:hover { border-color: var(--borda-forte); background: var(--superficie-2); color: var(--texto-2); }
+.topo-saldo-ico { width: 15px; height: 15px; flex: none; color: var(--texto-2); }
+.topo-saldo-valor { color: var(--texto); font-weight: 650; font-variant-numeric: tabular-nums; }
+.topo-saldo-valor.texto { font-weight: 550; }
+.topo-saldo-rot:empty { display: none; }
+.topo-saldo-carregando { color: var(--texto-3); }
+.topo-saldo.simulado { border-color: var(--aviso-borda); background: var(--aviso-suave); }
+.topo-saldo.simulado .topo-saldo-ico, .topo-saldo.simulado .topo-saldo-valor { color: var(--aviso); }
+.topo-saldo-delta {
+  position: absolute; top: calc(100% + 6px); right: 0; padding: 3px 8px; border-radius: var(--raio-sm);
+  background: var(--superficie-3); box-shadow: var(--sombra-flutuante); color: var(--texto); font-size: var(--t-xs); font-weight: 600; pointer-events: none;
+}
+.topo-saldo-delta.saiu { color: var(--texto); }
+
+.topo .topo-menu-btn { display: none; }
+
+/* gaveta do celular */
+.topo-veu { position: fixed; inset: 0; z-index: 40; background: rgba(8, 9, 10, 0.62); }
+.topo-gaveta {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(320px, 86vw);
+  display: flex; flex-direction: column; background: var(--superficie); border-left: 1px solid var(--borda-forte);
+  box-shadow: var(--sombra-flutuante);
+}
+.topo-gaveta-cab { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 var(--e3) 0 var(--e4); border-bottom: 1px solid var(--borda); }
+.topo-gaveta nav { display: flex; flex-direction: column; padding: var(--e2); gap: 2px; }
+.topo-gaveta nav a {
+  display: flex; align-items: center; gap: var(--e3); min-height: 48px; padding: 0 var(--e3); border-radius: var(--raio);
+  color: var(--texto-2); font-size: var(--t-md); font-weight: 550; text-decoration: none;
+  transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
+}
+.topo-gaveta nav a svg { width: 18px; height: 18px; flex: none; }
+.topo-gaveta nav a:hover { background: var(--superficie-2); color: var(--texto); }
+.topo-gaveta nav a:active { transform: scale(0.98); }
+.topo-gaveta nav a.ativo { background: var(--superficie-2); color: var(--texto); }
+.topo-gaveta-ativo { margin-left: auto; color: var(--texto-3); }
+.topo-gaveta-saldo { margin-top: auto; padding: var(--e4); border-top: 1px solid var(--borda); display: flex; align-items: center; justify-content: space-between; gap: var(--e3); font-size: var(--t-sm); color: var(--texto-2); }
+
+@media (max-width: 900px) {
+  .topo-int { flex-wrap: wrap; height: auto; padding: 0 var(--e4); column-gap: var(--e3); }
+  .topo-int > .topo-marca { flex: 1; height: 52px; }
+  .topo-int > .topo-nav, .topo-int > .topo-saldo { display: none; }
+  .topo .topo-menu-btn { display: inline-flex; }
+  .topo-migalhas { order: 3; flex: 0 0 100%; padding: 0 0 10px; border-left: 0; overflow-x: auto; }
+  .topo-migalhas ol { overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topo-marca:hover .topo-simbolo, .topo-nav a:hover svg { transform: none; }
+}

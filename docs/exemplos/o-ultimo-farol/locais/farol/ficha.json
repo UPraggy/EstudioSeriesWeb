@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "id": "farol",
+  "tipo": "local",
+  "nome": "Farol da Ponta Norte (exterior)",
+  "ancora": "farol branco com manchas de ferrugem numa ilhota de rocha escura, mar agitado, luzes da cidade no horizonte, noite",
+  "ancoraEn": "white lighthouse with rust stains on a small dark rocky islet, rough sea, city lights on the horizon, night",
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "noite",
+      "refs": {
+        "geral": "ref/farol.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/farol.png",
+  "origem": "gerada"
+}

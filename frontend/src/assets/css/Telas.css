@@ -1,0 +1,94 @@
+/* Base das telas da casca clara (Séries, Sala do showrunner, Geração simples, Custos).
+   Tudo escopado em .tela para não vazar para a Mesa. Grade de 8 px, bordas de 1 px, peso faz a hierarquia. */
+.tela { width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px 24px 96px; }
+.tela h1 { font-size: var(--t-xl); font-weight: 600; letter-spacing: -0.01em; }
+.tela h2 { font-size: var(--t-md); font-weight: 600; }
+.tela h3 { font-size: var(--t-md); font-weight: 600; }
+.tela p { margin: 0; }
+.tela code { font-family: var(--fonte-mono); font-size: 0.92em; overflow-wrap: anywhere; }
+
+.tela .tela-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--e4); flex-wrap: wrap; margin-bottom: var(--e5); }
+.tela .tela-cab p { margin-top: var(--e1); color: var(--texto-2); font-size: var(--t-sm); max-width: 680px; }
+
+.tela .secao + .secao { margin-top: 40px; }
+.tela .secao-cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--e3); flex-wrap: wrap; margin-bottom: var(--e3); }
+.tela .secao-cab p { color: var(--texto-2); font-size: var(--t-sm); }
+
+.tela .rotulo { font-size: var(--t-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-3); }
+.tela .num { font-variant-numeric: tabular-nums; }
+.tela .nome-serie { font-family: var(--fonte); font-weight: 700; font-stretch: var(--largura-titulo); letter-spacing: -0.01em; }
+.tela .caminho { font: var(--t-xs)/1.4 var(--fonte-mono); color: var(--texto-3); word-break: break-all; }
+.tela .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tela .vazio { padding: var(--e5); color: var(--texto-2); font-size: var(--t-sm); text-align: center; }
+.tela .carregando { padding: var(--e6) 0; color: var(--texto-2); font-size: var(--t-sm); }
+
+/* caixas de mensagem (texto, borda fina; sem faixa colorida lateral) */
+.tela .msg { padding: var(--e2) var(--e3); border: 1px solid var(--borda); border-radius: var(--raio-sm); font-size: var(--t-sm); background: var(--superficie); }
+.tela .msg.erro { border-color: var(--perigo-borda); background: var(--perigo-suave); color: var(--perigo); }
+.tela .msg.aviso { border-color: var(--aviso-borda); background: var(--aviso-suave); color: var(--aviso); }
+.tela .msg.ok { border-color: var(--ok-borda); background: var(--ok-suave); color: var(--ok); }
+
+/* campos */
+.tela .campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tela .campo > span:first-child { font-size: var(--t-sm); font-weight: 600; }
+.tela .campo small { font-size: var(--t-xs); color: var(--texto-2); }
+.tela .entrada {
+  width: 100%; min-height: 36px; padding: 6px var(--e3); border: 1px solid var(--borda-forte); border-radius: var(--raio-sm);
+  background: var(--superficie); color: var(--texto); font: var(--t-md)/1.45 var(--fonte); transition: border-color 120ms, background-color 120ms;
+}
+.tela textarea.entrada { resize: vertical; min-height: 64px; }
+.tela .entrada:hover { border-color: var(--texto-3); }
+.tela .entrada:focus { border-color: var(--acao); outline: 2px solid var(--acao-suave); outline-offset: 0; }
+.tela .entrada:disabled { background: var(--superficie-2); color: var(--texto-2); }
+.tela select.entrada { padding-right: var(--e5); }
+
+/* (04/11) mesma transição do .btn de Principais.css, com o "aperto" (transform) que a regra antiga anulava */
+.tela .btn { transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard),
+  color var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard), opacity var(--motion-fast) var(--ease-standard); }
+.tela .btn-link { border: 0; background: none; padding: 0; color: var(--acao); font: inherit; cursor: pointer; }
+.tela .btn-link:hover { text-decoration: underline; }
+/* botão secundário discreto (Remover em listas): sem borda até o mouse passar */
+.tela .btn.tira { border-color: transparent; background: transparent; color: var(--texto-3); }
+.tela .btn.tira:hover { border-color: var(--perigo-borda); background: var(--perigo-suave); color: var(--perigo); }
+.tela .btn.tira:focus-visible { color: var(--perigo); }
+.tela .acoes { display: flex; gap: var(--e2); flex-wrap: wrap; align-items: center; }
+
+/* lista de definições compacta (rótulo em cima, valor embaixo) */
+.tela .dados { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e3) var(--e4); margin: 0; }
+.tela .dados dt { font-size: var(--t-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-3); }
+.tela .dados dd { margin: 2px 0 0; font-size: var(--t-sm); }
+
+/* barra de uso (fina, sem brilho) */
+.tela .barra { height: 4px; background: var(--borda); border-radius: 2px; overflow: hidden; }
+.tela .barra > span { display: block; height: 100%; background: var(--acao); border-radius: 2px; }
+.tela .barra.alta > span { background: var(--perigo); }
+
+/* imagem real: o único elemento "rico" */
+.tela .foto { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--superficie-2); }
+.tela .sem-foto {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%;
+  background: var(--superficie-2); color: var(--texto-3); font-size: var(--t-xs); text-align: center; padding: var(--e3);
+}
+
+/* tabelas: no celular viram blocos (td com data-rotulo) */
+.tela .tabela-wrap { overflow-x: auto; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); }
+.tela .tabela-wrap table.tabela th { background: var(--superficie-2); white-space: nowrap; }
+.tela .tabela-wrap table.tabela tr:last-child td { border-bottom: 0; }
+.tela table.tabela td.num, .tela table.tabela th.num { text-align: right; white-space: nowrap; }
+.tela table.tabela td.num { font-family: var(--fonte-mono); font-size: var(--t-xs); }
+
+@media (max-width: 767px) {
+  .tela { padding: 20px 16px 80px; }
+  .tela h1 { font-size: 20px; }
+  .tela .secao + .secao { margin-top: 32px; }
+  .tela .tabela-wrap.empilha { border: 0; background: none; overflow: visible; }
+  .tela .empilha table.tabela, .tela .empilha tbody, .tela .empilha tr, .tela .empilha td { display: block; width: 100%; }
+  .tela .empilha thead { display: none; }
+  .tela .empilha tr { background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); padding: var(--e2) var(--e3); margin-bottom: var(--e3); }
+  .tela .empilha td { border: 0; padding: 4px 0; display: grid; grid-template-columns: 104px 1fr; gap: var(--e2); text-align: left; }
+  /* (04/11) rótulo em frase curta, sem caixa alta espaçada (guia visual); td.num com a mesma força da regra de desktop */
+  .tela .empilha td::before { content: attr(data-rotulo); font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); padding-top: 2px; }
+  .tela .empilha table.tabela td.num { text-align: left; }
+  .tela .empilha td[data-rotulo=""]::before { content: none; }
+  .tela .empilha td[data-rotulo=""] { display: block; }
+}

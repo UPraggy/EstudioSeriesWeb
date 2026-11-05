@@ -1,0 +1,62 @@
+/* Bíblia: leitura e edição no próprio texto, com uma barra de salvar fixa no topo. */
+.biblia .biblia-barra {
+  position: sticky; top: 56px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: var(--e4);
+  margin: calc(-1 * var(--e3)) 0 var(--e5); padding: var(--e3) 0; background: var(--fundo); border-bottom: 1px solid var(--borda);
+}
+.biblia .biblia-situacao { min-height: 20px; display: inline-flex; align-items: center; }
+.biblia .biblia-salva { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-xs); font-weight: 600; color: var(--ok); }
+.biblia > .nota-erro, .biblia > .nota-aviso { margin-bottom: var(--e4); }
+.biblia .biblia-grade { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.biblia .biblia-col { min-width: 0; }
+.biblia .secao-cab h2 { display: inline-flex; align-items: center; gap: var(--e2); font-size: var(--t-lg); }
+.biblia .secao-cab h2 svg { width: 18px; height: 18px; color: var(--texto-2); }
+.biblia .biblia-premissa { font-size: var(--t-md); line-height: 1.6; }
+.biblia .biblia-sub { margin: var(--e4) 0 var(--e2); font-size: var(--t-sm); font-weight: 600; color: var(--texto-2); }
+.biblia .biblia-sub:first-of-type { margin-top: 0; }
+.biblia .lista-vazia { font-size: var(--t-sm); margin-bottom: var(--e2); }
+
+.biblia .lista-ed ol { list-style: none; margin: 0 0 var(--e2); padding: 0; display: flex; flex-direction: column; gap: var(--e2); }
+.biblia .lista-ed li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: var(--e2); align-items: start; }
+.biblia .lista-n { padding-top: 9px; text-align: right; font-size: var(--t-xs); font-weight: 600; color: var(--texto-3); }
+.biblia .lista-ed textarea.entrada { min-height: 36px; resize: vertical; font-size: var(--t-sm); line-height: 1.5; }
+.biblia .lista-ed li .btn.mini { margin-top: 4px; }
+
+/* remover: discreto até o mouse chegar na linha (no foco e no toque fica visível) */
+.biblia .btn.tira { border-color: transparent; background: transparent; color: var(--texto-3); }
+.biblia .btn.tira:hover:not(:disabled) { border-color: var(--perigo-borda); background: var(--perigo-suave); color: var(--perigo); }
+.biblia .btn.tira:focus-visible { color: var(--perigo); }
+@media (hover: hover) {
+  .biblia .lista-ed li .btn.tira, .biblia .recurso-linha .btn.tira, .biblia .objetos-tab .btn.tira { opacity: 0; transition: opacity var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+  .biblia .lista-ed li:hover .btn.tira, .biblia .recurso-linha:hover .btn.tira, .biblia .objetos-tab tr:hover .btn.tira,
+  .biblia .btn.tira:focus-visible { opacity: 1; }
+}
+
+.biblia .recursos { padding: var(--e4); display: flex; flex-direction: column; gap: var(--e3); }
+.biblia .recurso-linha { display: flex; gap: var(--e2); align-items: center; }
+.biblia .recursos .entrada { font-size: var(--t-sm); }
+.biblia .recurso-novo { display: flex; gap: var(--e2); align-items: center; padding-top: var(--e3); border-top: 1px solid var(--borda); }
+
+.biblia .objetos-tab td { padding: 6px var(--e2); vertical-align: middle; }
+.biblia .objetos-tab td:last-child { width: 1%; white-space: nowrap; }
+.biblia .objetos-tab .entrada { min-height: 32px; font-size: var(--t-sm); }
+.biblia .biblia-add { margin-top: var(--e2); }
+
+.biblia .escolhas { list-style: none; margin: 0; padding: 0; }
+.biblia .escolhas li { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: var(--e3); align-items: baseline; padding: 10px var(--e4); border-bottom: 1px solid var(--borda); font-size: var(--t-sm); }
+.biblia .escolhas li:last-child { border-bottom: 0; }
+.biblia .escolha-ep { font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); }
+.biblia .escolha-txt strong { font-weight: 750; color: var(--texto); }
+
+@media (max-width: 1000px) {
+  .biblia .biblia-grade { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .biblia .biblia-col + .biblia-col { margin-top: 40px; }
+}
+@media (max-width: 900px) {
+  .biblia .biblia-barra { position: static; margin-top: 0; }
+}
+@media (max-width: 600px) {
+  .biblia .biblia-barra { flex-wrap: wrap; }
+  .biblia .lista-ed li { grid-template-columns: minmax(0, 1fr) auto; }
+  .biblia .lista-n { display: none; }
+  .biblia .escolhas li { grid-template-columns: 1fr; gap: 2px; }
+}

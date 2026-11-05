@@ -1,0 +1,23 @@
+{
+  "versao": 1,
+  "id": "lancha",
+  "tipo": "objeto",
+  "nome": "Lancha do terminal",
+  "ancora": "lancha pequena de alumínio do terminal de balsas, motor de popa",
+  "ancoraEn": "small aluminium motorboat from the ferry terminal, outboard engine",
+  "onde": "canal",
+  "fixo": false,
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "",
+      "refs": {
+        "geral": "ref/lancha.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/lancha.png",
+  "origem": "gerada"
+}

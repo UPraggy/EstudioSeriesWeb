@@ -1,0 +1,59 @@
+/* Diálogos da lixeira recuperável: apagar série, apagar episódio, refazer roteiro do zero e a lista da lixeira.
+   Blocos em --superficie-2 dentro do diálogo (--superficie); perigo sempre com ícone + texto. */
+.lx { display: flex; flex-direction: column; gap: var(--e4); }
+.lx .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lx-texto { margin: 0; font-size: var(--t-sm); color: var(--texto-2); line-height: 1.55; }
+.lx-texto strong { color: var(--texto); font-weight: 650; }
+
+/* ícone do cabeçalho em vermelho nos diálogos de perigo */
+.dlg:has(.lx-perigo) .dlg-icone { background: var(--perigo-suave); color: var(--perigo); }
+
+.lx-bloco { display: flex; flex-direction: column; gap: var(--e2); padding: var(--e3) var(--e4); border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie-2); }
+.lx-bloco h3 { display: flex; align-items: center; gap: var(--e2); margin: 0; font-size: var(--t-sm); font-weight: 650; font-stretch: 100%; letter-spacing: 0; }
+.lx-bloco h3 svg { width: 16px; height: 16px; flex: none; color: var(--texto-2); }
+.lx-bloco.fica h3 svg { color: var(--ok); }
+
+.lx-lista { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.lx-lista li { display: flex; align-items: flex-start; gap: var(--e2); font-size: var(--t-sm); color: var(--texto-2); line-height: 1.45; }
+.lx-lista li > svg { width: 15px; height: 15px; flex: none; margin-top: 2px; color: var(--texto-3); }
+.lx-lista li strong { color: var(--texto); font-weight: 650; }
+
+.lx-caminho {
+  display: inline-block; max-width: 100%; padding: 1px 6px; border-radius: var(--raio-sm); background: var(--fundo);
+  color: var(--texto-2); font-family: var(--fonte-mono); font-size: var(--t-xs); overflow-wrap: anywhere;
+}
+
+/* confirmação por nome (estilo GitHub) */
+.lx-confirmar { display: flex; flex-direction: column; gap: 6px; }
+.lx-confirmar > span { font-size: var(--t-sm); font-weight: 600; }
+.lx-confirmar > span strong { padding: 0 4px; border-radius: var(--raio-sm); background: var(--superficie-3); font-weight: 650; user-select: all; }
+.lx-confirmar input[aria-invalid="true"] { border-color: var(--perigo-borda); }
+.lx-confere { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-xs); color: var(--texto-2); }
+.lx-confere svg { width: 14px; height: 14px; flex: none; }
+.lx-confere.ok { color: var(--ok); }
+
+.lx-erros { display: flex; flex-direction: column; gap: var(--e2); }
+.lx-proximo { display: flex; align-items: flex-start; gap: var(--e2); margin: 0; font-size: var(--t-xs); color: var(--texto-2); }
+.lx-proximo svg { width: 14px; height: 14px; flex: none; margin-top: 2px; }
+.lx-trocar { align-self: flex-start; }
+
+/* lista da lixeira */
+.lx-itens { display: flex; flex-direction: column; gap: var(--e2); margin: 0; padding: 0; list-style: none; }
+.lx-item {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--e3);
+  padding: var(--e3); border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie-2);
+  transition: border-color var(--motion-fast) var(--ease-standard);
+}
+.lx-item:hover { border-color: var(--borda-forte); }
+.lx-item-ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--raio-sm); background: var(--superficie-3); color: var(--texto-2); }
+.lx-item-ico svg { width: 17px; height: 17px; }
+.lx-item-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.lx-item-txt strong { font-size: var(--t-sm); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lx-item-txt span { font-size: var(--t-xs); color: var(--texto-2); }
+.lx-item-erro { grid-column: 1 / -1; margin: 0; font-size: var(--t-xs); color: var(--perigo); display: flex; gap: 6px; align-items: flex-start; }
+.lx-item-erro svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+
+@media (max-width: 520px) {
+  .lx-item { grid-template-columns: minmax(0, 1fr) auto; }
+  .lx-item-ico { display: none; }
+}

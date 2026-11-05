@@ -1,0 +1,85 @@
+{
+  "versao": 1,
+  "atualizadoAte": "ep00",
+  "personagens": {
+    "davi": {
+      "nome": "Davi",
+      "onde": "cidade",
+      "vivo": true,
+      "condicao": "sem ferimentos",
+      "ferimentos": [],
+      "estadoFicha": "padrao",
+      "carrega": [],
+      "sabe": []
+    },
+    "mara": {
+      "nome": "Mara",
+      "onde": "sala",
+      "vivo": true,
+      "condicao": "sem ferimentos",
+      "ferimentos": [],
+      "estadoFicha": "padrao",
+      "carrega": [],
+      "sabe": []
+    }
+  },
+  "objetos": {
+    "radio": {
+      "nome": "Rádio marítimo VHF",
+      "onde": "sala",
+      "estado": "ligado no canal 16",
+      "comQuem": null,
+      "fixo": true
+    },
+    "barra": {
+      "nome": "Barra de metal",
+      "onde": "porta",
+      "estado": "encostada ao lado da porta",
+      "comQuem": null,
+      "fixo": false
+    },
+    "binoculos": {
+      "nome": "Binóculos",
+      "onde": "sala",
+      "estado": null,
+      "comQuem": null,
+      "fixo": false
+    },
+    "bolsa": {
+      "nome": "Bolsa de emergência",
+      "onde": "deposito",
+      "estado": null,
+      "comQuem": null,
+      "fixo": false
+    },
+    "interruptor": {
+      "nome": "Interruptor do feixe",
+      "onde": "sala",
+      "estado": "feixe desligado",
+      "comQuem": null,
+      "fixo": true
+    }
+  },
+  "locais": {},
+  "recursos": {
+    "agua": "Cisterna de chuva pela metade",
+    "comida": "5 dias, racionada",
+    "energia": "Gerador com diesel para ~3 noites",
+    "comunicacao": "Rádio marítimo VHF + celular (sinal fraco)"
+  },
+  "segredos": [
+    {
+      "id": "publico-1",
+      "texto": "Um dos passageiros de Davi foi mordido e esconde o ferimento.",
+      "sabem": [],
+      "publicoSabe": true
+    }
+  ],
+  "misteriosAbertos": [
+    "Por que o surto começou no terminal de balsas?",
+    "Há alguém respondendo do outro farol?"
+  ],
+  "escolhas": [],
+  "consequenciasPendentes": [],
+  "atualizadoEm": "2026-11-04T12:00:00.000Z"
+}

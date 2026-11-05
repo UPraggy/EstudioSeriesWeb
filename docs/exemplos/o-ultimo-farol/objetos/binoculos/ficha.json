@@ -1,0 +1,23 @@
+{
+  "versao": 1,
+  "id": "binoculos",
+  "tipo": "objeto",
+  "nome": "Binóculos",
+  "ancora": "binóculos marítimos pretos com alça de couro",
+  "ancoraEn": "black marine binoculars with a leather strap",
+  "onde": "sala",
+  "fixo": false,
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "",
+      "refs": {
+        "geral": "ref/binoculos.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/binoculos.png",
+  "origem": "gerada"
+}

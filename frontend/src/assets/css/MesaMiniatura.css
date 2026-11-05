@@ -1,0 +1,26 @@
+/* MINIATURA QUE ESFREGA: pôster 9:16; o quadro troca com o mouse (sem transição: é vídeo, quadro a quadro). */
+.mm {
+  position: relative; overflow: hidden; aspect-ratio: 9 / 16; border-radius: inherit;
+  background: var(--ed-fundo); isolation: isolate;
+}
+.mm-midia { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 0; }
+img.mm-midia { object-fit: cover; }
+.mm-quadro { background-repeat: no-repeat; }
+/* o pôster aparece com um fade curto quando a tira chega (uma vez; trocar de quadro ao esfregar não anima) */
+.mm-quadro, img.mm-midia { animation: mesa-aparece var(--motion-slow) var(--ease-standard) both; }
+@keyframes mesa-aparece { from { opacity: 0; } }
+.mm-falhou { display: flex; align-items: center; justify-content: center; color: var(--ed-texto-3, #938F87); }
+.mm-falhou svg { width: 20px; height: 20px; }
+.mm.esfregando { cursor: ew-resize; }
+
+/* posição no clipe enquanto esfrega */
+.mm-barra {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; height: 2px; background: var(--acao);
+  transform-origin: left center; pointer-events: none;
+}
+.mm-dur {
+  position: absolute; right: 6px; top: 6px; z-index: 3; padding: 1px 5px; border-radius: var(--raio-sm);
+  background: rgba(0, 0, 0, 0.72); color: var(--ed-texto); font-size: 11px; font-weight: 600; line-height: 16px;
+  pointer-events: none;
+}
+.mm.esfregando .mm-dur { background: var(--acao); color: var(--acao-texto); }

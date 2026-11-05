@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "id": "cidade",
+  "tipo": "local",
+  "nome": "Cidade / terminal de balsas",
+  "ancora": "cais do terminal de balsas visto de longe, postes acesos, ambulância parada, garoa",
+  "ancoraEn": "ferry terminal pier seen from far away, lit street lamps, a parked ambulance, drizzle",
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "noite",
+      "refs": {
+        "geral": "ref/cidade.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/cidade.png",
+  "origem": "gerada"
+}

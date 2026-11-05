@@ -1,0 +1,124 @@
+{
+  "finalidade": "quadroChave",
+  "ep": 1,
+  "plano": 3,
+  "mensagens": [
+    {
+      "role": "system",
+      "content": "Você gera o QUADRO-CHAVE (primeiro quadro) de um plano de série vertical 9:16. As imagens anexadas são referências CANÔNICAS: a pessoa da imagem de identidade é a MESMA pessoa (mesmo rosto, cabelo, idade e roupa); o cenário de referência define arquitetura, luz e cor. Terror sugerido: sem sangue, sem ferida aberta, sem violência explícita. Sem texto, legenda, logotipo ou marca d'água. Gere UMA imagem."
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "QUADRO-CHAVE — O Último Farol · Ep. 1 · Plano 3. Gere UMA imagem vertical 9:16 (1080×1920) que será o PRIMEIRO QUADRO do vídeo deste plano.\n\n## PLANO\n- Plano 3 · video_ia · 8 s · local: sala\n- Prompt do plano (inglês): Camera: Medium shot from the side at eye level, slow push-in. Subject: Mara, a woman in her early 30s, dark hair tied back in a low bun, dark waterproof work jacket with a reflective strip, tired but firm face, seen in profile, mouth closed. Action: she turns the dial of the grey marine VHF radio and freezes, listening; through the large window behind her, city districts go dark one block at a time. Context: lighthouse control room at night, old green metal control panel, large window facing the sea and the distant city, cold light. Style: cinematic and realistic, muted teal and amber palette, quiet suspense, vertical 9:16, no on-screen text, no blood.\n- O que acontece (pt-BR): Mara de perfil no painel gira o botão do rádio e congela, ouvindo; pela janela, bairros da cidade apagam um a um.\n- Falas fora de quadro (alerta por radio): ninguém com a boca aberta falando.\n\n## QUEM E ONDE (âncoras fixas: não mude a aparência)\n- Mara (mara · personagem · estado \"padrao\": sem ferimentos) · mulher de ~30 anos, cabelo escuro preso num coque baixo, jaqueta de trabalho impermeável escura com faixa refletiva, calça cargo escura, botas de borracha pretas, rosto cansado e firme · EN: woman in her early 30s, dark hair tied back in a low bun, dark waterproof work jacket with a reflective strip, dark cargo pants, black rubber boots, tired but firm face\n- Sala de controle (sala · local · estado \"padrao\": noite) · sala de controle do farol: painel antigo de metal verde, rádio marítimo VHF, janela grande para o mar e a cidade ao longe, luz fria · EN: lighthouse control room: old green metal control panel, grey marine VHF radio, large window facing the sea and the distant city, cold light\n- Rádio marítimo VHF (radio · objeto) · rádio marítimo VHF cinza preso ao painel, fone de mão com fio espiral · EN: grey marine VHF radio mounted on the panel, coiled handset cord · agora: ligado no canal 16\n\n## ESTADO AGORA\n- Mara (mara): vivo · em Sala de controle (sala) · sem ferimentos\n- Rádio marítimo VHF (radio): em Sala de controle (sala) · ligado no canal 16 · fixo (não sai do lugar)\n\n## FATOS ÚTEIS\n- [personagem] Mara: Protagonista — técnica de manutenção do farol, sozinha no turno da noite. (ep00-008, desde ep00)\n\nAs imagens de referência vêm a seguir, numeradas, cada uma com o seu papel."
+        },
+        {
+          "type": "text",
+          "text": "Imagem 1 — identidade de Mara: rosto, cabelo e idade — estado \"padrao\" (sem ferimentos)"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "arquivo:elenco/mara/ref/padrao-frente.png"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Imagem 2 — cenário: Sala de controle (arquitetura, luz e cor)"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "arquivo:locais/sala/ref/sala.png"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Imagem 3 — figurino e corpo inteiro de Mara — estado \"padrao\" (sem ferimentos)"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "arquivo:elenco/mara/ref/padrao-corpo.png"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Imagem 4 — objeto: Rádio marítimo VHF"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "arquivo:objetos/radio/ref/radio.png"
+          }
+        }
+      ]
+    }
+  ],
+  "imagens": [
+    {
+      "caminho": "elenco/mara/ref/padrao-frente.png",
+      "papel": "identidade de Mara: rosto, cabelo e idade — estado \"padrao\" (sem ferimentos)",
+      "existe": false,
+      "bytes": 0
+    },
+    {
+      "caminho": "locais/sala/ref/sala.png",
+      "papel": "cenário: Sala de controle (arquitetura, luz e cor)",
+      "existe": false,
+      "bytes": 0
+    },
+    {
+      "caminho": "elenco/mara/ref/padrao-corpo.png",
+      "papel": "figurino e corpo inteiro de Mara — estado \"padrao\" (sem ferimentos)",
+      "existe": false,
+      "bytes": 0
+    },
+    {
+      "caminho": "objetos/radio/ref/radio.png",
+      "papel": "objeto: Rádio marítimo VHF",
+      "existe": false,
+      "bytes": 0
+    }
+  ],
+  "tamanho": {
+    "caracteres": 2442,
+    "limite": 4000,
+    "sistema": 404,
+    "imagens": 4,
+    "maxImagens": 4,
+    "bytesImagens": 0
+  },
+  "cortes": [
+    {
+      "secao": "fatos",
+      "motivo": "irrelevante",
+      "quantidade": 2,
+      "itens": [
+        "2 fato(s) sobre quem/onde não aparece aqui"
+      ]
+    },
+    {
+      "secao": "imagens",
+      "motivo": "limite_imagens",
+      "quantidade": 1,
+      "itens": [
+        "elenco/mara/ref/padrao-perfil.png (perfil de Mara)"
+      ]
+    }
+  ],
+  "avisos": [
+    "Referência ainda não existe: elenco/mara/ref/padrao-frente.png (identidade de Mara: rosto, cabelo e idade — estado \"padrao\" (sem ferimentos)).",
+    "Referência ainda não existe: locais/sala/ref/sala.png (cenário: Sala de controle (arquitetura, luz e cor)).",
+    "Referência ainda não existe: elenco/mara/ref/padrao-corpo.png (figurino e corpo inteiro de Mara — estado \"padrao\" (sem ferimentos)).",
+    "Referência ainda não existe: objetos/radio/ref/radio.png (objeto: Rádio marítimo VHF)."
+  ],
+  "secoes": [
+    "plano",
+    "ancoras",
+    "estado",
+    "fatos"
+  ]
+}

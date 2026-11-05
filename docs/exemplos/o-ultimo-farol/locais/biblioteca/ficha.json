@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "id": "biblioteca",
+  "tipo": "local",
+  "nome": "Biblioteca do narrador",
+  "ancora": "biblioteca escura com estantes, abajur dourado, poltrona de couro, globo",
+  "ancoraEn": "dark library with bookshelves, golden lamp, leather armchair, globe",
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "noite",
+      "refs": {
+        "geral": "ref/biblioteca.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/biblioteca.png",
+  "origem": "gerada"
+}

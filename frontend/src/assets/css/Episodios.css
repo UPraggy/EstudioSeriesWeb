@@ -1,0 +1,156 @@
+/* Episódios: pôsteres 9:16 com as etapas por ícone + texto; a página do episódio com a folha do roteiro. */
+.episodios .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.episodios .eps-cab { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--e4); flex-wrap: wrap; margin-bottom: var(--e5); }
+.episodios .eps-cab h2 { font-size: var(--t-xl); font-weight: 760; font-stretch: 76%; }
+.episodios .eps-cab p { margin-top: var(--e1); max-width: 62ch; font-size: var(--t-sm); color: var(--texto-2); }
+
+/* ---------- grade de pôsteres ---------- */
+.episodios .posteres { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: var(--e6) var(--e5); }
+.episodios .poster { display: flex; flex-direction: column; gap: var(--e3); min-width: 0; }
+.episodios .poster-midia { position: relative; isolation: isolate; aspect-ratio: 9 / 16; overflow: hidden; border-radius: var(--raio); background: var(--superficie-2); }
+.episodios .poster-img, .episodios .poster-video {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform var(--motion-slow) var(--ease-emphasized);
+}
+.episodios .poster-video { opacity: 0; transition: opacity var(--motion-base) var(--ease-standard), transform var(--motion-slow) var(--ease-emphasized); }
+.episodios .poster-video.tocando { opacity: 1; }
+.episodios .poster-midia:hover .poster-img, .episodios .poster-midia:hover .poster-video,
+.episodios .poster-midia:focus-within .poster-img, .episodios .poster-midia:focus-within .poster-video { transform: scale(1.03); }
+/* véu: leitura do título e das etiquetas sobre a imagem */
+.episodios .poster-veu {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.84) 100%);
+}
+.episodios .poster-topo { position: absolute; z-index: 1; top: 10px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+.episodios .poster-chip {
+  display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 7px; border-radius: var(--raio-sm);
+  background: rgba(0, 0, 0, 0.66); color: #EDEBE6; font-size: var(--t-xs); font-weight: 600; white-space: nowrap;
+}
+.episodios .poster-chip svg { width: 13px; height: 13px; flex: none; }
+.episodios .poster-chip-tocar { padding: 0 6px; }
+.episodios .poster-txt { position: absolute; z-index: 1; left: 14px; right: 14px; bottom: 14px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+.episodios .poster-n { display: flex; align-items: center; gap: var(--e2); font-size: var(--t-xs); font-weight: 600; color: rgba(237, 235, 230, 0.86); }
+.episodios .poster-ver {
+  display: inline-flex; align-items: center; gap: 2px; margin-left: auto; color: #EDEBE6;
+  opacity: 0; transform: translateX(-4px); transition: opacity var(--motion-base) var(--ease-standard), transform var(--motion-base) var(--ease-emphasized);
+}
+.episodios .poster-ver svg { width: 14px; height: 14px; }
+.episodios .poster-midia:hover .poster-ver, .episodios .poster-midia:focus-within .poster-ver { opacity: 1; transform: none; }
+.episodios .poster-titulo { margin: 0; font-size: 28px; font-weight: 800; font-stretch: 70%; line-height: 0.98; letter-spacing: -0.005em; color: #EDEBE6; text-wrap: balance; }
+.episodios .poster-abrir { position: absolute; inset: 0; z-index: 2; padding: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.episodios .poster-abrir:focus-visible { outline: 2px solid var(--foco); outline-offset: 3px; }
+
+/* sem imagem nenhuma na série: o número do episódio ocupa o quadro */
+.episodios .poster-n-grande {
+  position: absolute; left: 0; right: 0; top: 22%; text-align: center; pointer-events: none;
+  font-size: 104px; font-weight: 800; font-stretch: 62%; line-height: 1; color: var(--borda-forte);
+}
+
+.episodios .poster-info { display: flex; flex-direction: column; gap: var(--e2); padding: 0 2px; }
+.episodios .poster-fase { margin: 0; font-size: var(--t-xs); line-height: 1.4; color: var(--texto-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.episodios .poster-mesa { align-self: flex-start; margin-top: 2px; }
+
+/* episódios que ainda só estão no mapa: lista compacta para criar (sem parede de quadros vazios) */
+.episodios .eps-mapa { margin-top: var(--e7); }
+.episodios .eps-mapa-cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--e2) var(--e4); flex-wrap: wrap; margin-bottom: var(--e3); }
+.episodios .eps-mapa-cab h3 { display: inline-flex; align-items: center; gap: var(--e2); font-size: var(--t-lg); }
+.episodios .eps-mapa-cab h3 svg { width: 18px; height: 18px; color: var(--texto-2); }
+.episodios .eps-mapa-cab p { font-size: var(--t-sm); color: var(--texto-2); }
+.episodios .eps-mapa-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--e2); }
+.episodios .slot {
+  width: 100%; display: flex; align-items: center; gap: var(--e3); padding: 10px var(--e3) 10px var(--e4);
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); color: var(--texto);
+  font: inherit; text-align: left; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard);
+}
+.episodios .slot:hover { background: var(--superficie-2); border-color: var(--borda-forte); }
+.episodios .slot:active { transform: scale(0.99); }
+.episodios .slot-n { min-width: 2.1ch; font-size: 32px; font-weight: 800; font-stretch: 62%; line-height: 1; color: var(--texto-3); transition: color var(--motion-fast) var(--ease-standard); }
+.episodios .slot:hover .slot-n, .episodios .slot:focus-visible .slot-n { color: var(--texto); }
+.episodios .slot-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.episodios .slot-txt strong { font-size: var(--t-md); font-weight: 650; }
+.episodios .slot-txt span { font-size: var(--t-xs); color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.episodios .slot-criar { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); transition: color var(--motion-fast) var(--ease-standard); }
+.episodios .slot-criar svg { width: 15px; height: 15px; transition: transform var(--motion-base) var(--ease-spring); }
+.episodios .slot:hover .slot-criar { color: var(--texto); }
+.episodios .slot:hover .ico-pular { transform: translateY(-2px) scale(1.08); }
+
+/* ---------- etapas: ícone da etapa + nome + estado (ícone e texto, nunca só cor) ---------- */
+.episodios .ep-etapas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--e2); }
+.episodios .ep-etapa { display: inline-flex; align-items: center; gap: 6px; min-width: 0; font-size: var(--t-xs); color: var(--texto-2); }
+.episodios .ep-etapa-ico { width: 14px; height: 14px; flex: none; }
+.episodios .ep-etapa-nome { white-space: nowrap; }
+.episodios .ep-etapa-st { width: 14px; height: 14px; flex: none; }
+.episodios .ep-etapa-esq { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.episodios .ep-etapa.ok { color: var(--texto); }
+.episodios .ep-etapa.ok .ep-etapa-st { color: var(--ok); }
+.episodios .ep-etapa.aviso .ep-etapa-st { color: var(--aviso); }
+.episodios .ep-etapa.perigo .ep-etapa-st { color: var(--perigo); }
+.episodios .ep-etapa.falta { color: var(--texto-3); }
+.episodios .ep-etapa.andamento .ep-etapa-st { color: var(--sinal); }
+
+.episodios .ep-etapas.compacto { display: grid; grid-template-columns: 1fr 1fr; gap: 6px var(--e2); }
+.episodios .ep-etapas:not(.compacto) .ep-etapa {
+  height: 32px; padding: 0 10px; border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--superficie); font-size: var(--t-sm);
+}
+.episodios .ep-etapas:not(.compacto) .ep-etapa-nome { color: var(--texto); font-weight: 600; }
+.episodios .ep-etapas:not(.compacto) .ep-etapa-txt { color: var(--texto-2); }
+.episodios .ep-etapas:not(.compacto) .ep-etapa.ok .ep-etapa-txt { color: var(--ok); }
+.episodios .ep-etapas:not(.compacto) .ep-etapa.aviso .ep-etapa-txt { color: var(--aviso); }
+.episodios .ep-etapas:not(.compacto) .ep-etapa.perigo .ep-etapa-txt { color: var(--perigo); }
+.episodios .ep-etapas:not(.compacto) .ep-etapa-ico { color: var(--texto-2); }
+
+/* ---------- página do episódio ---------- */
+.episodios .ep-pagina { display: flex; flex-direction: column; gap: var(--e5); }
+.episodios .ep-voltar { align-self: flex-start; margin-left: calc(-1 * var(--e3)); }
+.episodios .ep-pag-cab { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: var(--e6); align-items: start; }
+.episodios .ep-pag-poster { position: relative; aspect-ratio: 9 / 16; overflow: hidden; border-radius: var(--raio); background: var(--superficie-2); }
+.episodios .ep-pag-poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--motion-slow) var(--ease-emphasized); }
+.episodios .ep-pag-poster:hover img, .episodios .ep-pag-poster:hover .poster-video { transform: scale(1.03); }
+.episodios .ep-pag-tocar { position: absolute; z-index: 1; top: 10px; left: 10px; }
+.episodios .ep-pag-info { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding-top: var(--e2); }
+.episodios .ep-pag-sobre { margin: 0; font-size: var(--t-sm); font-weight: 550; color: var(--texto-2); }
+.episodios .ep-pag-titulo { margin: var(--e1) 0 0; font-size: clamp(38px, 4.8vw, 60px); font-weight: 800; font-stretch: 70%; line-height: 0.95; letter-spacing: -0.01em; text-wrap: balance; }
+.episodios .ep-pag-resumo { margin: var(--e3) 0 0; max-width: 64ch; font-size: var(--t-md); line-height: 1.6; color: var(--texto-2); }
+.episodios .ep-pag-fatos { list-style: none; display: flex; flex-wrap: wrap; gap: var(--e2) var(--e5); margin: var(--e4) 0; padding: 0; font-size: var(--t-sm); color: var(--texto-2); }
+.episodios .ep-pag-fatos li { display: inline-flex; align-items: center; gap: var(--e2); }
+.episodios .ep-pag-fatos svg { width: 16px; height: 16px; color: var(--texto-3); }
+.episodios .ep-pag-fatos strong { color: var(--texto); font-weight: 650; }
+.episodios .ep-pag-acoes { margin-top: var(--e5); }
+.episodios .ep-pag-info .nota-erro { margin-top: var(--e3); }
+.episodios .estado-aprovado { display: inline-flex; align-items: center; gap: 6px; margin-right: var(--e2); font-size: var(--t-sm); font-weight: 600; color: var(--ok); }
+.episodios .estado-aprovado svg { width: 16px; height: 16px; }
+
+/* mesa de luz: a folha (um degrau mais clara) sobre um fundo mais escuro */
+.episodios .mesa-luz { padding: var(--e6) var(--e5) var(--e7); background: var(--ed-fundo); border: 1px solid var(--borda); border-radius: var(--raio); }
+.episodios .mesa-luz .vazio { max-width: 520px; margin: 0 auto; }
+.episodios .vazio-custo { font-size: var(--t-xs); color: var(--texto-2); }
+.episodios .proposta-barra {
+  max-width: 680px; margin: 0 auto var(--e4); display: flex; justify-content: space-between; align-items: center; gap: var(--e3); flex-wrap: wrap;
+  padding: var(--e3) var(--e4); border: 1px solid var(--aviso-borda); border-radius: var(--raio-sm); background: var(--aviso-suave);
+}
+.episodios .proposta-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 260px; font-size: var(--t-sm); }
+.episodios .proposta-texto strong { color: var(--aviso); font-weight: 650; }
+.episodios .proposta-texto span { color: var(--texto-2); }
+.episodios .proposta-erros { list-style: none; margin: var(--e2) 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: var(--t-xs); color: var(--aviso); }
+.episodios .proposta-erros li { display: flex; gap: 6px; }
+.episodios .proposta-erros svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+
+@media (max-width: 767px) {
+  .episodios .posteres { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e5) var(--e3); }
+  .episodios .poster-titulo { font-size: 23px; }
+  .episodios .poster-txt { left: 10px; right: 10px; bottom: 10px; }
+  .episodios .poster-n-grande { font-size: 80px; }
+  .episodios .eps-mapa { margin-top: var(--e6); }
+  .episodios .eps-mapa-lista { grid-template-columns: 1fr; }
+  .episodios .ep-pag-cab { grid-template-columns: 116px minmax(0, 1fr); gap: var(--e4); }
+  .episodios .ep-pag-info { padding-top: 0; }
+  .episodios .ep-pag-titulo { font-size: 34px; }
+  .episodios .ep-pag-resumo { font-size: var(--t-sm); }
+  .episodios .mesa-luz { margin: 0 -16px; padding: var(--e4) var(--e3) var(--e6); border-radius: 0; border-left: 0; border-right: 0; }
+}
+@media (max-width: 420px) {
+  .episodios .ep-pag-cab { grid-template-columns: 1fr; }
+  .episodios .ep-pag-poster { width: 132px; }
+  .episodios .ep-etapas.compacto { grid-template-columns: 1fr; }
+}

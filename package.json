@@ -1,0 +1,19 @@
+{
+  "name": "estudio-series",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Estúdio de Séries: minisséries verticais com IA (OpenRouter) e escolhas A/B",
+  "main": "backend/src/index.js",
+  "scripts": {
+    "start": "node backend/src/index.js",
+    "dev": "node scripts/dev.js",
+    "dev:simulado": "node scripts/dev.js --simulado",
+    "parar": "node scripts/parar.js",
+    "backend:watch": "node --watch backend/src/index.js",
+    "test": "node --test \"backend/test/**/*.test.js\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

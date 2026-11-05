@@ -1,0 +1,27 @@
+{
+  "versao": 1,
+  "id": "o-ultimo-farol",
+  "titulo": "O Último Farol",
+  "genero": "Sobrevivência · apocalipse zumbi",
+  "idioma": "pt-BR",
+  "formato": { "largura": 1080, "altura": 1920, "proporcao": "9:16" },
+  "duracaoAlvoS": 60,
+  "criadaEm": "2026-11-04T12:00:00Z",
+  "orcamento": { "tetoPlanoUsd": 1.0, "tetoEpisodioUsd": 4.0, "tetoSerieUsd": 40.0 },
+  "modelos": {
+    "texto": "openai/gpt-6-luna",
+    "imagem": "google/gemini-3.1-flash-image",
+    "videoRascunho": "bytedance/seedance-1-5-pro",
+    "videoFinal": "google/veo-3.1-lite",
+    "apresentador": "heygen/avatar-iv"
+  },
+  "vozes": {
+    "narrador": "de-DE-FlorianMultilingualNeural",
+    "mara": "pt-BR-ThalitaMultilingualNeural",
+    "davi": "piper:pt_BR-cadu-medium",
+    "alerta": "en-US-BrianMultilingualNeural"
+  },
+  "tons": { "alerta": "-6Hz" },
+  "etapa": "roteiro",
+  "episodios": [ { "n": 1, "id": "ep01", "titulo": "Sete Quilômetros", "status": "roteiro" } ]
+}

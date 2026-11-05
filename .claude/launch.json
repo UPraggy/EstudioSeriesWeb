@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "estudio-backend",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-Command", "$env:NODE_EXTRA_CA_CERTS='E:\\AutoShortEditorDados\\ferramentas\\ca-com-avast.pem'; if (-not $env:ESTUDIO_REAL) { $env:ESTUDIO_SIMULADO='1' }; node backend/src/index.js"],
+      "port": 4190
+    },
+    {
+      "name": "estudio-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 5190
+    },
+    {
+      "name": "estudio-pages",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "preview:pages"],
+      "port": 5196
+    }
+  ]
+}

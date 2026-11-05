@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "id": "canal",
+  "tipo": "local",
+  "nome": "Canal leste e recifes",
+  "ancora": "canal leste: mar escuro com recifes à flor da água, ondas quebrando, silhueta do farol apagado ao longe",
+  "ancoraEn": "east channel: dark sea with reefs breaking the surface, crashing waves, silhouette of the unlit lighthouse in the distance",
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "noite",
+      "refs": {
+        "geral": "ref/canal.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/canal.png",
+  "origem": "gerada"
+}

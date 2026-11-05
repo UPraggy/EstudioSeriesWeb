@@ -1,0 +1,9 @@
+{
+  "versao": 1, "id": "davi", "tipo": "personagem", "nome": "Davi", "papel": "Irmão mais novo de Mara; trabalha no terminal de balsas",
+  "ancora": "homem de ~24 anos, cabelo castanho curto e molhado, capa de chuva amarela sobre colete laranja do terminal de balsas",
+  "ancoraEn": "man in his mid 20s, short wet brown hair, yellow rain jacket over an orange ferry-terminal safety vest",
+  "voz": "piper:pt_BR-cadu-medium", "tom": "+0st",
+  "estados": [ { "id": "padrao", "desde": "ep01", "descricao": "sem ferimentos, encharcado",
+                 "refs": { "frente": "ref/padrao-frente.png", "corpo": "ref/padrao-corpo.png" } } ],
+  "estadoAtual": "padrao", "canonica": "ref/padrao-frente.png", "origem": "gerada"
+}

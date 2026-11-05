@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "id": "sala",
+  "tipo": "local",
+  "nome": "Sala de controle",
+  "ancora": "sala de controle do farol: painel antigo de metal verde, rádio marítimo VHF, janela grande para o mar e a cidade ao longe, luz fria",
+  "ancoraEn": "lighthouse control room: old green metal control panel, grey marine VHF radio, large window facing the sea and the distant city, cold light",
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "noite",
+      "refs": {
+        "geral": "ref/sala.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/sala.png",
+  "origem": "gerada"
+}

@@ -1,0 +1,9 @@
+{
+  "versao": 1, "id": "mara", "tipo": "personagem", "nome": "Mara", "papel": "Protagonista — técnica de manutenção do farol, sozinha no turno da noite",
+  "ancora": "mulher de ~30 anos, cabelo escuro preso num coque baixo, jaqueta de trabalho impermeável escura com faixa refletiva, calça cargo escura, botas de borracha pretas, rosto cansado e firme",
+  "ancoraEn": "woman in her early 30s, dark hair tied back in a low bun, dark waterproof work jacket with a reflective strip, dark cargo pants, black rubber boots, tired but firm face",
+  "voz": "pt-BR-ThalitaMultilingualNeural", "tom": "+0Hz",
+  "estados": [ { "id": "padrao", "desde": "ep01", "descricao": "sem ferimentos",
+                 "refs": { "frente": "ref/padrao-frente.png", "perfil": "ref/padrao-perfil.png", "corpo": "ref/padrao-corpo.png" } } ],
+  "estadoAtual": "padrao", "canonica": "ref/padrao-frente.png", "origem": "gerada"
+}

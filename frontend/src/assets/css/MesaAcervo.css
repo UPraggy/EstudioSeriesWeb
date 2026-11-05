@@ -1,0 +1,74 @@
+/* ACERVO (esquerda): abas, filtro e pôsteres 9:16 em duas colunas (a mídia é o herói). */
+.ac { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: var(--ed-painel); border-right: 1px solid var(--ed-borda); }
+
+.ac .ac-abas { flex: 0 0 auto; gap: var(--e3); padding: 0 var(--e3); border-bottom-color: var(--ed-borda); }
+.ac .ac-abas button { padding: 12px 0 10px; font-size: 12.5px; color: var(--ed-texto-2); }
+.ac .ac-abas button:hover, .ac .ac-abas .ativa { color: var(--ed-texto); }
+.ac .abas-contador { margin-left: 1px; font-size: 11px; font-weight: 500; color: var(--ed-texto-3); }
+
+.ac-busca { position: relative; flex: 0 0 auto; padding: var(--e2) var(--e3); }
+.ac-busca svg { position: absolute; left: 22px; top: 50%; width: 14px; height: 14px; transform: translateY(-50%); color: var(--ed-texto-3); pointer-events: none; }
+.mesa .ac-busca input { height: 30px; min-height: 30px; padding-left: 30px !important; font-size: 12.5px; } /* !important: vence a regra geral dos campos da Mesa */
+
+.ac-lista { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 2px var(--e3) var(--e4); }
+.ac-lista .vazio { padding: var(--e6) var(--e2); font-size: 12.5px; }
+
+/* grade de pôsteres */
+.ac-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e2); }
+.ac-poster {
+  position: relative; border-radius: var(--raio); cursor: grab; outline: 1px solid var(--ed-borda); outline-offset: -1px;
+  transition: outline-color var(--motion-fast) var(--ease-standard), transform var(--motion-base) var(--ease-emphasized);
+}
+.ac-poster:hover { outline-color: var(--ed-borda-forte); }
+.ac-poster:active { cursor: grabbing; transform: scale(0.98); }
+.ac-poster .mm { border-radius: var(--raio); }
+
+/* véu escuro só para dar leitura ao título (função, não enfeite) */
+.ac-veu {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; gap: 2px;
+  padding: 28px var(--e2) var(--e2); background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.82) 55%);
+  pointer-events: none;
+}
+.ac-titulo {
+  font-size: 12px; font-weight: 640; line-height: 1.25; color: #F4F2ED; font-stretch: var(--largura-titulo);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ac-sub { font-size: 11px; line-height: 1.3; color: #C9C5BD; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-marcas { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2px; }
+.ac-marca { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 600; color: #D8D4CC; }
+.ac-marca svg { width: 11px; height: 11px; }
+.ac-marca.ok { color: var(--ok); }
+
+/* ação que aparece no hover / foco */
+.mesa .ac-usar {
+  position: absolute; left: 6px; top: 6px; z-index: 4; height: 24px; padding: 0 7px; font-size: 11.5px;
+  background: var(--acao); border-color: var(--acao); color: var(--acao-texto);
+  opacity: 0; transform: translateY(-3px); pointer-events: none;
+  transition: opacity var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-emphasized), background-color var(--motion-fast);
+}
+.mesa .ac-usar:hover:not(:disabled) { background: var(--acao-hover); border-color: var(--acao-hover); }
+.ac-poster:hover .ac-usar, .ac-poster:focus-within .ac-usar { opacity: 1; transform: none; pointer-events: auto; }
+
+/* fichas (elenco / locais) */
+.ac-fichas { display: flex; flex-direction: column; gap: var(--e4); padding-top: var(--e1); }
+.ac-ficha { display: flex; flex-direction: column; gap: 6px; padding-bottom: var(--e4); border-bottom: 1px solid var(--ed-borda); }
+.ac-ficha:last-child { border-bottom: 0; }
+.ac-ficha-cab { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ac-ficha-cab svg { width: 14px; height: 14px; color: var(--ed-texto-3); flex: none; }
+.ac-ficha-nome { font-size: 13px; font-weight: 640; color: var(--ed-texto); }
+.ac-ficha-papel { font-size: 11.5px; color: var(--ed-texto-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-ancora {
+  margin: 0; font-size: 11.5px; line-height: 1.4; color: var(--ed-texto-2);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ac-refs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.ac-ref {
+  border-radius: var(--raio-sm); cursor: grab; outline: 1px solid var(--ed-borda); outline-offset: -1px;
+  transition: outline-color var(--motion-fast) var(--ease-standard), transform var(--motion-base) var(--ease-emphasized);
+}
+.ac-ref .mm { border-radius: var(--raio-sm); }
+.ac-ref:hover { outline-color: var(--ed-texto-2); }
+.ac-ref:active { cursor: grabbing; transform: scale(0.97); }
+.ac-ref:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.ac-sem-ref { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11.5px; color: var(--ed-texto-3); }
+.ac-sem-ref svg { width: 14px; height: 14px; }

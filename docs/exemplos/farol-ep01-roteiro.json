@@ -1,0 +1,99 @@
+{
+  "versao": 1,
+  "n": 1,
+  "titulo": "Sete Quilômetros",
+  "objetivo": "Apresentar Mara, o isolamento e a regra do surto; terminar na primeira escolha: acender ou não o farol.",
+  "resumo": "Mara está sozinha no farol quando o rádio anuncia ataques por mordida no terminal de balsas. Pelos binóculos, ela vê um morto se levantar no cais e avançar sobre o socorrista. Ela tranca a única porta e conta água e comida para cinco dias. Davi chama pelo rádio: está numa lancha com uma criança, perdido no canal leste, e pede a luz do farol. O público vê o que eles não veem: um passageiro esconde o pulso enfaixado.",
+  "gancho": "Sete quilômetros de mar separam Mara do fim do mundo.",
+  "duracaoAlvoS": 60,
+  "planos": [
+    {
+      "n": 1, "deS": 0, "ateS": 5, "tipo": "reaproveitar",
+      "local": "farol", "elenco": [], "pov": null, "objetos": [],
+      "visual": "Farol na ilhota à noite; a câmera se aproxima devagar; luzes da cidade no horizonte.",
+      "tela": "O ÚLTIMO FAROL",
+      "falas": [ { "quem": "narrador", "texto": "Sete quilômetros de mar separam Mara do fim do mundo.", "via": "narracao" } ]
+    },
+    {
+      "n": 2, "deS": 5, "ateS": 15, "tipo": "apresentador",
+      "local": "biblioteca", "elenco": ["narrador"], "pov": null, "objetos": [],
+      "visual": "O Narrador na poltrona fala para a câmera, calmo; ao lado, o mapa: cidade, 7 km de mar, a ilhota.",
+      "tela": "7 KM · SEM PONTE",
+      "falas": [ { "quem": "narrador", "texto": "Mara cuida do farol da Ponta Norte. Sozinha, no turno da noite. O único bote está em conserto.", "via": "em_cena" } ]
+    },
+    {
+      "n": 3, "deS": 15, "ateS": 23, "tipo": "video_ia",
+      "local": "sala", "elenco": ["mara"], "pov": null, "objetos": ["radio"],
+      "visual": "Mara de perfil no painel gira o botão do rádio e congela, ouvindo; pela janela, bairros da cidade apagam um a um.",
+      "tela": "ALERTA DE EMERGÊNCIA",
+      "falas": [ { "quem": "alerta", "texto": "Alerta no terminal: ataques por mordida. Não se aproximem dos feridos.", "via": "radio" } ]
+    },
+    {
+      "n": 4, "deS": 23, "ateS": 29, "tipo": "reaproveitar",
+      "local": "cidade", "elenco": [], "pov": "mara", "objetos": [],
+      "visual": "Pelos binóculos de Mara: no cais do terminal, um corpo coberto se levanta e avança sobre o socorrista; corte antes do contato.",
+      "tela": "",
+      "falas": [ { "quem": "mara", "texto": "Ele estava morto…", "via": "narracao" } ]
+    },
+    {
+      "n": 5, "deS": 29, "ateS": 37, "tipo": "video_ia",
+      "local": "porta", "elenco": ["mara"], "pov": null, "objetos": ["barra"],
+      "visual": "Mara, de costas, passa a barra de metal na porta de aço do cais e encosta a testa na porta por um segundo.",
+      "tela": "PASSO 1: TRANCAR · PASSO 2: 5 DIAS",
+      "falas": [ { "quem": "narrador", "texto": "Passo um: trancar o único acesso. Passo dois: água e comida para cinco dias.", "via": "narracao" } ]
+    },
+    {
+      "n": 6, "deS": 37, "ateS": 46, "tipo": "video_ia",
+      "local": "canal", "elenco": ["davi"], "pov": null, "objetos": ["lancha"],
+      "visual": "Lancha no escuro perto dos recifes; Davi, de capa amarela e de costas, fala ao rádio de mão; atrás dele, uma criança enrolada num cobertor e um homem que puxa a manga sobre o pulso enfaixado.",
+      "tela": "DAVI · RÁDIO",
+      "falas": [ { "quem": "davi", "texto": "Mara, sou eu! Tô numa lancha com uma criança. Não acho o canal. Acende o farol!", "via": "radio" } ]
+    },
+    {
+      "n": 7, "deS": 46, "ateS": 54, "tipo": "reaproveitar",
+      "local": "sala", "elenco": [], "pov": null, "objetos": ["interruptor"],
+      "visual": "Só a mão de Mara, na manga da jaqueta escura, paira sobre a alavanca vermelha do feixe; aos 48 s entram os cartões A e B.",
+      "tela": "A · ACENDER O FAROL  |  B · DEIXAR APAGADO",
+      "falas": [ { "quem": "narrador", "texto": "A luz guia o irmão… e chama os mortos.", "via": "narracao" } ]
+    },
+    {
+      "n": 8, "deS": 54, "ateS": 60, "tipo": "apresentador",
+      "local": "biblioteca", "elenco": ["narrador"], "pov": null, "objetos": [],
+      "visual": "O Narrador se inclina e aponta para a câmera.",
+      "tela": "COMENTE A OU B",
+      "falas": [ { "quem": "narrador", "texto": "Comente A ou B. A mais votada decide o próximo episódio.", "via": "em_cena" } ]
+    }
+  ],
+  "escolhas": {
+    "A": {
+      "texto": "ACENDER O FAROL",
+      "detalhe": "Guia Davi pelo canal — e chama os mortos para a ilhota.",
+      "consequencia": "Ep. 2: a lancha acha o canal e chega ao cais, mas o feixe é visto da cidade inteira; corpos e um barco à deriva começam a vir na direção da luz."
+    },
+    "B": {
+      "texto": "DEIXAR APAGADO",
+      "detalhe": "Protege a ilhota — e Davi pode bater nos recifes.",
+      "consequencia": "Ep. 2: a ilhota continua escondida, mas a lancha bate nos recifes; Davi e a criança chegam às pedras a nado e o passageiro desaparece na água."
+    }
+  },
+  "cta": "Comente A ou B. A mais votada decide o próximo episódio.",
+  "continuidade": {
+    "fatosNovos": [
+      { "tipo": "evento", "texto": "O surto começou no terminal de balsas: o rádio manda não se aproximar dos feridos.", "sobre": ["cidade"], "importancia": 3 },
+      { "tipo": "evento", "texto": "Mara viu pelos binóculos um morto se levantar no cais do terminal.", "sobre": ["mara", "cidade"], "importancia": 2 },
+      { "tipo": "personagem", "texto": "Davi está numa lancha do terminal no canal leste com uma criança e um passageiro adulto.", "sobre": ["davi", "canal", "lancha"], "importancia": 3 },
+      { "tipo": "segredo", "texto": "O passageiro adulto da lancha esconde o pulso enfaixado (mordida); só o público viu.", "sobre": ["davi", "lancha"], "importancia": 3 }
+    ],
+    "estadoDepois": {
+      "personagens": {
+        "mara": { "onde": "sala", "condicao": "sem ferimentos, em choque", "sabe": ["mordida mata e o morto se levanta", "Davi está no canal leste"] },
+        "davi": { "onde": "canal", "condicao": "sem ferimentos, encharcado", "sabe": ["Mara está no farol"] }
+      },
+      "objetos": {
+        "barra": { "onde": "porta", "estado": "travando a porta do cais" },
+        "lancha": { "onde": "canal", "estado": "perdida perto dos recifes, com Davi a bordo" }
+      }
+    }
+  },
+  "aprovado": null
+}

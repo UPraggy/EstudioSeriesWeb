@@ -1,0 +1,71 @@
+/* Diálogo modal escuro: flutua (raio 12 px + --sombra-flutuante), entra com escala 0.96 → 1 e o véu esmaece.
+   Sem vidro fosco, sem brilho. A saída (classe .saindo) é controlada pelo Dialogo.jsx. */
+.dlg {
+  width: calc(100% - 32px); padding: 0; border: 0; border-radius: var(--raio-lg);
+  background: var(--superficie); color: var(--texto); font: var(--t-md)/1.5 var(--fonte);
+  box-shadow: var(--sombra-flutuante);
+}
+.dlg::backdrop { background: rgba(8, 9, 10, 0.64); }
+.dlg[open] { animation: dlg-entra var(--motion-base) var(--ease-emphasized); }
+.dlg[open]::backdrop { animation: dlg-veu-entra var(--motion-base) var(--ease-standard); }
+.dlg.saindo { animation: dlg-sai 150ms var(--ease-accelerate) forwards; pointer-events: none; }
+.dlg.saindo::backdrop { animation: dlg-veu-sai 150ms var(--ease-standard) forwards; }
+@keyframes dlg-entra { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes dlg-sai { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.97); } }
+@keyframes dlg-veu-entra { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dlg-veu-sai { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .dlg[open], .dlg.saindo, .dlg[open]::backdrop, .dlg.saindo::backdrop { animation: none; }
+}
+
+.dlg-int { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.dlg-cab { padding: var(--e5) var(--e5) 0; }
+.dlg-cab-linha { display: flex; align-items: center; gap: var(--e3); }
+.dlg-cab h2 { flex: 1; min-width: 0; margin: 0; font-size: var(--t-lg); font-weight: 650; font-stretch: var(--largura-titulo); }
+.dlg-icone {
+  display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: var(--raio);
+  background: var(--superficie-3); color: var(--texto);
+}
+.dlg-icone svg { width: 18px; height: 18px; }
+.dlg-fechar { margin: -4px -8px -4px 0; flex: none; }
+.dlg-desc { margin: var(--e2) 0 0; color: var(--texto-2); font-size: var(--t-sm); }
+.dlg-cab-linha h2 { line-height: 1.25; }
+.dlg-corpo { padding: var(--e4) var(--e5); overflow: auto; display: flex; flex-direction: column; gap: var(--e4); }
+.dlg-rodape {
+  display: flex; justify-content: flex-end; align-items: center; gap: var(--e2); flex-wrap: wrap;
+  padding: var(--e3) var(--e5); border-top: 1px solid var(--borda); background: var(--superficie-2);
+  border-radius: 0 0 var(--raio-lg) var(--raio-lg);
+}
+.dlg-rodape .dlg-rodape-esq { margin-right: auto; display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-xs); color: var(--texto-2); }
+
+/* campos dentro do diálogo (o diálogo também é usado fora das telas da casca) */
+.dlg-campo { display: flex; flex-direction: column; gap: 6px; }
+.dlg-campo > span { font-size: var(--t-sm); font-weight: 600; }
+.dlg-campo small { font-size: var(--t-xs); color: var(--texto-2); }
+.dlg-campo input, .dlg-campo select, .dlg-campo textarea {
+  width: 100%; min-height: 36px; padding: 6px var(--e3); border: 1px solid var(--borda-forte); border-radius: var(--raio-sm);
+  background: var(--fundo); color: var(--texto); font: var(--t-md)/1.4 var(--fonte);
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+.dlg-campo textarea { resize: vertical; min-height: 72px; }
+.dlg-campo input:focus, .dlg-campo select:focus, .dlg-campo textarea:focus { border-color: var(--texto); outline: none; box-shadow: 0 0 0 3px var(--acao-suave); }
+.dlg-grade2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e3); }
+.dlg-nota { margin: 0; font-size: var(--t-xs); color: var(--texto-2); }
+.dlg-erro, .dlg-aviso {
+  display: flex; align-items: flex-start; gap: var(--e2); margin: 0; padding: var(--e2) var(--e3);
+  border-radius: var(--raio-sm); font-size: var(--t-sm);
+}
+.dlg-erro { border: 1px solid var(--perigo-borda); background: var(--perigo-suave); color: var(--perigo); }
+.dlg-aviso { border: 1px solid var(--aviso-borda); background: var(--aviso-suave); color: var(--aviso); }
+.dlg-erro > svg, .dlg-aviso > svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+.dlg-arvore {
+  margin: 0; padding: var(--e3); border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--fundo);
+  font: var(--t-xs)/1.6 var(--fonte-mono); color: var(--texto-2); overflow-x: auto; white-space: pre;
+}
+
+@media (max-width: 520px) {
+  .dlg-cab { padding: var(--e4) var(--e4) 0; }
+  .dlg-corpo { padding: var(--e4); }
+  .dlg-rodape { padding: var(--e3) var(--e4); }
+  .dlg-grade2 { grid-template-columns: 1fr; }
+}

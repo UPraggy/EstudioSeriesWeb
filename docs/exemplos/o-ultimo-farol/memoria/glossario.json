@@ -1,0 +1,49 @@
+{
+  "versao": 1,
+  "termos": [
+    {
+      "id": "mara",
+      "termo": "Mara",
+      "tipo": "personagem",
+      "grafia": "Mara",
+      "pronuncia": "Mára",
+      "pronunciaPiper": "Mara",
+      "variantesErradas": [
+        "Maria",
+        "Marah"
+      ],
+      "nota": "Thalita lia \"mar\"; no Piper (Cadu) o acento vira \"Maia\""
+    },
+    {
+      "id": "davi",
+      "termo": "Davi",
+      "tipo": "personagem",
+      "grafia": "Davi",
+      "pronuncia": null,
+      "variantesErradas": [
+        "Davy",
+        "Davie"
+      ],
+      "evitarNaFalaDe": [
+        "davi"
+      ],
+      "nota": "a voz do Davi (Cadu/Piper) fala \"dali\""
+    },
+    {
+      "id": "ponta-norte",
+      "termo": "Ponta Norte",
+      "tipo": "local",
+      "grafia": "Ponta Norte",
+      "pronuncia": null,
+      "nota": "nome do farol"
+    },
+    {
+      "id": "recifes",
+      "termo": "recifes",
+      "tipo": "palavra",
+      "grafia": "recifes",
+      "pronuncia": "recífes",
+      "nota": "Edge errava a tônica"
+    }
+  ]
+}

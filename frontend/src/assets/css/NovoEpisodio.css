@@ -1,0 +1,66 @@
+/* Novo episódio com duração livre: número grande, atalhos que deslizam e a fita de planos. */
+.novo-ep { display: flex; flex-direction: column; gap: var(--e5); }
+.novo-ep .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.nv-duracao { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-direction: column; gap: var(--e2); }
+.nv-duracao legend { padding: 0; margin-bottom: var(--e2); font-size: var(--t-sm); font-weight: 600; }
+.nv-duracao > small { font-size: var(--t-xs); color: var(--texto-2); }
+.nv-duracao .nv-erro-txt { color: var(--perigo); }
+
+.nv-duracao-linha { display: flex; align-items: center; gap: var(--e4); flex-wrap: wrap; }
+.nv-numero {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 2px var(--e3) 4px; border: 1px solid var(--borda-forte);
+  border-radius: var(--raio-sm); background: var(--fundo); cursor: text;
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+.nv-numero:hover { border-color: var(--texto-3); }
+.nv-numero:focus-within { border-color: var(--texto); box-shadow: 0 0 0 3px var(--acao-suave); }
+/* mesmo peso de seletor da regra global de campos (Principais.css) + o escopo, para ganhar dela */
+.novo-ep .nv-numero input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]) {
+  width: 3.6ch; min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; outline: none;
+  color: var(--texto); font: 780 44px/1.1 var(--fonte); font-stretch: 72%; font-variant-numeric: tabular-nums; text-align: right;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.nv-numero input::-webkit-outer-spin-button, .nv-numero input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.nv-numero input[aria-invalid="true"] { color: var(--perigo); }
+.nv-unidade { font-size: var(--t-lg); font-weight: 600; color: var(--texto-2); }
+
+.nv-atalhos { display: inline-flex; gap: var(--e1); padding: 3px; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--fundo); }
+.nv-atalho {
+  position: relative; height: 34px; min-width: 56px; padding: 0 var(--e3); border: 0; border-radius: var(--raio-sm); background: none;
+  color: var(--texto-2); font: 600 var(--t-sm)/1 var(--fonte); cursor: pointer;
+  transition: color var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard);
+}
+.nv-atalho:hover { color: var(--texto); }
+.nv-atalho:active { transform: scale(0.96); }
+.nv-atalho.ativo { color: var(--acao-texto); }
+.nv-atalho > .num { position: relative; z-index: 1; }
+.nv-atalho-marca { position: absolute; inset: 0; border-radius: var(--raio-sm); background: var(--acao); }
+
+/* fita: um bloco por plano estimado; a marca A/B cobre o fim quando há votação */
+.nv-fita { position: relative; margin-top: var(--e2); padding-top: 22px; }
+.nv-fita-blocos { display: flex; gap: 3px; height: 28px; }
+.nv-bloco { flex: 1 1 0; min-width: 4px; border-radius: 3px; background: var(--superficie-3); transform-origin: bottom; }
+.nv-fita-ab {
+  position: absolute; top: 0; right: 0; width: 20%; min-width: 44px; height: 54px; transform-origin: right;
+  padding: 3px 0 0 6px; border: 1px solid var(--texto-2); border-bottom: 0; border-radius: var(--raio-sm) var(--raio-sm) 0 0;
+  font-size: var(--t-xs); font-weight: 700; color: var(--texto); pointer-events: none;
+}
+.nv-resumo { margin: var(--e1) 0 0; font-size: var(--t-sm); color: var(--texto-2); line-height: 1.5; }
+.nv-resumo strong { color: var(--texto); font-weight: 650; }
+
+.nv-check { display: flex; align-items: flex-start; gap: var(--e3); padding: var(--e3); border: 1px solid var(--borda); border-radius: var(--raio-sm); cursor: pointer; transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard); }
+.nv-check:hover { border-color: var(--borda-forte); background: var(--superficie-2); }
+.nv-check input { width: 18px; height: 18px; margin: 1px 0 0; flex: none; }
+.nv-check > span { display: flex; flex-direction: column; gap: 2px; }
+.nv-check strong { font-size: var(--t-sm); font-weight: 600; }
+.nv-check small { font-size: var(--t-xs); color: var(--texto-2); }
+
+.novo-ep .nota-erro { margin: 0; }
+
+@media (max-width: 520px) {
+  .nv-duracao-linha { gap: var(--e3); }
+  .nv-atalhos { width: 100%; }
+  .nv-atalho { flex: 1; min-width: 0; }
+  .novo-ep .nv-numero input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]) { font-size: 38px; }
+}

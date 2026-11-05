@@ -1,0 +1,23 @@
+{
+  "versao": 1,
+  "id": "radio",
+  "tipo": "objeto",
+  "nome": "Rádio marítimo VHF",
+  "ancora": "rádio marítimo VHF cinza preso ao painel, fone de mão com fio espiral",
+  "ancoraEn": "grey marine VHF radio mounted on the panel, coiled handset cord",
+  "onde": "sala",
+  "fixo": true,
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "",
+      "refs": {
+        "geral": "ref/radio.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/radio.png",
+  "origem": "gerada"
+}

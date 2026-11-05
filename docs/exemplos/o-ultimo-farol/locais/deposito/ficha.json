@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "id": "deposito",
+  "tipo": "local",
+  "nome": "Depósito (cisterna e suprimentos)",
+  "ancora": "mesa de madeira com garrafas de água, enlatados, kit de primeiros socorros, rádio de pilha sob uma lanterna",
+  "ancoraEn": "wooden table with water bottles, canned food, first aid kit and a battery radio under a lantern",
+  "estados": [
+    {
+      "id": "padrao",
+      "desde": "ep01",
+      "descricao": "noite",
+      "refs": {
+        "geral": "ref/deposito.png"
+      }
+    }
+  ],
+  "estadoAtual": "padrao",
+  "canonica": "ref/deposito.png",
+  "origem": "gerada"
+}

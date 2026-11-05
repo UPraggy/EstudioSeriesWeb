@@ -1,0 +1,50 @@
+{
+  "versao": 1,
+  "premissa": "Mara, técnica do Farol da Ponta Norte, está sozinha numa ilhota a 7 km da cidade quando começa um surto de mortos que se levantam. Sem ponte e sem bote, ela precisa sobreviver — e decidir se a luz do farol salva o irmão ou atrai os mortos.",
+  "regras": [
+    "A ilhota fica a 7 km da cidade. Não há ponte nem caminho, nem na maré baixa. Só se chega de barco.",
+    "Mordida → febre → morte em minutos → o corpo se levanta e ataca.",
+    "Luz intensa atrai os infectados (o feixe do farol vira um chamariz).",
+    "As balsas foram suspensas. O único bote do farol está em conserto na cidade.",
+    "O farol tem gerador próprio num abrigo separado e ventilado."
+  ],
+  "cronologia": [],
+  "recursos": {
+    "agua": "Cisterna de chuva pela metade",
+    "comida": "5 dias, racionada",
+    "energia": "Gerador com diesel para ~3 noites",
+    "comunicacao": "Rádio marítimo VHF + celular (sinal fraco)"
+  },
+  "objetos": [
+    { "id": "radio", "onde": "sala", "fixo": true, "estado": "ligado no canal 16" },
+    { "id": "barra", "onde": "porta", "estado": "encostada ao lado da porta" },
+    { "id": "binoculos", "onde": "sala" },
+    { "id": "bolsa", "nome": "Bolsa de emergência", "onde": "deposito" },
+    { "id": "interruptor", "onde": "sala", "fixo": true, "estado": "feixe desligado" }
+  ],
+  "personagens": [
+    { "id": "mara", "onde": "sala", "estado": "sem ferimentos", "sabe": [] },
+    { "id": "davi", "onde": "cidade", "estado": "sem ferimentos", "sabe": [] }
+  ],
+  "segredos": {
+    "personagens": [],
+    "publico": [ "Um dos passageiros de Davi foi mordido e esconde o ferimento." ]
+  },
+  "misterios": [
+    "Por que o surto começou no terminal de balsas?",
+    "Há alguém respondendo do outro farol?"
+  ],
+  "escolhas": [],
+  "temporada": [
+    { "n": 1, "titulo": "Sete Quilômetros", "fase": "Introdução + incidente", "resumo": "", "status": "roteiro" },
+    { "n": 2, "titulo": "Canal Leste", "fase": "Consequência da escolha da luz", "resumo": "", "status": "planejado" },
+    { "n": 3, "titulo": "O Passageiro", "fase": "Descoberta: o mordido a bordo", "resumo": "", "status": "planejado" },
+    { "n": 4, "titulo": "Diesel", "fase": "Conflito: energia acaba", "resumo": "", "status": "planejado" },
+    { "n": 5, "titulo": "Outra Luz", "fase": "Apostas: alguém responde do outro farol", "resumo": "", "status": "planejado" },
+    { "n": 6, "titulo": "Maré Cheia", "fase": "Revelação / perda", "resumo": "", "status": "planejado" },
+    { "n": 7, "titulo": "Quarentena", "fase": "Mudança importante", "resumo": "", "status": "planejado" },
+    { "n": 8, "titulo": "O Bote", "fase": "Preparação para o confronto", "resumo": "", "status": "planejado" },
+    { "n": 9, "titulo": "A Última Luz", "fase": "Clímax e última escolha", "resumo": "", "status": "planejado" },
+    { "n": 10, "titulo": "Amanhecer", "fase": "Resolução", "resumo": "", "status": "planejado" }
+  ]
+}

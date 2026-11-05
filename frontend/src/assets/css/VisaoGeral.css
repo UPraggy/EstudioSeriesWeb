@@ -1,0 +1,121 @@
+/* Visão geral da série: trilho de etapas, próximos passos, showrunner e a coluna de números. */
+.visao { display: grid; grid-template-columns: minmax(0, 1fr) 312px; gap: 40px; align-items: start; }
+.visao .secao-cab h2 { font-size: var(--t-lg); }
+
+/* trilho de etapas: marcas redondas ligadas por uma linha que enche até a etapa atual (uma entrada animada) */
+.visao .etapas-moldura { padding: var(--e4) var(--e4) var(--e3); background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); }
+.visao .etapas-int { position: relative; }
+.visao .etapas { position: relative; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); }
+.visao .etapas-trilho { position: absolute; left: 13px; width: 90%; top: 13px; height: 2px; background: var(--borda-forte); border-radius: 1px; }
+.visao .etapas-trilho-cheio { position: absolute; inset: 0; background: var(--ok); border-radius: 1px; transform-origin: left;
+  animation: trilho-enche var(--motion-slower) var(--ease-emphasized) both; animation-delay: 120ms; }
+@keyframes trilho-enche { from { transform: scaleX(0); } }
+.visao .etapa .etapa-marca { animation: marca-entra var(--motion-base) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms + 80ms); }
+@keyframes marca-entra { from { opacity: 0; transform: scale(0.6); } }
+.visao .etapa { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; padding-right: 2px; }
+.visao .etapa-marca {
+  width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid var(--borda-forte); background: var(--superficie); color: var(--texto-3);
+  font-size: var(--t-xs); font-weight: 700; margin-bottom: 4px;
+}
+.visao .etapa-marca svg { width: 15px; height: 15px; stroke-width: 3; }
+.visao .etapa.feita .etapa-marca { background: var(--ok); border-color: var(--ok); color: var(--acao-texto); }
+.visao .etapa.atual .etapa-marca { background: var(--acao); border-color: var(--acao); color: var(--acao-texto); box-shadow: 0 0 0 4px var(--acao-suave); }
+.visao .etapa-nome { font-size: var(--t-xs); line-height: 1.25; font-weight: 600; color: var(--texto-2); overflow-wrap: normal; hyphens: manual; }
+.visao .etapa.feita .etapa-nome { color: var(--texto); }
+.visao .etapa.atual .etapa-nome { color: var(--texto); font-weight: 700; }
+.visao .etapa-st { font-size: var(--t-xs); color: var(--texto-3); }
+.visao .etapa.feita .etapa-st { color: var(--ok); }
+.visao .etapa.atual .etapa-st { color: var(--texto); font-weight: 600; }
+
+/* listas de passos e de ações do showrunner */
+.visao .passos, .visao .ia-lista { list-style: none; margin: 0; padding: 0; overflow: hidden; }
+.visao .passos > li, .visao .ia-lista > li { border-bottom: 1px solid var(--borda); transition: background-color var(--motion-fast) var(--ease-standard); }
+.visao .passos > li:last-child, .visao .ia-lista > li:last-child { border-bottom: 0; }
+.visao .passos > li:hover, .visao .ia-lista > li:hover { background: var(--superficie-2); }
+.visao .passos > li, .visao .ia-linha { display: flex; align-items: center; gap: var(--e3); padding: var(--e3) var(--e4); }
+.visao .passo-ico {
+  flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--raio-sm);
+  background: var(--superficie-3); color: var(--texto);
+}
+.visao .passo-ico svg { width: 17px; height: 17px; }
+.visao .passo-texto, .visao .ia-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.visao .passo-texto strong, .visao .ia-texto strong { font-size: var(--t-md); font-weight: 600; }
+.visao .passo-texto span, .visao .ia-texto > span { font-size: var(--t-sm); color: var(--texto-2); }
+.visao .passos .btn, .visao .ia-lista .btn { flex-shrink: 0; }
+.visao .ia-acao { display: flex; align-items: center; gap: var(--e3); flex-shrink: 0; }
+.visao .ia-custo { font-size: var(--t-xs); color: var(--texto-2); white-space: nowrap; }
+
+.visao .ia-resultado { padding: 0 var(--e4) var(--e3) calc(var(--e4) + 34px + var(--e3)); }
+.visao .ia-resultado-cab {
+  display: flex; align-items: center; gap: var(--e3); width: 100%; padding: 6px 0; border: 0; background: none; color: var(--texto);
+  font: inherit; font-size: var(--t-sm); text-align: left; cursor: pointer;
+}
+.visao .ia-resultado-cab .suave { font-size: var(--t-xs); }
+.visao .ia-seta { width: 16px; height: 16px; margin-left: auto; color: var(--texto-2); transition: transform var(--motion-base) var(--ease-emphasized); }
+.visao .ia-seta.aberta { transform: rotate(180deg); }
+.visao .estado-visto { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-xs); font-weight: 600; }
+.visao .estado-visto.ok { color: var(--ok); }
+.visao .ia-erros { list-style: none; margin: var(--e2) 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: var(--t-xs); color: var(--aviso); }
+.visao .ia-erros li { display: flex; gap: 6px; align-items: flex-start; }
+.visao .ia-erros svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+.visao .ia-dica { margin: var(--e2) 0 0; font-size: var(--t-sm); color: var(--texto-2); }
+.visao .ia-resultado pre {
+  margin: var(--e2) 0 0; padding: var(--e3); max-height: 280px; overflow: auto; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  background: var(--fundo); color: var(--texto-2); font: var(--t-xs)/1.5 var(--fonte-mono); white-space: pre-wrap; word-break: break-word;
+}
+.visao .ia-erro { margin-top: var(--e3); }
+
+/* coluna lateral */
+.visao .visao-lateral { display: flex; flex-direction: column; gap: var(--e4); }
+.visao .lateral-bloco .painel-cab { padding: 10px var(--e4); min-height: 46px; }
+.visao .lateral-bloco .painel-cab h2 { display: inline-flex; align-items: center; gap: var(--e2); font-size: var(--t-sm); }
+.visao .lateral-bloco .painel-cab h2 svg { width: 16px; height: 16px; color: var(--texto-2); }
+.visao .lateral-link { font-size: var(--t-xs); font-weight: 600; }
+.visao .lateral-gasto { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; margin-bottom: var(--e3); }
+.visao .lateral-gasto > .num { font-size: 30px; font-weight: 760; font-stretch: 76%; letter-spacing: -0.01em; line-height: 1; }
+.visao .lateral-gasto .suave { font-size: var(--t-sm); }
+.visao .barra { height: 6px; border-radius: 3px; background: var(--superficie-3); }
+.visao .barra > span { border-radius: 3px; }
+.visao .lateral-tetos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e3); margin: var(--e4) 0 0; }
+.visao .lateral-tetos dt { font-size: var(--t-xs); color: var(--texto-2); }
+.visao .lateral-tetos dd { margin: 2px 0 0; font-size: var(--t-md); font-weight: 600; }
+
+.visao .numeros { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; }
+.visao .numeros li:nth-child(odd) { border-right: 1px solid var(--borda); }
+.visao .numeros li:nth-child(-n + 2) { border-bottom: 1px solid var(--borda); }
+.visao .numero {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: var(--e3) var(--e4);
+  border: 0; background: none; color: var(--texto); font: inherit; text-align: left; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+.visao .numero:hover { background: var(--superficie-2); }
+.visao .numero:focus-visible { outline-offset: -2px; }
+.visao .numero-rot { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-xs); font-weight: 550; color: var(--texto-2); }
+.visao .numero-rot svg { width: 14px; height: 14px; }
+.visao .numero-valor { font-size: 28px; font-weight: 760; font-stretch: 76%; line-height: 1.1; }
+.visao .numero-extra { font-size: var(--t-xs); color: var(--texto-2); }
+
+.visao .modelos { margin: 0; display: grid; gap: var(--e3); }
+.visao .modelos dt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-xs); font-weight: 550; color: var(--texto-2); }
+.visao .modelos dt svg { width: 14px; height: 14px; }
+.visao .modelos dd { margin: 2px 0 0; font-size: var(--t-sm); color: var(--texto); word-break: break-all; }
+.visao .lateral-premissa { font-size: var(--t-sm); color: var(--texto); line-height: 1.6; }
+
+@media (max-width: 1000px) {
+  .visao { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .visao .visao-lateral { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+}
+@media (max-width: 760px) {
+  .visao .etapas-moldura { overflow-x: auto; scroll-snap-type: x proximity; }
+  .visao .etapas-int { width: 920px; }
+  .visao .etapa { scroll-snap-align: start; }
+}
+@media (max-width: 600px) {
+  .visao .passos > li, .visao .ia-linha { flex-wrap: wrap; }
+  .visao .passo-texto, .visao .ia-texto { flex-basis: calc(100% - 34px - var(--e3)); }
+  .visao .passos .btn { margin-left: calc(34px + var(--e3)); }
+  .visao .ia-acao { width: 100%; justify-content: space-between; padding-left: calc(34px + var(--e3)); }
+  .visao .ia-resultado { padding-left: var(--e4); }
+  .visao .visao-lateral { grid-template-columns: 1fr; }
+}

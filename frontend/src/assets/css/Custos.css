@@ -1,0 +1,129 @@
+/* Custos: o número é a notícia. Três números grandes no topo (disponível, gasto, mês), o detalhe da chave,
+   a tabela de tetos com barra que enche e os lançamentos com ícone por tipo. */
+.custos .secao-cab h2 { display: inline-flex; align-items: center; gap: var(--e2); }
+.custos .secao-cab h2 svg { width: 17px; height: 17px; color: var(--texto-2); }
+.custos .secao-cab p svg { width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; }
+.custos .custos-cab { margin-bottom: var(--e5); }
+
+/* Entrada de uma vez só, em CSS ("backwards": depois dela o hover e as transições voltam a mandar):
+   os números sobem em sequência, o detalhe da chave aparece, as barras enchem e as capas chegam. */
+@keyframes custos-numero-entra { from { opacity: 0; transform: translateY(8px); } }
+@keyframes custos-chave-entra { from { opacity: 0; } }
+@keyframes custos-barra-enche { from { transform: scaleX(0); } }
+@keyframes custos-capa-chega { from { opacity: 0; transform: scale(1.12); } }
+@keyframes custos-resumo-entra { from { opacity: 0; transform: translateY(4px); } }
+.custos .custos-numero { animation: custos-numero-entra var(--motion-slow) var(--ease-emphasized) backwards; }
+.custos .custos-numero:nth-child(2) { animation-delay: 70ms; }
+.custos .custos-numero:nth-child(3) { animation-delay: 140ms; }
+.custos .custos-chave { animation: custos-chave-entra var(--motion-slow) var(--ease-standard) 120ms backwards; }
+.custos .custos-resumo > div { animation: custos-resumo-entra var(--motion-base) var(--ease-emphasized) backwards; }
+.custos .custos-resumo > div:nth-child(2) { animation-delay: 50ms; }
+.custos .custos-resumo > div:nth-child(n+3) { animation-delay: 100ms; }
+
+/* ---------- números grandes ---------- */
+.custos .custos-numeros {
+  display: grid; grid-template-columns: 1.3fr 1fr 1fr; margin: 0 0 var(--e7);
+  border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); overflow: hidden;
+}
+.custos .custos-numero { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: var(--e5); }
+.custos .custos-numero + .custos-numero { border-left: 1px solid var(--borda); }
+.custos .custos-numero-rot { display: inline-flex; align-items: center; gap: 7px; color: var(--texto-2); font-size: var(--t-sm); font-weight: 550; }
+.custos .custos-numero-rot svg { width: 16px; height: 16px; flex: none; }
+.custos .custos-numero-valor { color: var(--texto); font-size: 40px; font-weight: 760; font-stretch: 72%; line-height: 1.05; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.custos .custos-numero.destaque .custos-numero-valor { font-size: 60px; font-weight: 800; font-stretch: 66%; line-height: 1; }
+.custos .custos-numero-valor.texto { font-size: 32px; }
+.custos .custos-numero.destaque .custos-numero-valor.texto { font-size: 40px; }
+.custos .custos-numero-sub { color: var(--texto-2); font-size: var(--t-xs); line-height: 1.45; max-width: 36ch; }
+.custos .custos-numero.simulado .custos-numero-rot, .custos .custos-numero.simulado .custos-numero-valor { color: var(--aviso); }
+
+/* ---------- chave ---------- */
+.custos .custos-chave-esq { padding: var(--e4); border: 1px solid var(--borda); border-radius: var(--raio); }
+.custos .custos-chave { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 0; margin: 0; background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); overflow: hidden; }
+.custos .custos-chave > div { padding: var(--e4); border-right: 1px solid var(--borda); }
+.custos .custos-chave > div:last-child { border-right: 0; }
+.custos .custos-chave dt { font-size: var(--t-sm); font-weight: 550; color: var(--texto-2); }
+.custos .custos-chave dd { margin: var(--e1) 0 0; font-size: 22px; font-weight: 700; font-stretch: 80%; color: var(--texto); }
+.custos .custos-chave .custos-sub { margin-top: 2px; font-size: var(--t-xs); font-weight: 400; font-stretch: 100%; color: var(--texto-2); }
+.custos .custos-limite { display: flex; align-items: center; gap: var(--e3); margin-top: var(--e3); }
+.custos .custos-limite .custos-barra { flex: 0 0 220px; }
+.custos .custos-limite-txt { color: var(--texto-2); font-size: var(--t-xs); }
+.custos .custos-nota { display: flex; gap: 6px; margin-top: var(--e2); font-size: var(--t-xs); color: var(--texto-2); }
+.custos .custos-nota svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+
+/* ---------- barras (enchem ao chegar) ---------- */
+.custos .custos-barra { height: 6px; border-radius: 3px; background: var(--superficie-3); overflow: hidden; }
+.custos .custos-barra > span {
+  display: block; height: 100%; border-radius: 3px; background: var(--acao); transform-origin: left center;
+  animation: custos-barra-enche 640ms var(--ease-emphasized) 220ms backwards;
+}
+.custos .custos-barra.alta > span { background: var(--perigo); }
+
+/* ---------- tabelas: linha que acende ---------- */
+.custos .tabela td { vertical-align: middle; }
+.custos table.tabela td.num { font-family: var(--fonte); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.custos .custos-tabela tbody tr { position: relative; }
+.custos .custos-tabela tbody tr:hover { background: var(--superficie-2); }
+.custos .custos-tabela tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--acao); }
+.custos .custos-esq-tabela { display: grid; gap: 6px; }
+.custos .custos-serie { display: inline-flex; align-items: center; gap: var(--e3); font-weight: 600; text-decoration: none; }
+.custos .custos-serie:hover span:last-child { text-decoration: underline; text-decoration-color: var(--borda-forte); text-underline-offset: 3px; }
+.custos .custos-serie-capa {
+  display: grid; place-items: center; flex: none; width: 27px; height: 48px; border-radius: var(--raio-sm); overflow: hidden;
+  background: var(--superficie-3); color: var(--texto-3);
+}
+.custos .custos-serie-capa img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--motion-slow) var(--ease-emphasized);
+  animation: custos-capa-chega var(--motion-slow) var(--ease-emphasized) backwards; }
+.custos .custos-serie:hover .custos-serie-capa img { transform: scale(1.08); }
+.custos .custos-serie-capa svg { width: 14px; height: 14px; }
+.custos .custos-erro-serie { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--perigo); font-size: var(--t-xs); }
+.custos .custos-erro-serie svg { width: 14px; height: 14px; }
+.custos .custos-gasto { font-weight: 650; color: var(--texto); }
+.custos .custos-uso { display: flex; align-items: center; gap: var(--e3); min-width: 160px; }
+.custos .custos-uso .custos-barra { flex: 1; }
+.custos .custos-uso .num { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 44px; font-size: var(--t-xs); color: var(--texto-2); }
+.custos .custos-uso .custos-alto { color: var(--perigo); font-weight: 650; }
+.custos .custos-uso .custos-alto svg { width: 13px; height: 13px; }
+
+.custos .custos-filtros { display: flex; align-items: center; gap: var(--e2); flex-wrap: wrap; }
+.custos .custos-filtros-ico { width: 16px; height: 16px; color: var(--texto-3); }
+.custos .custos-filtros .entrada { min-height: 32px; padding: 4px var(--e3); font-size: var(--t-sm); width: auto; }
+.custos .custos-resumo { display: flex; flex-wrap: wrap; gap: var(--e3) var(--e6); margin: 0 0 var(--e4); }
+.custos .custos-resumo dt { font-size: var(--t-sm); font-weight: 550; color: var(--texto-2); }
+.custos .custos-resumo dd { margin: 2px 0 0; font-size: 22px; font-weight: 700; font-stretch: 80%; color: var(--texto); }
+.custos .custos-resumo .filtrado dd { color: var(--texto); text-decoration: underline; text-decoration-color: var(--borda-forte); text-underline-offset: 5px; }
+.custos .custos-tipo { display: inline-flex; align-items: center; gap: 6px; }
+.custos .custos-tipo svg { width: 15px; height: 15px; color: var(--texto-2); }
+.custos .custos-mono { font-size: var(--t-xs); color: var(--texto-2); word-break: break-all; }
+.custos table.tabela td.num.custos-quando, .custos table.tabela td.num.custos-ep { text-align: left; white-space: nowrap; }
+.custos .custos-real { font-weight: 650; }
+.custos .custos-a-confirmar { display: inline-flex; align-items: center; gap: 4px; font-weight: 400; }
+.custos .custos-a-confirmar svg { width: 13px; height: 13px; }
+.custos .custos-vazio { border: 1px dashed var(--borda-forte); border-radius: var(--raio); }
+.custos a.btn { text-decoration: none; }
+
+@media (max-width: 900px) {
+  .custos .custos-numeros { grid-template-columns: 1fr 1fr; }
+  .custos .custos-numero.destaque { grid-column: 1 / -1; border-bottom: 1px solid var(--borda); }
+  .custos .custos-numero.destaque + .custos-numero { border-left: 0; }
+}
+@media (max-width: 767px) {
+  .custos .custos-numeros { margin-bottom: var(--e6); }
+  .custos .custos-numero { padding: var(--e4); }
+  .custos .custos-numero.destaque .custos-numero-valor { font-size: 52px; }
+  .custos .custos-numero-valor { font-size: 30px; }
+  .custos .custos-chave { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .custos .custos-chave > div { border-right: 0; border-bottom: 1px solid var(--borda); }
+  .custos .custos-chave > div:nth-child(odd) { border-right: 1px solid var(--borda); }
+  .custos .custos-limite { flex-direction: column; align-items: stretch; gap: 6px; }
+  .custos .custos-limite .custos-barra { flex: none; }
+  .custos .custos-uso { min-width: 0; }
+  .custos .custos-filtros { width: 100%; }
+  .custos .custos-filtros .campo { flex: 1; }
+  .custos .custos-filtros .entrada { width: 100%; }
+  .custos .custos-tabela tbody tr:hover td:first-child { box-shadow: none; }
+}
+@media (max-width: 420px) {
+  .custos .custos-numeros { grid-template-columns: 1fr; }
+  .custos .custos-numero + .custos-numero { border-left: 0; border-top: 1px solid var(--borda); }
+  .custos .custos-numero.destaque { border-bottom: 0; }
+}
