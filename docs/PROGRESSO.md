@@ -35,9 +35,12 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - **08:10** — documentação: `MOTOR-NAVEGADOR.md` (novo), `PUBLICAR-NO-PAGES.md` (reescrito para esta versão), README, CLAUDE.md, andamento no topo do `PUBLICAR-SEM-BACKEND.md`.
 - **08:30** — risco achado na revisão: duas abas abertas sobrescreveriam uma à outra. Agora o motor trava em **uma aba por vez** (Web Locks) com "Usar nesta aba"; a aba antiga para na hora. Conferido com duas abas reais.
 
-## Fazendo agora
+## Publicação
 - **08:40 — Rafael decidiu: repositório PÚBLICO + Pages** ("Público + Pages", eu crio pelo navegador logado).
-- O único Chrome conectado ao Claude in Chrome é o de **outro computador** (deviceId `3dd22683…`), então não usei. No navegador do app, o GitHub pediu login: esperando o Rafael entrar na conta UPraggy em github.com (painel do navegador do app) para eu criar `UPraggy/EstudioSeriesWeb`, fazer o push e ligar o Pages.
+- O primeiro Chrome conectado era o de **outro computador** (deviceId `3dd22683…`): não usei. Depois o Chrome desta máquina (`642ad326…`, "ACER_RAFAEL") conectou, já logado como UPraggy.
+- **09:00** — criado `https://github.com/UPraggy/EstudioSeriesWeb` (público, sem README). Antes do push: `git grep "sk-or-"` só com a chave falsa dos testes e textos de tela; nenhum outro padrão de segredo; todos os commits com autor só o Rafael, nenhum co-autor. Push da `main`.
+- **09:05** — Settings → Pages → Source: **GitHub Actions**. O primeiro push não disparou o workflow (repositório novo); disparado à mão (execução #1). **Falhou nos testes**, mas não pelo código novo: 3 arquivos de teste antigos (`audio-falas`, `audio-tratamento`, `edicao`) precisam do `vozes.json` do NarradorVideo em E:, do ffmpeg e do Python, que o servidor do GitHub não tem. Os testes do motor do navegador e os de dinheiro passaram lá.
+- **09:15** — `npm run test:ci` (`scripts/testes-ci.js`): roda todos menos esses 3 (simulado aqui sem as ferramentas: 225 testes, 0 falhas). O workflow usa ele; no PC, `npm test` continua rodando tudo.
 
 ## Próximos passos
 1. **Rafael:** criar o repositório (ou deixar eu criar pelo navegador já logado) e dizer se pode ser **público** (o Pages grátis exige). Depois: push, Settings → Pages → Source: GitHub Actions.

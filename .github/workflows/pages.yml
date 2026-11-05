@@ -35,8 +35,9 @@ jobs:
       - run: npm ci
       - run: npm ci
         working-directory: frontend
-      # Testes do backend e do motor do navegador (rodam sem rede e sem chave).
-      - run: npm test
+      # Testes do backend e do motor do navegador (sem rede e sem chave). Os 3 arquivos que precisam do vozes.json
+      # do NarradorVideo, do ffmpeg e do Python ficam para o npm test no PC (scripts/testes-ci.js).
+      - run: npm run test:ci
       - run: npm run build:pages
         working-directory: frontend
       - uses: actions/upload-pages-artifact@v3

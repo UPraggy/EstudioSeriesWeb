@@ -10,7 +10,8 @@
     "dev:simulado": "node scripts/dev.js --simulado",
     "parar": "node scripts/parar.js",
     "backend:watch": "node --watch backend/src/index.js",
-    "test": "node --test \"backend/test/**/*.test.js\""
+    "test": "node --test \"backend/test/**/*.test.js\"",
+    "test:ci": "node scripts/testes-ci.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
