@@ -11,11 +11,11 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - Regras do brief: o projeto novo fica em `EstudioSeriesWeb`, **sem mexer no `EstudioSeries` original** (outro agente trabalha nele). Publicar no GitHub da conta **UPraggy**, autor só o Rafael, sem co-autor Claude. Repositório **público só com o OK dele**. Login no GitHub, repositório público e gasto real: perguntar a ele.
 
 ## Estado (05/11/2026, manhã)
-**Etapas 1 a 4: feitas e conferidas localmente.** Falta só publicar no GitHub (depende do Rafael: criar o repositório e o OK para ficar público).
+**Etapas 1 a 4: feitas e NO AR.** Site: **https://upraggy.github.io/EstudioSeriesWeb/** · Repositório público: **https://github.com/UPraggy/EstudioSeriesWeb** (publica sozinho a cada push na `main`, depois dos testes).
 
 | Etapa | Situação |
 |---|---|
-| 1. Base do Pages | ✅ `base: './'`, `HashRouter`, `.nojekyll`, CSP por `<meta>` no build, workflow do Actions que roda `npm test` antes de publicar, modo simulado como padrão (sem chave) |
+| 1. Base do Pages | ✅ `base: './'`, `HashRouter`, `.nojekyll`, CSP por `<meta>` no build, workflow do Actions que roda `npm run test:ci` antes de publicar, modo simulado como padrão (sem chave) |
 | 2. Backend no navegador | ✅ o próprio backend empacotado pelo esbuild (`vite-plugin-motor.js`), com substitutos de `fs`, `path`, `crypto`, `os`, `stream`, `child_process`, `process` e `Buffer` |
 | 3. Armazém | ✅ OPFS (padrão), pasta real do computador (`showDirectoryPicker`, com tela "Reabrir a pasta"), IndexedDB (Safari), `persist()`, mídias por service worker com Range |
 | 4. OpenRouter no navegador | ✅ chave colada (lembrar ou só na aba), "Entrar com OpenRouter" (PKCE), modo simulado forçado, cotação em 2 passos, tetos, livro, jobs gravados, retomar pendentes ao abrir, download |
@@ -41,9 +41,10 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - **09:00** — criado `https://github.com/UPraggy/EstudioSeriesWeb` (público, sem README). Antes do push: `git grep "sk-or-"` só com a chave falsa dos testes e textos de tela; nenhum outro padrão de segredo; todos os commits com autor só o Rafael, nenhum co-autor. Push da `main`.
 - **09:05** — Settings → Pages → Source: **GitHub Actions**. O primeiro push não disparou o workflow (repositório novo); disparado à mão (execução #1). **Falhou nos testes**, mas não pelo código novo: 3 arquivos de teste antigos (`audio-falas`, `audio-tratamento`, `edicao`) precisam do `vozes.json` do NarradorVideo em E:, do ffmpeg e do Python, que o servidor do GitHub não tem. Os testes do motor do navegador e os de dinheiro passaram lá.
 - **09:15** — `npm run test:ci` (`scripts/testes-ci.js`): roda todos menos esses 3 (simulado aqui sem as ferramentas: 225 testes, 0 falhas). O workflow usa ele; no PC, `npm test` continua rodando tudo.
+- **09:20** — execução #2 (disparada pelo push `d454c55`): testes, build e deploy **ok**. Site aberto no Chrome do Rafael: carrega o motor do navegador em modo simulado (o que também prova o service worker funcionando no Pages). Descrição do repositório corrigida e link do site posto no "About". Contribuidor listado: só UPraggy.
 
 ## Próximos passos
-1. **Rafael:** criar o repositório (ou deixar eu criar pelo navegador já logado) e dizer se pode ser **público** (o Pages grátis exige). Depois: push, Settings → Pages → Source: GitHub Actions.
+1. **Rafael:** no site, Configurações → "Entrar com OpenRouter" (ou colar uma chave com limite de crédito). A chave é dele e só ele pode pôr.
 2. **Rafael (gasto real, com OK e custo antes):** 1ª geração paga pelo navegador para confirmar o download do vídeo (domínio do arquivo e CORS) e o `frame_images` com data URL.
 3. Testar no S23 (Chrome) e, se houver, no iPhone.
 4. Etapa 5: Mesa sem ffmpeg (miniaturas, onda e quadro por canvas e Web Audio).

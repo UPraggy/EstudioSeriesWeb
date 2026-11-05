@@ -14,11 +14,16 @@ O site publicado **roda sozinho no navegador** (motor do navegador, `docs/MOTOR-
 - Nenhum dado de série vai junto: as séries ficam no navegador de cada um ou em `E:\EstudioSeriesDados` (fora do repositório). `docs/exemplos/` tem o roteiro de exemplo do Farol (texto), que fica público junto com o código.
 - Autor dos commits: só o Rafael (`100146657+UPraggy@users.noreply.github.com`). O gancho `.githooks/commit-msg` recusa co-autor de IA.
 
-## Passo a passo
+## No ar desde 05/11/2026
+- Site: https://upraggy.github.io/EstudioSeriesWeb/
+- Repositório (público): https://github.com/UPraggy/EstudioSeriesWeb
+- Cada push na `main` que mexa em `frontend/`, `backend/`, `package*.json` ou no workflow roda `npm run test:ci` (todos os testes menos os 3 que precisam do vozes.json do NarradorVideo, do ffmpeg e do Python) e publica. Os passos abaixo ficam como registro.
+
+## Passo a passo (feito)
 1. Criar o repositório na conta **UPraggy** (nome sugerido: `EstudioSeriesWeb`). No plano grátis, o Pages exige repositório **público** (o código fica visível; chaves e séries não).
 2. `git remote add origin https://github.com/UPraggy/EstudioSeriesWeb.git` e `git push -u origin main`.
 3. No GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-4. O workflow `.github/workflows/pages.yml` instala, roda `npm test` (backend + motor do navegador) e publica `frontend/dist-pages`. Ele roda a cada push na `main` que mexa em `frontend/`, `backend/` ou no próprio workflow (ou à mão em Actions → "Run workflow").
+4. O workflow `.github/workflows/pages.yml` instala, roda `npm run test:ci` (backend + motor do navegador, sem as ferramentas do PC) e publica `frontend/dist-pages`. Ele roda a cada push na `main` que mexa em `frontend/`, `backend/` ou no próprio workflow (ou à mão em Actions → "Run workflow").
 5. O site fica em `https://upraggy.github.io/EstudioSeriesWeb/`.
 6. Para usar o "Estúdio do PC" a partir do site publicado: no PC, o backend já libera `https://upraggy.github.io` (troque com `ESTUDIO_ORIGENS` se o endereço mudar). Na primeira vez o Chrome pergunta se o site pode **acessar apps e serviços do dispositivo**: Permitir.
 
