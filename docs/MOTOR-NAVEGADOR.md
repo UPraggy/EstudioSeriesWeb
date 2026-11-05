@@ -46,6 +46,12 @@ Por que assim, e não reescrever o backend em ESM (como o plano sugeria): uma fo
 - **Safari antigo** (sem gravação no OPFS pela página): IndexedDB.
 - Trocar de lugar **não copia** as séries. Exportar/importar `.zip` é a etapa 8.
 
+## Uma aba por vez
+Cada aba guarda o índice das séries na memória; duas abas gravando juntas sobrescreveriam uma à outra. Por isso o motor pega uma **trava** do navegador (Web Locks, nome `estudio-series-motor`) ao abrir:
+- segunda aba ou janela: tela "O Estúdio está aberto em outra aba" com **Usar nesta aba**;
+- ao usar, a trava passa para ela e a aba antiga para na hora (as chamadas dela respondem erro e a tela avisa), sem perder nada já salvo.
+Conferido em 05/11 com duas abas reais.
+
 ## O que ainda não roda no navegador
 Rotas que chamam ffmpeg ou Python respondem com o erro "Esta função ainda precisa do Estúdio do PC": `GerarFalas`, `OuvirFala`, `TestarPronuncia`, `MixarAudio`, `RegerarFala`, `MiniaturasClipe`, `OndaAudio`, `ExtrairQuadro`, `RenderizarEpisodio` (lista em `entrada.js` → `ROTAS_SO_NO_PC`). Em Configurações isso aparece em "Ainda precisa do Estúdio do PC". São as etapas 5 a 7 do plano.
 

@@ -4,8 +4,8 @@
 //                  com as séries no armazenamento do navegador ou numa pasta do computador. É o padrão do site.
 //  - "ajudante":   site publicado usando o Estúdio aberto no PC (http://127.0.0.1:4190). Opção em Configurações.
 // Estados de passagem: "procurando" (ajudante), "iniciando" (navegador abrindo as séries), "precisa-permissao"
-// (pasta do computador que o navegador quer reconfirmar com um clique), "sem-motor" (ajudante não respondeu)
-// e "erro" (o motor do navegador não abriu).
+// (pasta do computador que o navegador quer reconfirmar com um clique), "sem-motor" (ajudante não respondeu),
+// "outra-aba" (o Estúdio já está aberto em outra aba: só uma grava por vez) e "erro" (o motor do navegador não abriu).
 // Ponto único de troca: GlobalVar.serverBase (fetchFunc e as URLs de mídia usam só ele).
 import GlobalVar from '../subComponents/GlobalVar';
 
@@ -97,7 +97,11 @@ async function procurarAjudante() {
     return estado;
 }
 
-async function iniciarNavegador({ comGesto = false } = {}) {
+const SS_TOMAR = 'estudio:tomarTrava';
+
+async function iniciarNavegador({ comGesto = false, tomarTrava = false } = {}) {
+    let tomar = tomarTrava;
+    try { if (sessionStorage.getItem(SS_TOMAR)) { tomar = true; sessionStorage.removeItem(SS_TOMAR); } } catch { /* sem sessionStorage */ }
     mudar({ modo: 'iniciando', etapa: 'Abrindo o armazenamento', progresso: null, erro: null });
     try {
         const cli = await import('../../motorNavegador/cliente.js');
@@ -111,14 +115,34 @@ async function iniciarNavegador({ comGesto = false } = {}) {
         mudar({ modo: 'iniciando', etapa: `Abrindo as séries (${prep.armazem.nome})`, progresso: null, erro: null });
         const info = await cli.iniciarNavegador({
             armazem: prep.armazem,
+            tomarTrava: tomar,
             aoProgresso: (feitos, total) => mudar({ ...estado, progresso: total ? feitos / total : null }),
         });
         GlobalVar.serverBase = BASE_NAVEGADOR;
         mudar({ modo: 'navegador', erro: null, armazem: info.armazem, persistente: info.persistente, login });
     } catch (e) {
-        mudar({ modo: 'erro', erro: e.message || String(e) });
+        if (e && e.code === 'OUTRA_ABA') mudar({ modo: 'outra-aba', erro: e.message, tomada: false });
+        else mudar({ modo: 'erro', erro: e.message || String(e) });
     }
     return estado;
+}
+
+// Outra aba tomou o Estúdio: esta para (o índice na memória dela ficaria velho).
+if (typeof window !== 'undefined') {
+    window.addEventListener('estudio:outra-aba', () => {
+        mudar({ modo: 'outra-aba', erro: 'O Estúdio foi aberto em outra aba. Esta parou para não gravar por cima.', tomada: true });
+    });
+}
+
+// "Usar nesta aba": toma a trava da outra aba. Se esta já tinha sido tomada, recarrega e toma ao abrir.
+export function usarNestaAba() {
+    if (estado.tomada) {
+        try { sessionStorage.setItem(SS_TOMAR, '1'); } catch { /* sem sessionStorage */ }
+        window.location.reload();
+        return promessa;
+    }
+    promessa = iniciarNavegador({ tomarTrava: true });
+    return promessa;
 }
 
 export function procurarMotor(opcoes = {}) {

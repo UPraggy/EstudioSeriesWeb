@@ -85,8 +85,42 @@ export async function prepararArmazem({ comGesto = false } = {}) {
     return { armazem: await armazemInterno() };
 }
 
-export async function iniciarNavegador({ armazem, aoProgresso } = {}) {
+// ---------------- uma aba por vez ----------------
+// Cada aba guarda o índice das séries na memória: duas abas gravando ao mesmo tempo sobrescreveriam uma à outra.
+// A trava (Web Locks) fica com a aba enquanto ela estiver aberta. "Usar nesta aba" toma a trava da outra.
+const TRAVA = 'estudio-series-motor';
+let soltarTrava = null;
+let travaPerdida = false;
+
+export class ErroOutraAba extends Error {
+    constructor() {
+        super('O Estúdio já está aberto em outra aba ou janela deste navegador.');
+        this.code = 'OUTRA_ABA';
+    }
+}
+
+async function pegarTrava({ tomar = false } = {}) {
+    if (!navigator.locks || soltarTrava) return;
+    await new Promise((ok, falha) => {
+        navigator.locks.request(TRAVA, tomar ? { steal: true } : { ifAvailable: true }, (trava) => {
+            if (!trava) { falha(new ErroOutraAba()); return undefined; }
+            ok();
+            return new Promise((soltar) => { soltarTrava = soltar; });
+        }).catch((e) => {
+            // outra aba tomou a trava: esta para de gravar e avisa
+            soltarTrava = null;
+            if (e && e.name === 'AbortError') {
+                travaPerdida = true;
+                window.dispatchEvent(new CustomEvent('estudio:outra-aba'));
+            }
+            else falha(e);
+        });
+    });
+}
+
+export async function iniciarNavegador({ armazem, aoProgresso, tomarTrava = false } = {}) {
     if (info) return info;
+    await pegarTrava({ tomar: tomarTrava });
     motor = await import('virtual:motor-navegador');
     aplicarChave();
     ouvirChave(aplicarChave);
@@ -126,6 +160,7 @@ export async function pedirPersistencia() {
  * chamarNavegador('GET'|'POST', '/Rota', params) → corpo (ou { 'ERROR SERVER': msg }), igual ao fetchFunc.
  */
 export async function chamarNavegador(metodo, rota, params) {
+    if (travaPerdida) return { 'ERROR SERVER': 'O Estúdio foi aberto em outra aba. Esta parou para não gravar por cima.' };
     if (!motor || !info) return { 'ERROR SERVER': 'O motor do navegador ainda está abrindo as séries. Tente de novo em instantes.' };
     const nome = String(rota).replace(/^\/+/, '');
     const r = await motor.chamar(metodo, nome, metodo === 'GET' ? { query: params || {} } : { body: params || {} });

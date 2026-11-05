@@ -1,6 +1,6 @@
 import { Ico } from './subComponents/icones';
 import { Girador, motion, MOV } from './subComponents/Movimento';
-import { procurarMotor, reabrirPasta, trocarMotor } from './funcionalidades/motor';
+import { procurarMotor, reabrirPasta, trocarMotor, usarNestaAba } from './funcionalidades/motor';
 import '../assets/css/SemMotor.css';
 
 // Telas de passagem do motor do navegador (site sem backend): abrindo as séries, pasta para reconfirmar e erro.
@@ -56,6 +56,27 @@ export function MotorPermissao({ estado }) {
             </div>
             <div className="sem-motor-limites">
                 <p>Se preferir, troque para o armazenamento interno do navegador em Configurações (as séries da pasta continuam lá).</p>
+            </div>
+        </Cartao>
+    );
+}
+
+export function MotorOutraAba({ estado }) {
+    return (
+        <Cartao icone={Ico.series} titulo="O Estúdio está aberto em outra aba">
+            <p className="sem-motor-lead">
+                {estado.tomada
+                    ? 'Você abriu o Estúdio em outra aba ou janela. Esta parou para não gravar por cima do que foi feito lá.'
+                    : 'Só uma aba por vez pode mexer nas séries (cada aba guarda uma cópia do índice na memória). Feche a outra ou continue aqui.'}
+            </p>
+            <div className="sem-motor-acoes">
+                <button type="button" className="btn primario" onClick={() => usarNestaAba()}>
+                    <Ico.confirmar aria-hidden="true" />
+                    Usar nesta aba
+                </button>
+            </div>
+            <div className="sem-motor-limites">
+                <p>Ao usar aqui, a outra aba para e mostra este mesmo aviso. Nada que já foi salvo se perde.</p>
             </div>
         </Cartao>
     );

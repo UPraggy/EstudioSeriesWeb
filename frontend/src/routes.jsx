@@ -9,7 +9,7 @@ import GeracaoSimples from './components/GeracaoSimples';
 import Custos from './components/Custos';
 import SemMotor from './components/SemMotor';
 import Configuracoes from './components/Configuracoes';
-import { MotorAbrindo, MotorPermissao, MotorErro } from './components/MotorTelas';
+import { MotorAbrindo, MotorPermissao, MotorErro, MotorOutraAba } from './components/MotorTelas';
 import { Pagina, Avisos, avisar } from './components/subComponents/Movimento';
 import { NO_PAGES, estadoMotor, ouvirMotor, motorPronto, modoPronto } from './components/funcionalidades/motor';
 
@@ -52,6 +52,7 @@ function Paginas({ ativaResp }) {
         if (motor.modo === 'procurando' || motor.modo === 'sem-motor') return <SemMotor estado={motor} />;
         if (motor.modo === 'precisa-permissao') return <MotorPermissao estado={motor} />;
         if (motor.modo === 'erro') return <MotorErro estado={motor} />;
+        if (motor.modo === 'outra-aba') return <MotorOutraAba estado={motor} />;
         return <MotorAbrindo estado={motor} />;
     }
     return (

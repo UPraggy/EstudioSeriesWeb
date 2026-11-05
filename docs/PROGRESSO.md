@@ -33,6 +33,7 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - **07:20** — corrigido texto com acentos quebrados em `backend/src/edicao/midia.js` (bug que já existia no original: "nÃ£o").
 - **07:50** — telas: `motor.js` com o motor `navegador`, `fetchFunc.js`, service worker `sw-midia.js`, `Configuracoes.jsx`, `MotorTelas.jsx`, `SemMotor.jsx` com "Usar só o navegador", Séries e Custos falando onde as séries/chave ficam, link "Configurações" no menu. CSP e workflow novo. Commit `d5c87e7`.
 - **08:10** — documentação: `MOTOR-NAVEGADOR.md` (novo), `PUBLICAR-NO-PAGES.md` (reescrito para esta versão), README, CLAUDE.md, andamento no topo do `PUBLICAR-SEM-BACKEND.md`.
+- **08:30** — risco achado na revisão: duas abas abertas sobrescreveriam uma à outra. Agora o motor trava em **uma aba por vez** (Web Locks) com "Usar nesta aba"; a aba antiga para na hora. Conferido com duas abas reais.
 
 ## Fazendo agora
 - Publicar: criar o repositório `UPraggy/EstudioSeriesWeb`, push e Pages. Esperando o Rafael (login e OK para público).
