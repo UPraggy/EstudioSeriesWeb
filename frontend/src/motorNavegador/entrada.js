@@ -10,8 +10,9 @@ import amostras from 'estudio:amostras';
 import mapa from '../../../backend/src/controllersMapa.js';
 import midia from '../../../backend/src/controllers/Midia.js';
 import midiaSimples from '../../../backend/src/controllers/MidiaSimples.js';
+import registro from '../../../backend/src/log/registro.js';
 
-const { controllers, controllersGet } = mapa;
+const { controllers, controllersGet, controllersBinarios = {} } = mapa;
 
 const TIPOS = {
     '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime',
@@ -21,12 +22,25 @@ const TIPOS = {
     '.ttf': 'font/ttf', '.otf': 'font/otf', '.woff2': 'font/woff2', '.woff': 'font/woff',
 };
 
-// Rotas que dependem de ffmpeg/Python (voz, QA, mixagem, miniaturas, quadro, montagem). No navegador elas respondem
-// com erro claro até as etapas 5–7 de docs/PUBLICAR-SEM-BACKEND.md. A tela usa a lista para avisar antes.
+// Rotas que dependem de ffmpeg/Python (voz, QA, mixagem, miniaturas, quadro, montagem). No navegador elas são
+// RECUSADAS ANTES de rodar (até as etapas 5–7 de docs/PUBLICAR-SEM-BACKEND.md). Atenção às pagas: o vídeo do
+// trecho/dos planos é baixado e depois APARADO com ffmpeg; rodar aqui cobraria e quebraria no fim. Por isso até a
+// cotação delas é recusada.
 export const ROTAS_SO_NO_PC = [
-    'GerarFalas', 'OuvirFala', 'TestarPronuncia', 'MixarAudio', 'RegerarFala',
+    'GerarFalas', 'OuvirFala', 'TestarPronuncia', 'MixarAudio', 'RegerarFala', 'RegerarFalasVoz',
     'MiniaturasClipe', 'OndaAudio', 'ExtrairQuadro', 'RenderizarEpisodio',
+    'CotarTrecho', 'RegerarTrecho', 'CotarVideoPlanos', 'GerarVideoPlanos', 'AnexarVideoTrecho',
 ];
+const MOTIVO_SO_NO_PC = {
+    CotarTrecho: 'Regerar um trecho ainda precisa do Estúdio do PC: o vídeo novo é aparado com ffmpeg, que não existe no navegador. O site recusa antes de cotar para não cobrar à toa.',
+    RegerarTrecho: 'Regerar um trecho ainda precisa do Estúdio do PC: o vídeo novo é aparado com ffmpeg, que não existe no navegador. Nada foi cobrado.',
+    CotarVideoPlanos: 'Gerar o vídeo dos planos ainda precisa do Estúdio do PC: cada clipe é aparado com ffmpeg depois de gerado, e o navegador não tem ffmpeg. O site recusa antes de cotar para não cobrar à toa.',
+    GerarVideoPlanos: 'Gerar o vídeo dos planos ainda precisa do Estúdio do PC (os clipes são aparados com ffmpeg). Nada foi cobrado.',
+    AnexarVideoTrecho: 'Anexar um vídeo feito fora ainda precisa do Estúdio do PC (o vídeo é conferido e aparado com ffmpeg).',
+    RegerarFalasVoz: 'Regerar as falas com a voz nova ainda precisa do Estúdio do PC (as vozes são geradas pelo motor de voz do PC).',
+};
+const MENSAGEM_SO_NO_PC = 'Esta função ainda precisa do Estúdio do PC (usa ffmpeg/Python, que não existem no navegador). '
+    + 'No site, ligue o Estúdio do PC em Configurações ou faça esta parte pelo Abrir Estudio.vbs.';
 
 let iniciado = null;
 
@@ -44,6 +58,8 @@ export function iniciar({ armazem, aoProgresso } = {}) {
         vfs.fs.mkdirSync('/tmp', { recursive: true });
         const r = await vfs.montar(DADOS, armazem, { aoProgresso });
         vfs.fs.mkdirSync(`${DADOS}/series`, { recursive: true });
+        // registro (log) em /dados/_registro: apaga os dias velhos, como o servidor faz ao subir
+        try { registro.limparAntigos(); } catch { /* registro nunca derruba o motor */ }
         await vfs.liberar();
         return { ...r, armazem: { tipo: armazem.tipo, nome: armazem.nome } };
     })();
@@ -98,7 +114,8 @@ function criarResposta(resolver) {
 export async function chamar(metodo, rota, { query = {}, body = {} } = {}) {
     if (!iniciado) throw new Error('O motor do navegador ainda não foi iniciado.');
     await iniciado;
-    const tabela = metodo === 'GET' ? controllersGet : controllers;
+    if (ROTAS_SO_NO_PC.includes(rota)) return { status: 501, corpo: { Error: MOTIVO_SO_NO_PC[rota] || MENSAGEM_SO_NO_PC } };
+    const tabela = metodo === 'GET' ? controllersGet : { ...controllers, ...controllersBinarios };
     const c = Object.prototype.hasOwnProperty.call(tabela, rota) ? tabela[rota] : null;
     if (!c) return { status: 404, corpo: { Error: `Rota ${metodo} /${rota} não existe.` } };
     const req = {

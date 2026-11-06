@@ -11,7 +11,8 @@ export const aoErroGravar = (fn) => { ouvintesErro.add(fn); return () => ouvinte
 export const vfs = criarVfs({ aoErroGravar: (erro) => ouvintesErro.forEach((fn) => fn(erro)) });
 
 export const processo = {
-    env: { ESTUDIO_DADOS: DADOS, NODE_ENV: 'production', ESTUDIO_MOTOR: 'navegador' },
+    // Registro (log) junto das séries, para a aba Registro funcionar entre visitas; sem eco no console do navegador.
+    env: { ESTUDIO_DADOS: DADOS, NODE_ENV: 'production', ESTUDIO_MOTOR: 'navegador', ESTUDIO_LOGS: `${DADOS}/_registro`, ESTUDIO_LOG_CONSOLE: '0' },
     platform: 'browser',
     pid: 1,
     arch: 'wasm',

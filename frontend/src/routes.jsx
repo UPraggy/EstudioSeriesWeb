@@ -7,6 +7,7 @@ import SalaShowrunner from './components/SalaShowrunner';
 import MesaEditor from './components/mesa/MesaEditor';
 import GeracaoSimples from './components/GeracaoSimples';
 import Custos from './components/Custos';
+import Registro from './components/Registro';
 import SemMotor from './components/SemMotor';
 import Configuracoes from './components/Configuracoes';
 import { MotorAbrindo, MotorPermissao, MotorErro, MotorOutraAba } from './components/MotorTelas';
@@ -19,6 +20,7 @@ import { NO_PAGES, estadoMotor, ouvirMotor, motorPronto, modoPronto } from './co
 //   /serie/:id/ep/:n          -> Mesa de decupagem / editor do episódio
 //   /geracao-simples          -> Geração simples (anexos + pedido)
 //   /custos                   -> Custos e saldo
+//   /registro                 -> Registro (log/histórico de como o Estúdio está rodando)
 //   /configuracoes            -> Onde o Estúdio roda, onde ficam as séries, chave do OpenRouter
 // Uma única entrada orquestrada por troca de página (<Pagina/>); o resto do movimento responde a ações.
 // No site publicado (GitHub Pages) as rotas vão depois do "#" (HashRouter): recarregar não dá 404.
@@ -63,6 +65,7 @@ function Paginas({ ativaResp }) {
                 <Route path="/serie/:id/ep/:n" element={<Pagina className="pagina-mesa"><MesaEditor ativaResp={ativaResp} /></Pagina>} />
                 <Route path="/geracao-simples" element={<Pagina><GeracaoSimples ativaResp={ativaResp} /></Pagina>} />
                 <Route path="/custos" element={<Pagina><Custos ativaResp={ativaResp} /></Pagina>} />
+                <Route path="/registro" element={<Pagina><Registro ativaResp={ativaResp} /></Pagina>} />
                 <Route path="/configuracoes" element={<Pagina><Configuracoes ativaResp={ativaResp} /></Pagina>} />
             </Routes>
         </AnimatePresence>

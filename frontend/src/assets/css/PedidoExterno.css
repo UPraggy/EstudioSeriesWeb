@@ -1,0 +1,44 @@
+/* "Gerado fora": bloco do pedido (prompt, dados, imagens, JSON) e botão de anexar. Tema escuro, sem enfeite. */
+.pex {
+  display: flex; flex-direction: column; gap: var(--e3);
+  padding: var(--e4); border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie-2);
+}
+.pex.compacto { padding: var(--e3); gap: var(--e2); }
+.pex-titulo { margin: 0; font-size: var(--t-md); font-weight: 640; font-stretch: var(--largura-titulo); }
+.pex-rotulo { font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); }
+
+.pex-prompt { display: flex; flex-direction: column; gap: var(--e2); }
+.pex-prompt-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e2); }
+.pex-texto, .pex-json pre {
+  margin: 0; padding: var(--e3); max-height: 260px; overflow: auto;
+  border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--fundo);
+  color: var(--texto); font: var(--t-sm)/1.55 var(--fonte); white-space: pre-wrap; word-break: break-word;
+}
+.pex-json pre { font: var(--t-xs)/1.55 var(--fonte-mono); color: var(--texto-2); max-height: 320px; }
+
+.pex-dados { display: flex; flex-wrap: wrap; gap: var(--e2) var(--e4); margin: 0; }
+.pex-dados div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pex-dados dt { font-size: var(--t-xs); color: var(--texto-3); }
+.pex-dados dd { margin: 0; font-size: var(--t-sm); color: var(--texto); overflow-wrap: anywhere; }
+
+.pex-imagens { display: flex; flex-direction: column; gap: var(--e2); }
+.pex-imagens ul { display: flex; flex-wrap: wrap; gap: var(--e3); margin: 0; padding: 0; list-style: none; }
+.pex-imagens li { display: flex; flex-direction: column; align-items: flex-start; gap: var(--e1); }
+.pex-imagens figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.pex-imagens img, .pex-sem {
+  width: 72px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: var(--raio-sm);
+  border: 1px solid var(--borda-forte); background: var(--fundo);
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+.pex-imagens img:hover { transform: scale(1.04); }
+.pex-sem { display: grid; place-items: center; font-size: var(--t-xs); color: var(--texto-3); }
+.pex-imagens figcaption { font-size: var(--t-xs); color: var(--texto-2); }
+
+.pex-rodape { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e2); }
+.pex-json summary { cursor: pointer; font-size: var(--t-xs); color: var(--texto-2); padding: 2px 0; }
+.pex-json summary:hover { color: var(--texto); }
+.pex-json[open] summary { margin-bottom: var(--e2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pex-imagens img { transition: none; }
+}

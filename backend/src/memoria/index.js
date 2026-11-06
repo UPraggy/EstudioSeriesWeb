@@ -5,6 +5,7 @@ const estado = require('./estado');
 const { montarContexto, FINALIDADES, LIMITE_PADRAO } = require('./contexto');
 const { consolidarEpisodio, semearDaBiblia } = require('./consolidar');
 const { verificarContinuidade } = require('./continuidade');
+const doEpisodio = require('./doEpisodio');
 
 module.exports = {
     montarContexto, consolidarEpisodio, semearDaBiblia, verificarContinuidade,
@@ -15,5 +16,9 @@ module.exports = {
     aplicarProposta: arquivos.aplicarProposta,
     lerProposta: arquivos.lerProposta,
     estadoInicial: estado.estadoInicial,
+    // o que veio de um episódio: sai da memória viva (guardado junto) ao apagar/refazer e volta ao restaurar
+    retirarMemoriaDoEpisodio: doEpisodio.retirarMemoriaDoEpisodio,
+    devolverMemoriaDoEpisodio: doEpisodio.devolverMemoriaDoEpisodio,
+    contarMemoriaDoEpisodio: doEpisodio.contarMemoriaDoEpisodio,
     FINALIDADES, LIMITE_PADRAO,
 };

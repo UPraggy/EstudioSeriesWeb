@@ -19,7 +19,7 @@
     "narrador": "de-DE-FlorianMultilingualNeural",
     "mara": "pt-BR-ThalitaMultilingualNeural",
     "davi": "piper:pt_BR-cadu-medium",
-    "alerta": "en-US-BrianMultilingualNeural"
+    "alerta": "piper:pt_BR-cadu-medium"
   },
   "tons": { "alerta": "-6Hz" },
   "etapa": "roteiro",

@@ -34,6 +34,11 @@ const controllers = {
     'MemoriaSemear': require('./controllers/MemoriaSemear'),
     // interface (Sala do showrunner, Custos, Geração simples)
     'SalvarBiblia': require('./controllers/SalvarBiblia'),
+    'SalvarModelos': require('./controllers/SalvarModelos'),
+    'CotarQuadrosChave': require('./controllers/CotarQuadrosChave'),
+    'GerarQuadrosChave': require('./controllers/GerarQuadrosChave'),
+    'AprovarBiblia': require('./controllers/AprovarBiblia'),
+    'SalvarIdeiaSerie': require('./controllers/SalvarIdeiaSerie'),
     // Mesa de decupagem / editor (edicao.json, regerar trecho, montar episódio)
     'LerEdicao': require('./controllers/LerEdicao'),
     'SalvarEdicao': require('./controllers/SalvarEdicao'),
@@ -46,12 +51,31 @@ const controllers = {
     'RegerarFala': require('./controllers/RegerarFala'),
     'RegerarLegenda': require('./controllers/RegerarLegenda'),
     'RenderizarEpisodio': require('./controllers/RenderizarEpisodio'),
-    // lixeira recuperável: apagar série/episódio e refazer o roteiro do zero (nada é destruído; ver docs/CONTRATOS.md)
+    // lixeira recuperável: apagar série/episódio, refazer o roteiro do zero e voltar a uma versão dele (nada é destruído; ver docs/CONTRATOS.md)
     'ApagarSerie': require('./controllers/ApagarSerie'),
     'ApagarEpisodio': require('./controllers/ApagarEpisodio'),
     'RefazerRoteiro': require('./controllers/RefazerRoteiro'),
     'PreverApagar': require('./controllers/PreverApagar'),
     'RestaurarDaLixeira': require('./controllers/RestaurarDaLixeira'),
+    'RestaurarVersaoRoteiro': require('./controllers/RestaurarVersaoRoteiro'),
+    'ListarVersoesRoteiro': require('./controllers/ListarVersoesRoteiro'),
+    // notas do roteiro por episódio: observações + histórico de propostas (episodios/epNN/notas.json)
+    'SalvarNotasEpisodio': require('./controllers/SalvarNotasEpisodio'),
+    'LerNotasEpisodio': require('./controllers/LerNotasEpisodio'),
+    // gerado fora (outra plataforma): ver o pedido/prompt sem gastar e anexar o resultado com custo 0 (docs/CONTRATOS.md)
+    'VerPedidoGeracao': require('./controllers/VerPedidoGeracao'),
+    'AnexarImagemFicha': require('./controllers/AnexarImagemFicha'),
+    'AnexarQuadroChave': require('./controllers/AnexarQuadroChave'),
+    'VerPromptEtapa': require('./controllers/VerPromptEtapa'),
+    'ProporResultadoExterno': require('./controllers/ProporResultadoExterno'),
+    // do roteiro ao vídeo (06/11/2026): duração do episódio, falas com a voz nova, decupagem salva, vídeo dos planos em lote
+    'AlterarDuracaoEpisodio': require('./controllers/AlterarDuracaoEpisodio'),
+    'ConferirVozesFalas': require('./controllers/ConferirVozesFalas'),
+    'RegerarFalasVoz': require('./controllers/RegerarFalasVoz'),
+    'EstadoProducao': require('./controllers/EstadoProducao'),
+    'SalvarDecupagem': require('./controllers/SalvarDecupagem'),
+    'CotarVideoPlanos': require('./controllers/CotarVideoPlanos'),
+    'GerarVideoPlanos': require('./controllers/GerarVideoPlanos'),
 };
 const controllersGet = {
     'Saude': require('./controllers/Saude'),
@@ -59,6 +83,7 @@ const controllersGet = {
     'LerSerie': require('./controllers/LerSerie'),
     'LerEpisodio': require('./controllers/LerEpisodio'),
     'CatalogoVideo': require('./controllers/CatalogoVideo'),
+    'CatalogoModelos': require('./controllers/CatalogoModelos'),
     'SaldoOpenRouter': require('./controllers/SaldoOpenRouter'),
     'IntencoesFala': require('./controllers/IntencoesFala'),
     'Midia': require('./controllers/Midia'),
@@ -74,6 +99,21 @@ const controllersGet = {
     // lixeira recuperável (só leitura)
     'PreverApagar': require('./controllers/PreverApagar'),
     'ListarLixeira': require('./controllers/ListarLixeira'),
+    'ListarVersoesRoteiro': require('./controllers/ListarVersoesRoteiro'),
+    // registro (log/histórico de como o Estúdio está rodando; ver docs/REGISTRO.md)
+    'Registro': require('./controllers/Registro'),
+    'RegistroResumo': require('./controllers/RegistroResumo'),
+    // notas do roteiro por episódio (só leitura)
+    'LerNotasEpisodio': require('./controllers/LerNotasEpisodio'),
+    // do roteiro ao vídeo (só leitura)
+    'ConferirVozesFalas': require('./controllers/ConferirVozesFalas'),
+    'EstadoProducao': require('./controllers/EstadoProducao'),
 };
 
-module.exports = { controllers, controllersGet };
+// Rotas com corpo especial no Express. AnexarVideoTrecho aceita JSON (base64) ou o corpo binário do vídeo
+// (até 300 MB, metadados na query); o routes.js registra o leitor binário antes. No navegador vai como JSON.
+const controllersBinarios = {
+    'AnexarVideoTrecho': require('./controllers/AnexarVideoTrecho'),
+};
+
+module.exports = { controllers, controllersGet, controllersBinarios };

@@ -4,6 +4,7 @@ const path = require('path');
 const { ErroJob, limparSegredos } = require('./erros');
 const { numeroEp } = require('./livro');
 const util = require('./util');
+const registro = require('../log/registro');
 
 const STATUS_ATIVOS = ['enviando', 'pendente', 'incerto'];
 const FALHAS_API = { failed: 'falhou', cancelled: 'foi cancelado', expired: 'expirou' };
@@ -28,6 +29,13 @@ function criarJobs({
     const agoraIso = () => new Date(relogio()).toISOString();
     const copia = (j) => (j ? JSON.parse(JSON.stringify(j)) : null);
     const chaveEnvio = (h) => `${arq}|${h}`;
+    // registro (log): o que identifica o job, sem URLs nem segredos
+    const resumoJob = (j) => ({ jobId: j.jobId, tipo: j.tipo, modelo: j.modelo, etapa: j.etapa, previstoUsd: j.previstoUsd, simulado: j.simulado === true || undefined });
+    const msDesde = (iso) => { const t = Date.parse(iso); return Number.isFinite(t) ? relogio() - t : undefined; };
+    const log = (nivel, evento, j, msg, extra = {}) => registro.registrar({
+        nivel, area: extra.area || 'job', evento, serie: j && j.serie !== undefined ? j.serie : serie, ep: j && j.ep, msg, ...extra,
+        dados: { ...(j ? resumoJob(j) : {}), ...(extra.dados || {}) },
+    });
 
     async function ler() {
         const d = await util.lerJson(arq, null);
@@ -131,9 +139,16 @@ function criarJobs({
             enviandoAgora.add(chaveEnvio(h));
             return { novo: copia(novo) };
         });
-        if (decisao.erro) throw decisao.erro;
-        if (decisao.existente) return { job: decisao.existente, novo: false };
+        if (decisao.erro) {
+            log('erro', 'job-incerto', { ...info, serie: info.serie !== undefined ? info.serie : serie }, decisao.erro.message, { dados: { jobId: decisao.erro.jobId } });
+            throw decisao.erro;
+        }
+        if (decisao.existente) {
+            log('info', 'job-reaproveitado', decisao.existente, `Mesmo pedido já tinha job (${decisao.existente.status}): nada pago de novo`, { dados: { status: decisao.existente.status } });
+            return { job: decisao.existente, novo: false };
+        }
 
+        const fimEnvio = registro.cronometro();
         let r;
         try {
             r = await criar();
@@ -141,15 +156,20 @@ function criarJobs({
             const incerto = Boolean(e && e.incerto);
             await atualizarPorHash(h, { status: incerto ? 'incerto' : 'falhou', erro: limparSegredos(e && e.message) });
             enviandoAgora.delete(chaveEnvio(h));
+            log('erro', incerto ? 'job-incerto' : 'job-recusado', decisao.novo, `${incerto ? 'Envio sem resposta (pode ter sido cobrado)' : 'O OpenRouter recusou o pedido'}: ${e && e.message}`,
+                { area: 'openrouter', ms: fimEnvio(), erro: e });
             throw e;
         }
         if (!r || !r.id) {
             await atualizarPorHash(h, { status: 'incerto', erro: 'O OpenRouter aceitou o pedido mas não devolveu o id do job.' });
             enviandoAgora.delete(chaveEnvio(h));
+            log('erro', 'job-incerto', decisao.novo, 'O OpenRouter aceitou o pedido mas não devolveu o id do job', { area: 'openrouter', ms: fimEnvio() });
             throw new ErroJob('O OpenRouter aceitou o pedido mas não devolveu o id do job: confira no painel antes de repetir.');
         }
         let job = await atualizarPorHash(h, { jobId: r.id, status: 'pendente', statusApi: r.status || 'pending', ...(r.extra || {}) });
         enviandoAgora.delete(chaveEnvio(h));
+        log('info', 'job-criado', job, `Job de ${job.tipo || 'video'} criado (${job.modelo || '?'}), previsto US$ ${job.previstoUsd}${job.simulado ? ' [simulado]' : ''}`,
+            { area: 'openrouter', ms: fimEnvio(), dados: { statusApi: job.statusApi } });
         if (r.pronto) job = await concluir(job, r.usage);
         else if (FALHAS_API[r.status]) job = await falhar(job, r.error, r.usage, r.status);
         return { job, novo: true };
@@ -177,6 +197,9 @@ function criarJobs({
         const atual = (await acharPorId(job.jobId)) || job;
         if (!atual.custoRegistrado) {
             await registrarNoLivro(atual, custo !== null ? custo : atual.previstoUsd, custo === null);
+            const gasto = atual.simulado ? undefined : util.arredondarUsd(custo !== null ? custo : Number(atual.previstoUsd) || 0);
+            log('info', 'job-pronto', atual, `Job pronto${custo !== null ? `: custo real US$ ${util.arredondarUsd(custo)}` : ' (custo real não informado: vale o previsto)'}`,
+                { ms: msDesde(atual.criadoEm), custoUsd: gasto, dados: { custoConfirmado: custo !== null } });
         }
         return atualizarPorId(job.jobId, {
             status: 'pronto', statusApi: 'completed', custoUsd: custo, custoConfirmado: custo !== null,
@@ -189,6 +212,8 @@ function criarJobs({
         const atual = (await acharPorId(job.jobId)) || job;
         if (custo > 0 && !atual.custoRegistrado) await registrarNoLivro(atual, custo, false);
         const motivo = erro ? limparSegredos(typeof erro === 'string' ? erro : JSON.stringify(erro)) : `O job ${FALHAS_API[statusApi] || 'falhou'}.`;
+        log('erro', 'job-falhou', atual, `Job ${FALHAS_API[statusApi] || 'falhou'}: ${motivo}`,
+            { ms: msDesde(atual.criadoEm), custoUsd: custo > 0 && !atual.custoRegistrado && !atual.simulado ? custo : undefined, dados: { statusApi } });
         return atualizarPorId(job.jobId, {
             status: 'falhou', statusApi, erro: motivo, custoUsd: custo, custoRegistrado: custo > 0 ? true : atual.custoRegistrado, concluidoEm: agoraIso(),
         });
@@ -198,7 +223,10 @@ function criarJobs({
         const u = Array.isArray(r.unsigned_urls) ? r.unsigned_urls[0] : null;
         // Só a URL da própria API (com a chave); as `urls` assinadas nunca são usadas nem gravadas.
         const alvo = u && /^https:\/\/openrouter\.ai\/api\//.test(u) ? u : `/videos/${encodeURIComponent(job.jobId)}/content?index=0`;
-        await cliente.baixar(alvo, destinoAbsoluto(job.destino));
+        const fim = registro.cronometro();
+        const b = await cliente.baixar(alvo, destinoAbsoluto(job.destino));
+        log('info', 'download', job, `Resultado baixado (${b && b.bytes ? `${Math.round(b.bytes / 10485.76) / 100} MB` : 'tamanho ?'})`,
+            { ms: fim(), dados: { bytes: b && b.bytes, destino: job.destino } });
     }
 
     async function consultarAgora(jobId) {
@@ -211,11 +239,13 @@ function criarJobs({
             try {
                 await baixarResultado(job, r);
             } catch (e) {
+                log('aviso', 'download-falhou', job, `Falha ao baixar o resultado (tenta de novo na próxima consulta): ${e.message}`, { erro: e });
                 return atualizarPorId(jobId, { statusApi: st, erroDownload: limparSegredos(e.message) });
             }
             return concluir(job, r.usage);
         }
         if (FALHAS_API[st]) return falhar(job, r.error, r.usage, st);
+        if (st !== job.statusApi) log('info', 'job-estado', job, `Job mudou de "${job.statusApi || '?'}" para "${st}"`, { ms: msDesde(job.criadoEm), dados: { de: job.statusApi, para: st } });
         return atualizarPorId(jobId, { statusApi: st, consultadoEm: agoraIso() });
     }
 
@@ -247,6 +277,7 @@ function criarJobs({
         const resultado = { consultados: [], incertos: [], erros: [] };
         for (const j of doc.jobs) {
             if (j.status === 'enviando' && !enviandoAgora.has(chaveEnvio(j.pedidoHash))) {
+                log('aviso', 'job-incerto', j, MSG_INTERROMPIDO);
                 resultado.incertos.push(await atualizarPorHash(j.pedidoHash, { status: 'incerto', erro: MSG_INTERROMPIDO }));
             } else if (j.status === 'incerto') {
                 resultado.incertos.push(copia(j));
@@ -266,6 +297,7 @@ function criarJobs({
         const j = await atualizar((x) => (x.jobId === idOuHash || x.pedidoHash === idOuHash) && x.status === 'incerto',
             { status: 'falhou', erro: 'Envio incerto liberado à mão (conferido no painel do OpenRouter).' });
         if (!j) throw new ErroJob(`Nenhum job incerto com ${idOuHash}.`);
+        log('aviso', 'job-liberado', j, 'Envio incerto liberado à mão (conferido no painel)');
         return j;
     }
 

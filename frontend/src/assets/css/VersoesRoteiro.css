@@ -1,0 +1,25 @@
+/* Versões do roteiro (episodios\epNN\_versoes): lista + confirmação. Usa a base do Lixeira.css (.lx, .lx-item…);
+   aqui só o que é próprio: o "valendo agora" e as etiquetas do que cada versão tem. */
+.vr-atual {
+  display: flex; align-items: flex-start; gap: var(--e3);
+  padding: var(--e3) var(--e4); border: 1px dashed var(--borda-forte); border-radius: var(--raio);
+}
+.vr-atual > svg { width: 17px; height: 17px; flex: none; margin-top: 2px; color: var(--texto-2); }
+.vr-atual > span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.vr-atual strong { font-size: var(--t-xs); font-weight: 650; color: var(--texto-2); }
+.vr-atual span span { font-size: var(--t-sm); color: var(--texto); overflow-wrap: anywhere; }
+
+.vr-item { align-items: start; }
+.vr-item .lx-item-txt { gap: 2px; }
+.vr-item > .btn { align-self: center; }
+.vr-tem { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.vr-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px;
+  background: var(--superficie-3); color: var(--texto-2); font-size: var(--t-xs); line-height: 1.5;
+}
+.vr-chip svg { width: 12px; height: 12px; flex: none; }
+.vr-mao { align-self: center; font-size: var(--t-xs); color: var(--texto-3); }
+
+@media (max-width: 520px) {
+  .vr-item > .btn, .vr-mao { grid-column: 1 / -1; justify-self: start; }
+}

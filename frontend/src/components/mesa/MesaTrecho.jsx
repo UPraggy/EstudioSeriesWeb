@@ -6,6 +6,8 @@ import '../../assets/css/MesaTrecho.css';
 import * as M from './mesaUtil';
 import { useCatalogo } from './mesaMidia';
 import { CotarTrecho, RegerarTrecho, RegerarLegenda } from '../funcionalidades/bancoGet';
+import { AnexarVideoTrecho, StatusRegeracao } from '../funcionalidades/bancoGet';
+import { BotaoAnexar, baixar, copiar } from '../subComponents/PedidoExterno';
 import { erroDe } from '../funcionalidades/fetchFunc';
 import { Ico } from '../subComponents/icones';
 import { Expandir, Trocar, Girador, Contador, Visto } from '../subComponents/Movimento';
@@ -15,6 +17,18 @@ function textoAjuste(c) {
     if (c.ajuste === 'acelerar') return `O modelo gera ${c.duracaoPedidaS} s; acelera ${String(c.fator).replace('.', ',')}× para caber em ${len} e emendar nas duas pontas.`;
     if (c.ajuste === 'aparar') return `O modelo gera ${c.duracaoPedidaS} s; apara para ${len} (o fim pode pular na emenda).`;
     return `O modelo gera exatamente ${len}.`;
+}
+
+// O pedido de uma cotação sem o token (o que vai para "Copiar tudo" e para outra plataforma).
+function pedidoParaFora(c) {
+    const p = c.pedido || {};
+    return {
+        plano: c.plano, deS: c.deS, ateS: c.ateS, duracaoTrechoS: c.duracaoS, duracaoPedidaS: c.duracaoPedidaS, ajuste: c.ajuste,
+        modelo: c.modelo, nomeModelo: c.nomeModelo, prompt: c.prompt, instrucao: c.instrucao,
+        resolucao: p.resolucao || null, proporcao: p.proporcao || null, audio: p.audio === true,
+        quadros: { primeiro: c.quadros && c.quadros.primeiro, ultimo: c.quadros && c.quadros.ultimo },
+        custoPrevistoUsd: c.custoPrevistoUsd,
+    };
 }
 
 // segundos desde que a regeração começou (atualiza a cada segundo enquanto gera)
@@ -72,6 +86,7 @@ export default function MesaTrecho({ serie, ep, doc, trecho, setTrecho, ctx, atu
     const [cotacao, setCotacao] = useState(null);
     const [ocupado, setOcupado] = useState(null);
     const [erro, setErro] = useState(null);
+    const [anexando, setAnexando] = useState(false);
     const cat = useCatalogo();
     const dur = trecho.ate - trecho.de;
     const partes = useMemo(() => M.limitesPlanos(doc)
@@ -106,6 +121,24 @@ export default function MesaTrecho({ serie, ep, doc, trecho, setTrecho, ctx, atu
         atualizarMesa({ ...ctx.mesa, regeracoes: [...regs.filter((x) => !novas.some((n) => n.id === x.id)), ...novas] });
         setCotacao({ ...cotacao, enviada: true });
         mostrarAviso(cotacao.simulado ? 'Enviado em modo simulado (sem custo). O take entra sozinho quando ficar pronto.' : 'Pedido enviado. O take entra sozinho quando ficar pronto.', 'ok');
+    };
+
+    // Vídeo gerado fora vira um take novo deste trecho (custo 0), aparado ao tamanho do trecho.
+    const anexarVideo = async (arquivo) => {
+        setErro(null);
+        if (partes.length !== 1) { setErro('Selecione um trecho dentro de UM plano para anexar o vídeo.'); return; }
+        setAnexando(true);
+        await salvarAgora();
+        const r = await AnexarVideoTrecho({ serie, ep, deS: trecho.de, ateS: trecho.ate, instrucao: instrucao || undefined, arquivo });
+        setAnexando(false);
+        if (erroDe(r)) { setErro(erroDe(r)); return; }
+        await receberDoServidor(r);
+        const st = await StatusRegeracao({ serie, ep });
+        if (!erroDe(st)) atualizarMesa({ ...ctx.mesa, regeracoes: st.regeracoes || regs, takes: st.takes || (ctx.mesa && ctx.mesa.takes) || {} });
+        mostrarAviso(`Vídeo anexado como ${String(r.take.id).replace('_', ' ')} do plano ${r.take.plano} (sem custo).`, 'ok');
+        (r.avisos || []).forEach((a) => mostrarAviso(a, 'aviso'));
+        setCotacao(null);
+        setModo(null);
     };
 
     const legenda = async () => {
@@ -179,9 +212,13 @@ export default function MesaTrecho({ serie, ep, doc, trecho, setTrecho, ctx, atu
                                 </label>
                                 <div className="tr-cotar">
                                     <button type="button" className="btn" aria-busy={ocupado === 'cotando'} disabled={ocupado === 'cotando' || !partes.length} onClick={cotar}>
-                                        {ocupado === 'cotando' && <Girador />}<Ico.custo aria-hidden="true" />Cotar custo
+                                        {ocupado === 'cotando' && <Girador />}<Ico.custo aria-hidden="true" />Cotar e ver o pedido
                                     </button>
-                                    <span className="tr-nota"><Ico.info aria-hidden="true" />Cotar não gasta nada.</span>
+                                    <span className="tr-nota"><Ico.info aria-hidden="true" />Cotar não gasta nada: mostra prompt, quadros e custo.</span>
+                                </div>
+                                <div className="tr-externo">
+                                    <BotaoAnexar tipo="video" rotulo="Anexar vídeo gerado fora" ocupado={anexando} disabled={partes.length !== 1} onArquivo={anexarVideo}
+                                        titulo={partes.length !== 1 ? 'Selecione um trecho dentro de um plano só' : 'O vídeo vira um take novo deste trecho, aparado ao tamanho dele (sem custo)'} />
                                 </div>
                             </div>
                         )}
@@ -208,7 +245,19 @@ export default function MesaTrecho({ serie, ep, doc, trecho, setTrecho, ctx, atu
                                                 <span className="tr-modelo">{c.nomeModelo || c.modelo}</span>
                                             </div>
                                             <p>{textoAjuste(c)}</p>
-                                            <p className="tr-prompt" title={c.prompt}>{c.prompt}</p>
+                                            <p className="tr-dados num">
+                                                Pede {c.duracaoPedidaS} s · {(c.pedido && c.pedido.resolucao) || 'resolução padrão'} · {(c.pedido && c.pedido.proporcao) || '9:16'} · {c.pedido && c.pedido.audio ? 'com áudio' : 'sem áudio'}
+                                            </p>
+                                            <details className="tr-prompt-todo">
+                                                <summary title={c.prompt}><span className="tr-prompt">{c.prompt}</span></summary>
+                                                <pre>{c.prompt}</pre>
+                                            </details>
+                                            <div className="tr-externo-acoes">
+                                                <button type="button" className="btn mini" onClick={() => copiar(c.prompt, 'Prompt copiado')}><Ico.copiar aria-hidden="true" />Copiar prompt</button>
+                                                <button type="button" className="btn mini" onClick={() => copiar(JSON.stringify(pedidoParaFora(c), null, 2), 'Pedido copiado (JSON)')}><Ico.json aria-hidden="true" />Copiar tudo (JSON)</button>
+                                                {c.quadros.primeiro && <button type="button" className="btn mini fantasma" onClick={() => baixar(M.midiaUrl(serie, c.quadros.primeiro), `plano${c.plano}-primeiro-quadro.png`)}><Ico.baixar aria-hidden="true" />1º quadro</button>}
+                                                {c.quadros.ultimo && <button type="button" className="btn mini fantasma" onClick={() => baixar(M.midiaUrl(serie, c.quadros.ultimo), `plano${c.plano}-ultimo-quadro.png`)}><Ico.baixar aria-hidden="true" />Último quadro</button>}
+                                            </div>
                                             {(c.avisos || []).filter((a) => !/acelerado|aparado/.test(a)).map((a, i) => <p key={i} className="tr-aviso"><Ico.aviso aria-hidden="true" />{a}</p>)}
                                         </div>
                                         <div className="tr-custo">
@@ -225,9 +274,11 @@ export default function MesaTrecho({ serie, ep, doc, trecho, setTrecho, ctx, atu
                                     {cotacao.simulado && <span className="tr-simulado"><Ico.simulado aria-hidden="true" />Modo simulado: nada é cobrado</span>}
                                     {!cotacao.enviada ? (
                                         <>
-                                            <button type="button" className="btn fantasma" onClick={() => setCotacao(null)} disabled={Boolean(ocupado)}>
+                                            <button type="button" className="btn fantasma" onClick={() => setCotacao(null)} disabled={Boolean(ocupado) || anexando}>
                                                 <Ico.voltar className="ico-voltar" aria-hidden="true" />Voltar
                                             </button>
+                                            <BotaoAnexar tipo="video" classe="btn" rotulo="Anexar vídeo gerado fora" ocupado={anexando} disabled={Boolean(ocupado) || partes.length !== 1} onArquivo={anexarVideo}
+                                                titulo="Gerou este pedido em outra plataforma? Anexe o vídeo: vira um take novo do trecho, sem custo" />
                                             <button type="button" className="btn primario" onClick={confirmar} aria-busy={ocupado === 'enviando'} disabled={Boolean(ocupado)}>
                                                 {ocupado === 'enviando' && <Girador />}<Ico.custo aria-hidden="true" />Confirmar e gerar · {M.fmtUsd(cotacao.totalUsd)}
                                             </button>

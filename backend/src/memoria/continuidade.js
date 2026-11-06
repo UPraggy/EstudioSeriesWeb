@@ -200,7 +200,7 @@ async function verificarContinuidade(roteiro, memoria, opcoes = {}) {
         problemas.push({ nivel: 'aviso', tipo: 'prompt', plano: null, texto: `Sem prompt de verificação: ${e.message}`, fatoId: null, origem: 'regras' });
     }
     if (typeof opcoes.chamarLLM === 'function' && prompt) {
-        const r = await opcoes.chamarLLM(prompt, { modelo: opcoes.modelo || s.serie?.modelos?.texto || 'openai/gpt-6-luna', maxTokens: opcoes.maxTokens || 2000, json: true });
+        const r = await opcoes.chamarLLM(prompt, { modelo: opcoes.modelo || s.serie?.modelos?.texto || 'openai/gpt-6-luna', maxTokens: opcoes.maxTokens || 6000, json: true });
         custoUsd += Number(r?.custoUsd) || 0;
         const j = extrairJson(r?.conteudo);
         if (j.ok && j.valor && Array.isArray(j.valor.contradicoes)) {

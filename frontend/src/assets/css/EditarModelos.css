@@ -1,0 +1,12 @@
+/* Diálogo "Modelos da série" (tema escuro, docs/GUIA-VISUAL.md). */
+.modelos-editar { display: flex; flex-direction: column; gap: var(--e4); }
+.modelos-editar .modelos-busca { padding-bottom: var(--e3); border-bottom: 1px solid var(--borda); }
+.modelo-linha { display: flex; align-items: flex-end; gap: var(--e2); padding: var(--e2) var(--e3); border-radius: var(--raio);
+  border: 1px solid transparent; transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard); }
+.modelo-linha .campo { flex: 1; min-width: 0; }
+.modelo-linha .campo > span { display: inline-flex; align-items: center; gap: 6px; }
+.modelo-linha .campo > span svg { width: 14px; height: 14px; color: var(--texto-3); }
+.modelo-linha select { width: 100%; font-family: var(--fonte); }
+.modelo-linha.trocado { border-color: var(--borda-forte); background: var(--superficie-2); }
+.modelo-novo { margin-left: var(--e2); padding: 1px 6px; border-radius: var(--raio-sm); background: var(--acao-suave);
+  color: var(--texto); font-style: normal; font-size: var(--t-xs); font-weight: 600; }

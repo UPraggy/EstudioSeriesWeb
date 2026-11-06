@@ -7,7 +7,7 @@ import { estadoMotor } from './funcionalidades/motor';
 import { erroDe } from './funcionalidades/fetchFunc';
 import { capaDaSerie } from './sala/serieUtil';
 import { Ico } from './subComponents/icones';
-import { Contador, Esqueleto, Lista, Item, Vazio } from './subComponents/Movimento';
+import { Contador, Esqueleto, Lista, Item, Vazio, Girador, avisar } from './subComponents/Movimento';
 import '../assets/css/Telas.css';
 import '../assets/css/Custos.css';
 
@@ -107,6 +107,12 @@ function Chave({ saldo }) {
                 </div>
             )}
             {(saldo.avisos || []).map((a) => <p key={a} className="custos-nota"><Ico.info aria-hidden="true" />{a}</p>)}
+            {Number.isFinite(saldo.limiteUsd) && saldo.limiteUsd > 0 && (
+                <p className="custos-nota">
+                    <Ico.info aria-hidden="true" />
+                    Recarregou créditos? Esta chave tem limite próprio de {GlobalVar.usd(saldo.limiteUsd)}: recarregar a conta não aumenta esse limite. Para gastar mais, aumente o limite da chave em openrouter.ai, em Settings, Keys, e clique em "Atualizar saldo".
+                </p>
+            )}
         </>
     );
 }
@@ -131,6 +137,19 @@ export default function Custos({ ativaResp }) {
     const [lancErro, setLancErro] = useState('');
     const [lancIndisponivel, setLancIndisponivel] = useState(false);
     const [etapa, setEtapa] = useState('');
+    const [atualizando, setAtualizando] = useState(false);
+
+    // Atualizar saldo na hora (ex.: depois de recarregar créditos no OpenRouter). O backend não guarda cache.
+    async function atualizarSaldo() {
+        setAtualizando(true);
+        const r = await SaldoOpenRouter();
+        setAtualizando(false);
+        setSaldo(r);
+        if (erroDe(r)) { avisar(`Não consegui ler o saldo: ${erroDe(r)}`, 'erro'); return; }
+        window.dispatchEvent(new Event('estudio:gasto')); // a barra do topo também relê
+        const d = saldoDisponivel(r);
+        avisar(d === null ? 'Saldo atualizado' : `Saldo atualizado: ${GlobalVar.usd(d)}`);
+    }
 
     const origem = params.get('serie') || (series && series[0] ? series[0].id : SIMPLES);
 
@@ -177,6 +196,11 @@ export default function Custos({ ativaResp }) {
                     <h1>Custos</h1>
                     <p>Saldo da chave, tetos de cada série e cada chamada paga registrada em <code>custos.jsonl</code>. Nenhuma geração passa do teto sem você mudar o teto.</p>
                 </div>
+                <button type="button" className="btn" onClick={atualizarSaldo} disabled={atualizando} aria-busy={atualizando} title="Consulta o OpenRouter de novo (use depois de recarregar créditos)">
+                    {atualizando && <Girador />}
+                    <Ico.regerar className="ico-girar" aria-hidden="true" />
+                    Atualizar saldo
+                </button>
             </div>
 
             <Resumo saldo={saldo} series={series} />

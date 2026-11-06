@@ -13,7 +13,9 @@ import '../assets/css/Configuracoes.css';
 
 // O que ainda depende de ffmpeg/Python (rotas em motorNavegador/entrada.js → ROTAS_SO_NO_PC).
 const SO_NO_PC = [
-    { icone: Ico.voz, texto: 'Vozes: gerar, ouvir e regerar as falas e a narração' },
+    { icone: Ico.voz, texto: 'Vozes: gerar, ouvir e regerar as falas e a narração (inclusive com a voz nova)' },
+    { icone: Ico.video, texto: 'Vídeo dos planos e regerar trecho: o clipe é aparado com ffmpeg depois de gerado (o site recusa antes de cotar, para não cobrar)' },
+    { icone: Ico.anexo, texto: 'Anexar um vídeo feito fora (é conferido e aparado com ffmpeg)' },
     { icone: Ico.ouvir, texto: 'Teste de pronúncia (Whisper)' },
     { icone: Ico.efeito, texto: 'Mixagem e tratamento do áudio' },
     { icone: Ico.grade, texto: 'Miniaturas, forma de onda e quadro dos clipes na Mesa' },

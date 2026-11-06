@@ -8,6 +8,7 @@ const { pipeline } = require('stream/promises');
 const { lerChave } = require('./ambiente');
 const { ErroOpenRouter, limparSegredos } = require('./erros');
 const util = require('./util');
+const registro = require('../log/registro');
 
 const BASE = 'https://openrouter.ai/api/v1';
 const TRANSITORIOS = new Set([408, 425, 429, 500, 502, 503, 504, 524, 529]);
@@ -115,6 +116,12 @@ function criarCliente(opcoes = {}) {
         return TRANSITORIOS.has(status);
     }
 
+    // Registro: só método, caminho (sem query) e status — nunca cabeçalhos, chave nem corpo.
+    const rotaLog = (url) => limpar(url.replace(base, '').split('?')[0]).slice(0, 120);
+    function logApi(nivel, evento, metodo, url, msg, dados = {}) {
+        registro.registrar({ nivel, area: 'openrouter', evento, msg, dados: { metodo, rota: rotaLog(url), ...dados } });
+    }
+
     async function chamar(metodo, url, { corpo, repetir, timeoutMs }) {
         const modo = repetir || (metodo === 'GET' ? 'sempre' : 'so429');
         const h = cabecalhos(url, corpo !== undefined);
@@ -132,19 +139,25 @@ function criarCliente(opcoes = {}) {
             } catch (e) {
                 clearTimeout(timer);
                 if (modo === 'sempre' && n < tentativas) {
+                    logApi('aviso', 'repetindo', metodo, url, `Falha de rede com o OpenRouter: tentativa ${n + 1} de ${tentativas}`, { tentativa: n });
                     await dormir(esperaPara(n));
                     continue;
                 }
-                throw erroDeRede(e, metodo, url, timeoutMs);
+                const er = erroDeRede(e, metodo, url, timeoutMs);
+                logApi('erro', 'erro-api', metodo, url, er.message, { codigo: er.codigo, incerto: er.incerto });
+                throw er;
             }
             if (resposta.ok) return { resposta, timer };
             clearTimeout(timer);
             const texto = await resposta.text().catch(() => '');
             if (deveRepetir(modo, resposta.status) && n < tentativas) {
+                logApi('aviso', 'repetindo', metodo, url, `OpenRouter respondeu ${resposta.status}: tentativa ${n + 1} de ${tentativas}`, { status: resposta.status, tentativa: n });
                 await dormir(esperaPara(n, resposta));
                 continue;
             }
-            throw erroHttp(resposta.status, texto);
+            const er = erroHttp(resposta.status, texto);
+            logApi(resposta.status >= 500 || resposta.status === 401 || resposta.status === 402 ? 'erro' : 'aviso', 'erro-api', metodo, url, er.message, { status: resposta.status });
+            throw er;
         }
     }
 

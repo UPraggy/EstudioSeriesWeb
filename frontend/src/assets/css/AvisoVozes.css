@@ -1,0 +1,15 @@
+/* Aviso "a voz mudou": ícone + texto (nunca só a cor) e o botão de regerar do lado. */
+.aviso-vozes {
+  display: flex; flex-direction: column; gap: var(--e2); padding: var(--e2) var(--e3);
+  border: 1px solid var(--aviso-borda); border-radius: var(--raio); background: var(--aviso-suave);
+}
+.av-linha { display: flex; align-items: center; gap: var(--e2); flex-wrap: wrap; }
+.av-ico { width: 16px; height: 16px; color: var(--aviso); flex: none; }
+.av-texto { margin: 0; flex: 1 1 220px; font-size: var(--t-sm); color: var(--texto); }
+.av-texto strong { font-weight: 640; }
+.av-texto span { color: var(--texto-2); }
+.av-todas { display: flex; justify-content: flex-end; }
+.av-erro { display: flex; gap: 6px; align-items: flex-start; margin: 0; font-size: var(--t-xs); color: var(--texto-2); }
+.av-erro svg { width: 14px; height: 14px; color: var(--aviso); flex: none; margin-top: 2px; }
+.aviso-vozes.compacto { padding: 6px var(--e2); }
+.aviso-vozes.compacto .av-texto { font-size: var(--t-xs); }

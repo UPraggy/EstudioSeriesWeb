@@ -8,6 +8,8 @@ import { useCatalogo } from './mesaMidia';
 import { useTempo } from './mesaRelogio';
 import MesaMiniatura from './MesaMiniatura';
 import { ExtrairQuadro, RegerarFala, RegerarLegenda } from '../funcionalidades/bancoGet';
+import { AnexarQuadroChave } from '../funcionalidades/bancoGet';
+import { BotaoAnexar, baixar, copiar, lerBase64 } from '../subComponents/PedidoExterno';
 import { erroDe } from '../funcionalidades/fetchFunc';
 import GlobalVar from '../subComponents/GlobalVar';
 import { Ico } from '../subComponents/icones';
@@ -93,12 +95,22 @@ function EstadoRegeracao({ r }) {
     return <span className="estado-in"><Ico.relogio aria-hidden="true" />{r.status}</span>;
 }
 
+// Prompt para gerar o quadro-chave fora (Midjourney, Flow...): o prompt do plano + as âncoras das fichas.
+function promptQuadro(plano, ancoras) {
+    return [
+        String(plano.prompt || plano.visual || '').trim(),
+        ancoras.length ? `Continuidade: ${ancoras.map((a) => `${a.nome}: ${a.ancora}`).join('; ')}.` : '',
+        'Imagem vertical 9:16, primeiro quadro do plano, fotografia realista, sem texto escrito.',
+    ].filter(Boolean).join(' ').replace(/\.\./g, '.');
+}
+
 // ---------------------------------------------------------------- plano
-function InspetorPlano({ serie, doc, ctx, n, relogio, mudarPlano, aplicar, mostrarAviso }) {
+function InspetorPlano({ serie, ep, doc, ctx, n, relogio, mudarPlano, aplicar, mostrarAviso }) {
     const cat = useCatalogo();
     const plano = (doc.planos || []).find((p) => p.n === n);
     const [sobre, setSobre] = useState(false);
     const [pegando, setPegando] = useState(false);
+    const [anexandoQuadro, setAnexandoQuadro] = useState(false);
     if (!plano) return null;
     const lim = M.limitesPlanos(doc).find((l) => l.n === n) || plano;
     const fichas = [...(ctx.acervo.elenco || []), ...(ctx.acervo.locais || []), ...(ctx.acervo.objetos || [])];
@@ -125,6 +137,18 @@ function InspetorPlano({ serie, doc, ctx, n, relogio, mudarPlano, aplicar, mostr
         setPegando(false);
         if (erroDe(r)) return mostrarAviso(erroDe(r), 'erro');
         mudarPlano(n, { quadroChave: { arquivo: r.arquivo, origem: 'quadro_do_cursor', tS: M.arred(t) } });
+        return null;
+    };
+    // Imagem gerada fora vira o quadro-chave do plano (custo 0).
+    const anexarQuadro = async (arquivo) => {
+        setAnexandoQuadro(true);
+        let base64;
+        try { base64 = await lerBase64(arquivo); } catch (e) { setAnexandoQuadro(false); return mostrarAviso(e.message, 'erro'); }
+        const r = await AnexarQuadroChave({ serie, ep, plano: n, arquivo: { nome: arquivo.name, base64 } });
+        setAnexandoQuadro(false);
+        if (erroDe(r)) return mostrarAviso(erroDe(r), 'erro');
+        mudarPlano(n, { quadroChave: r.quadroChave });
+        mostrarAviso('Quadro-chave anexado (sem custo).', 'ok');
         return null;
     };
     const soltarQuadro = (e) => {
@@ -182,14 +206,21 @@ function InspetorPlano({ serie, doc, ctx, n, relogio, mudarPlano, aplicar, mostr
                         <div className="in-quadro-img">
                             <img src={M.midiaUrl(serie, plano.quadroChave.arquivo)} alt="Quadro-chave do plano" />
                             <div>
-                                <span className="in-dica">{plano.quadroChave.origem === 'ref' ? 'Da referência' : 'Do vídeo no cursor'}</span>
+                                <span className="in-dica">{plano.quadroChave.origem === 'ref' ? 'Da referência' : plano.quadroChave.origem === 'externo' ? 'Gerado fora' : 'Do vídeo no cursor'}</span>
+                                <button type="button" className="btn mini fantasma" onClick={() => baixar(M.midiaUrl(serie, plano.quadroChave.arquivo), `plano${n}-quadro-chave.${String(plano.quadroChave.arquivo).split('.').pop()}`)}><Ico.baixar aria-hidden="true" />Baixar</button>
                                 <button type="button" className="btn mini fantasma" onClick={() => mudarPlano(n, { quadroChave: null })}><Ico.fechar aria-hidden="true" />Tirar</button>
                             </div>
                         </div>
                     ) : <p className="in-dica">Arraste uma referência do acervo para cá, ou use o quadro do cursor.</p>}
-                    <button type="button" className="btn mini" onClick={quadroDoCursor} aria-busy={pegando} disabled={pegando}>
-                        {pegando && <Girador />}<Ico.camera aria-hidden="true" />Usar o quadro do cursor
-                    </button>
+                    <div className="in-quadro-acoes">
+                        <button type="button" className="btn mini" onClick={quadroDoCursor} aria-busy={pegando} disabled={pegando}>
+                            {pegando && <Girador />}<Ico.camera aria-hidden="true" />Usar o quadro do cursor
+                        </button>
+                        <BotaoAnexar tipo="imagem" rotulo="Anexar imagem" ocupado={anexandoQuadro} onArquivo={anexarQuadro} titulo="Use uma imagem gerada fora como quadro-chave (sem custo)" />
+                        <button type="button" className="btn mini fantasma" onClick={() => copiar(promptQuadro(plano, ancoras), 'Prompt do quadro copiado')} title={promptQuadro(plano, ancoras)}>
+                            <Ico.copiar aria-hidden="true" />Copiar prompt do quadro
+                        </button>
+                    </div>
                 </div>
                 <label className="in-campo">
                     <span className="in-rotulo">Modelo de vídeo</span>
@@ -223,6 +254,7 @@ function InspetorPlano({ serie, doc, ctx, n, relogio, mudarPlano, aplicar, mostr
                                     </button>
                                     <span className="in-take-nome">
                                         {String(t.id).replace('_', ' ')}
+                                        {t.origem === 'externo' && <span className="in-take-fora" title={t.nomeOriginal ? `Anexado: ${t.nomeOriginal}` : 'Anexado de fora'}>de fora</span>}
                                         {t.simulado && <Ico.simulado className="in-take-sim" aria-label="Simulado" />}
                                     </span>
                                 </Item>
@@ -596,7 +628,7 @@ export default function MesaInspetor({
         corpo = (
             <>
                 <InspetorVideo item={item} mudarItem={mudarItem} />
-                {item.plano !== undefined && item.plano !== null && <InspetorPlano serie={serie} doc={doc} ctx={ctx} n={item.plano} relogio={relogio} mudarPlano={mudarPlano} aplicar={aplicar} mostrarAviso={mostrarAviso} />}
+                {item.plano !== undefined && item.plano !== null && <InspetorPlano serie={serie} ep={ep} doc={doc} ctx={ctx} n={item.plano} relogio={relogio} mudarPlano={mudarPlano} aplicar={aplicar} mostrarAviso={mostrarAviso} />}
             </>
         );
     } else if (M.FAIXAS_AUDIO.includes(selecao.faixa)) {

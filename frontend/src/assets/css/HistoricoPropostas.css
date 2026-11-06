@@ -1,0 +1,40 @@
+/* Histórico das propostas de roteiro do episódio (recolhido por padrão). Mesma largura da folha. */
+.hist-prop { max-width: 680px; margin: 0 auto var(--e4); border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--superficie); }
+.hist-prop .hp-cab {
+  width: 100%; display: flex; align-items: center; gap: var(--e2); padding: var(--e3) var(--e4); border: 0; background: none;
+  color: var(--texto); font: inherit; text-align: left; cursor: pointer; border-radius: var(--raio-sm);
+  transition: background var(--motion-fast) var(--ease-standard);
+}
+.hist-prop .hp-cab:hover { background: var(--superficie-2); }
+.hist-prop .hp-cab:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.hist-prop .hp-ico { width: 16px; height: 16px; flex: none; color: var(--texto-2); }
+.hist-prop .hp-titulo { font-size: var(--t-sm); font-weight: 650; }
+.hist-prop .hp-resumo { margin-left: auto; font-size: var(--t-xs); color: var(--texto-2); }
+.hist-prop .hp-seta { width: 16px; height: 16px; flex: none; color: var(--texto-3); transition: transform var(--motion-base) var(--ease-standard); }
+.hist-prop .hp-seta.aberta { transform: rotate(180deg); }
+
+.hist-prop .hp-lista { list-style: none; margin: 0; padding: 0 var(--e2) var(--e2); display: flex; flex-direction: column; gap: 2px; }
+.hist-prop .hp-item {
+  padding: var(--e3); border-radius: var(--raio-sm); border: 1px solid transparent; display: flex; flex-direction: column; gap: 6px;
+  transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+}
+.hist-prop .hp-item:hover { background: var(--superficie-2); }
+.hist-prop .hp-item.atual { border-color: var(--borda-forte); }
+.hist-prop .hp-item.vendo { border-color: var(--aviso-borda); background: var(--superficie-2); }
+.hist-prop .hp-linha { display: flex; align-items: baseline; gap: var(--e2) var(--e3); flex-wrap: wrap; font-size: var(--t-xs); color: var(--texto-2); }
+.hist-prop .hp-v { font-size: var(--t-sm); font-weight: 700; color: var(--texto); }
+.hist-prop .hp-origem { color: var(--texto); font-weight: 550; }
+.hist-prop .hp-tag { display: inline-flex; align-items: center; gap: 4px; color: var(--texto); font-weight: 600; }
+.hist-prop .hp-tag.aviso { color: var(--aviso); }
+.hist-prop .hp-tag svg { width: 13px; height: 13px; align-self: center; }
+.hist-prop .hp-nome { margin: 0; font-size: var(--t-sm); font-weight: 600; }
+.hist-prop .hp-pedido { margin: 0; display: flex; gap: 6px; font-size: var(--t-xs); line-height: 1.5; color: var(--texto); }
+.hist-prop .hp-pedido.suave { color: var(--texto-2); }
+.hist-prop .hp-pedido svg { width: 13px; height: 13px; flex: none; margin-top: 2px; color: var(--texto-3); }
+.hist-prop .hp-pedido span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hist-prop .hp-acoes { display: flex; gap: var(--e2); flex-wrap: wrap; margin-top: 2px; }
+
+@media (max-width: 767px) {
+  .hist-prop .hp-cab { padding: var(--e3); }
+  .hist-prop .hp-lista { padding: 0 var(--e1) var(--e1); }
+}

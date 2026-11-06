@@ -1,0 +1,51 @@
+/* Observações (antes de gerar) e "Pedir ajustes" (depois de gerar) na mesa de luz do episódio.
+   Mesma largura da folha; camadas: mesa de luz (--ed-fundo) → bloco (--superficie) → campo (--fundo). */
+.notas-rot { max-width: 680px; margin: 0 auto var(--e4); display: flex; flex-direction: column; gap: var(--e3); }
+.notas-rot .nr-bloco { border: 1px solid var(--borda); border-radius: var(--raio-sm); background: var(--superficie); }
+.notas-rot .nr-cab {
+  width: 100%; display: flex; align-items: center; gap: var(--e2); padding: var(--e3) var(--e4); border: 0; background: none;
+  color: var(--texto); font: inherit; text-align: left; cursor: pointer; border-radius: var(--raio-sm);
+  transition: background var(--motion-fast) var(--ease-standard);
+}
+.notas-rot .nr-cab:hover { background: var(--superficie-2); }
+.notas-rot .nr-cab:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.notas-rot .nr-ico { width: 16px; height: 16px; flex: none; color: var(--texto-2); }
+.notas-rot .nr-titulo { margin: 0; font-size: var(--t-sm); font-weight: 650; }
+.notas-rot .nr-estado { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-xs); color: var(--texto-2); }
+.notas-rot .nr-estado svg { width: 14px; height: 14px; }
+.notas-rot .nr-estado.guardada { color: var(--ok); }
+.notas-rot .nr-estado.mudou { color: var(--aviso); }
+.notas-rot .nr-estado.erro { color: var(--perigo); }
+.notas-rot .nr-seta { width: 16px; height: 16px; flex: none; color: var(--texto-3); transition: transform var(--motion-base) var(--ease-standard); }
+.notas-rot .nr-seta.aberta { transform: rotate(180deg); }
+.notas-rot .nr-previa {
+  margin: calc(-1 * var(--e2)) var(--e4) var(--e3) calc(var(--e4) + 16px + var(--e2)); font-size: var(--t-sm); color: var(--texto-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.notas-rot .nr-corpo { padding: 0 var(--e4) var(--e4); display: flex; flex-direction: column; gap: var(--e3); }
+
+.notas-rot .nr-campo { display: flex; flex-direction: column; gap: 6px; }
+.notas-rot .nr-campo > span:not(.sr) { font-size: var(--t-sm); font-weight: 600; }
+.notas-rot .nr-campo small { font-size: var(--t-xs); line-height: 1.5; color: var(--texto-2); }
+.notas-rot .nr-campo textarea {
+  width: 100%; min-height: 72px; padding: var(--e2) var(--e3); resize: vertical;
+  border: 1px solid var(--borda-forte); border-radius: var(--raio-sm); background: var(--fundo); color: var(--texto);
+  font: var(--t-md)/1.5 var(--fonte);
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+.notas-rot .nr-campo textarea:focus { border-color: var(--texto); outline: none; box-shadow: 0 0 0 3px var(--acao-suave); }
+.notas-rot .nr-campo textarea::placeholder { color: var(--texto-3); }
+.notas-rot .nr-campo textarea:disabled { opacity: .6; }
+
+.notas-rot .nr-ajustes { padding: var(--e3) var(--e4) var(--e4); display: flex; flex-direction: column; gap: var(--e3); }
+.notas-rot .nr-titulo-ajustes { display: flex; align-items: center; gap: var(--e2); }
+.notas-rot .nr-sub { margin: calc(-1 * var(--e2)) 0 0; font-size: var(--t-sm); line-height: 1.5; color: var(--texto-2); }
+.notas-rot .nr-acoes { display: flex; justify-content: flex-end; align-items: center; gap: var(--e3); flex-wrap: wrap; }
+.notas-rot .nr-custo { font-size: var(--t-xs); color: var(--texto-2); }
+
+@media (max-width: 767px) {
+  .notas-rot .nr-cab { padding: var(--e3); }
+  .notas-rot .nr-previa { margin-left: var(--e3); margin-right: var(--e3); }
+  .notas-rot .nr-corpo, .notas-rot .nr-ajustes { padding-left: var(--e3); padding-right: var(--e3); }
+  .notas-rot .nr-acoes .btn { flex: 1 1 auto; justify-content: center; }
+}

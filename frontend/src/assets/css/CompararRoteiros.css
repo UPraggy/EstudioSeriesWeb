@@ -1,0 +1,33 @@
+/* Comparar duas propostas: folhas lado a lado (a partir de 1100 px); abaixo disso, alterna entre as duas. */
+.comparar { display: flex; flex-direction: column; gap: var(--e4); }
+.comparar .cmp-barra {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--e3); flex-wrap: wrap;
+  padding: var(--e3) var(--e4); border: 1px solid var(--aviso-borda); border-radius: var(--raio-sm); background: var(--aviso-suave);
+}
+.comparar .cmp-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 260px; font-size: var(--t-sm); }
+.comparar .cmp-texto strong { display: inline-flex; align-items: center; gap: 6px; color: var(--aviso); font-weight: 650; }
+.comparar .cmp-texto strong svg { width: 16px; height: 16px; }
+.comparar .cmp-texto span { color: var(--texto-2); }
+.comparar .cmp-alternar { display: none; padding: 2px; border: 1px solid var(--borda-forte); border-radius: var(--raio-sm); background: var(--fundo); }
+.comparar .cmp-lado {
+  padding: 4px var(--e3); border: 0; border-radius: 3px; background: none; color: var(--texto-2); font: 600 var(--t-xs)/1.6 var(--fonte); cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
+}
+.comparar .cmp-lado.ativo { background: var(--superficie-3); color: var(--texto); }
+.comparar .cmp-lado:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.comparar .cmp-grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--e5); align-items: start; }
+.comparar .cmp-col { min-width: 0; display: flex; flex-direction: column; gap: var(--e2); }
+.comparar .cmp-rotulo { margin: 0; font-size: var(--t-sm); font-weight: 650; color: var(--texto-2); text-align: center; }
+.comparar .folha { max-width: none; }
+
+@media (max-width: 1099px) {
+  .comparar .cmp-alternar { display: inline-flex; }
+  .comparar .cmp-grade { grid-template-columns: minmax(0, 1fr); }
+  .comparar .cmp-grade[data-lado="dir"] .cmp-col.esq, .comparar .cmp-grade[data-lado="esq"] .cmp-col.dir { display: none; }
+  .comparar .cmp-rotulo { display: none; }
+  .comparar .folha { max-width: 680px; }
+}
+@media (max-width: 767px) {
+  .comparar .cmp-barra { padding: var(--e3); }
+  .comparar .acoes { width: 100%; }
+}

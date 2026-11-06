@@ -3,6 +3,7 @@ const catalogo = require('./catalogo');
 const orcamento = require('./orcamento');
 const util = require('./util');
 const { ErroValidacao, ErroOpenRouter } = require('./erros');
+const registro = require('../log/registro');
 
 function textoDoConteudo(conteudo) {
     if (typeof conteudo === 'string') return conteudo;
@@ -35,6 +36,27 @@ function extrairJson(texto) {
  * → { dados, custoUsd, previstoUsd, uso, modelo, id, simulado }
  */
 async function completarJSON(opcoes = {}, ctx) {
+    const fim = registro.cronometro();
+    const base = { area: 'openrouter', serie: ctx && ctx.serie, ep: opcoes.ep };
+    try {
+        const r = await completarJSONSemRegistro(opcoes, ctx);
+        const real = !r.simulado && r.custoUsd !== null && r.custoUsd !== undefined ? r.custoUsd : (!r.simulado ? r.previstoUsd : undefined);
+        registro.registrar({
+            ...base, evento: 'texto', ms: fim(), custoUsd: real,
+            msg: `IA de texto respondeu (${r.modelo})${r.simulado ? ' [simulado]' : ''}`,
+            dados: { modelo: r.modelo, etapa: opcoes.etapa, previstoUsd: r.previstoUsd, custoConfirmado: r.custoUsd !== null && r.custoUsd !== undefined, entrada: r.uso && r.uso.entrada, saida: r.uso && r.uso.saida, simulado: r.simulado },
+        });
+        return r;
+    } catch (e) {
+        registro.registrar({
+            ...base, nivel: 'erro', evento: 'texto-falhou', ms: fim(), msg: `IA de texto falhou (${opcoes.modelo || '?'}): ${e && e.message}`,
+            dados: { modelo: opcoes.modelo, etapa: opcoes.etapa, status: e && e.status }, erro: e,
+        });
+        throw e;
+    }
+}
+
+async function completarJSONSemRegistro(opcoes = {}, ctx) {
     const { modelo, schema, nomeSchema = 'resposta', estrito = true, maxTokens = 4000, temperatura, ep = null, etapa, ref } = opcoes;
     if (!modelo) throw new ErroValidacao('Informe o modelo de texto.');
     const mensagens = opcoes.mensagens || [
@@ -79,7 +101,10 @@ async function completarJSON(opcoes = {}, ctx) {
     }
     const escolha = r && Array.isArray(r.choices) ? r.choices[0] : null;
     if (!escolha || !escolha.message) throw new ErroOpenRouter('O OpenRouter não devolveu resposta de texto.');
-    if (escolha.finish_reason === 'length') throw new ErroOpenRouter(`A resposta foi cortada no limite de ${maxTokens} tokens: aumente maxTokens.`);
+    if (escolha.finish_reason === 'length') {
+        // cortado = quem chamou pode tentar de novo com mais tokens (o showrunner faz isso sozinho); o custo já foi registrado
+        throw new ErroOpenRouter(`A resposta foi cortada no limite de ${maxTokens} tokens.`, { cortado: true, maxTokens, custoUsd: valor });
+    }
     const dados = extrairJson(textoDoConteudo(escolha.message.content));
     const u = (r && r.usage) || {};
     return {

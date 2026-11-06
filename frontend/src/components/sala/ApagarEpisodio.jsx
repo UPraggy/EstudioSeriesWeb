@@ -6,7 +6,7 @@ import { Esqueleto, Girador, avisar } from '../subComponents/Movimento';
 import { ApagarEpisodio as pedirApagarEpisodio, PreverApagar, rotaIndisponivel } from '../funcionalidades/bancoGet';
 import { erroDe } from '../funcionalidades/fetchFunc';
 import { SEM_ROTA, esquecerNoNavegador, mb } from './ApagarSerie';
-import { plural } from './serieUtil';
+import { plural, textoMemoria } from './serieUtil';
 import '../../assets/css/Lixeira.css';
 
 const dois = (n) => String(n).padStart(2, '0');
@@ -40,6 +40,7 @@ export default function ApagarEpisodio({ aberto, serieId, ep, onFechar, onApagad
     const bloqueios = previa ? previa.bloqueios || [] : [];
     const pode = Boolean(previa) && !bloqueios.length && !ocupado;
     const temMidia = previa && (previa.takes > 0 || previa.imagens > 0);
+    const memoria = previa ? textoMemoria(previa.memoria) : '';
 
     async function apagar() {
         if (!pode) return;
@@ -85,9 +86,10 @@ export default function ApagarEpisodio({ aberto, serieId, ep, onFechar, onApagad
                         <div className="lx-bloco">
                             <h3><Ico.lixeira aria-hidden="true" />Vai para a lixeira</h3>
                             <ul className="lx-lista">
-                                <li><Ico.roteiro aria-hidden="true" /><span>Roteiro, falas, edição da Mesa, legendas e o episódio montado</span></li>
+                                <li><Ico.roteiro aria-hidden="true" /><span>Tudo o que está na pasta do episódio: roteiro, falas, edição da Mesa, legendas, montagem e versões guardadas</span></li>
                                 <li><Ico.pasta aria-hidden="true" /><span><span className="num">{plural(previa.arquivos, 'arquivo', 'arquivos')}, {mb(previa.tamanhoMb)}</span> de <code className="lx-caminho">{(previa.origem || '').replace(/\//g, '\\')}</code></span></li>
-                                <li><Ico.escolha aria-hidden="true" /><span>A escolha A/B dele sai da bíblia (o mapa da temporada fica).</span></li>
+                                <li><Ico.escolha aria-hidden="true" /><span>Ele sai da lista de episódios (e a escolha A/B, se houver, sai da bíblia). O mapa da temporada fica.</span></li>
+                                {memoria && <li><Ico.memoria aria-hidden="true" /><span>Memória da série: <strong>{memoria}</strong> que vieram deste episódio saem da memória e vão junto (voltam se você restaurar). Os outros episódios não mudam.</span></li>}
                                 <li><Ico.custo aria-hidden="true" /><span>O gasto continua registrado em Custos{previa.gastoUsd > 0 ? <>: <strong className="num">{GlobalVar.usdFino(previa.gastoUsd)}</strong></> : ''}.</span></li>
                             </ul>
                         </div>
@@ -107,6 +109,7 @@ export default function ApagarEpisodio({ aberto, serieId, ep, onFechar, onApagad
                                 <Ico.refazerRoteiro aria-hidden="true" />Refazer só o roteiro
                             </button>
                         )}
+                        {(previa.avisos || []).map((a) => <p key={a} className="dlg-aviso"><Ico.aviso aria-hidden="true" />{a}</p>)}
                         {bloqueios.length > 0 && (
                             <div className="lx-erros" role="alert">
                                 {bloqueios.map((b) => <p key={b} className="dlg-erro"><Ico.bloqueado aria-hidden="true" />{b}</p>)}

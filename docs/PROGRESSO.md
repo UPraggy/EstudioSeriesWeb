@@ -43,6 +43,20 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - **09:15** — `npm run test:ci` (`scripts/testes-ci.js`): roda todos menos esses 3 (simulado aqui sem as ferramentas: 225 testes, 0 falhas). O workflow usa ele; no PC, `npm test` continua rodando tudo.
 - **09:20** — execução #2 (disparada pelo push `d454c55`): testes, build e deploy **ok**. Site aberto no Chrome do Rafael: carrega o motor do navegador em modo simulado (o que também prova o service worker funcionando no Pages). Descrição do repositório corrigida e link do site posto no "About". Contribuidor listado: só UPraggy.
 
+## Atualização com o original (06/11/2026)
+- **Pedido do Rafael:** "veja o que atualizou e atualize esse site web e quero que vá no Cloudflare e adicione esse site".
+- O `EstudioSeries` original mudou muito desde a cópia: **78 arquivos novos e 70 alterados** (estado de 06/11 à noite). Entre eles: da ideia ao vídeo pela tela (Próximo passo, decupagem, quadros-chave em lote, vídeo dos planos em lote), versões do roteiro, notas do roteiro, modelos por série, "gerado fora" (ver o prompt e anexar o resultado), aba **Registro** (log), vozes sem sotaque (Brian removido), duração do episódio. O estado dele está em `docs/PROGRESSO-ESTUDIO-PC.md`.
+- Merge de 3 vias a partir do ponto da cópia (`c9474cc`): ramo `original` com o retrato do original, fins de linha normalizados (o original passou a salvar alguns arquivos em CRLF), merge no `main`. Conflitos resolvidos mantendo os dois lados: rotas (o mapa novo voltou para `controllersMapa.js`, com `AnexarVideoTrecho` à parte por causa do corpo binário), menu (Registro + Configurações), `bancoGet.js`, `routes.jsx`, `CLAUDE.md` e README.
+- Ajustes para o navegador: o registro (log) grava em `/dados/_registro` (fica junto das séries; aba Registro funciona); `fetchBinario` (novo) passa pelo motor; **vídeo dos planos, regerar trecho, anexar vídeo feito fora e regerar falas com voz nova são recusados ANTES da cotação**, porque o vídeo pago é aparado com ffmpeg depois de baixado (no navegador cobraria e quebraria no fim). Quadros-chave em lote (só imagem) funcionam.
+- Testes: `npm test` **322/322**; motor do navegador 22/22 (2 novos: recusa antes de cotar e registro no armazém). Conferido no navegador: Séries, Sala nova, Registro, sem erro no console.
+
+### Como trazer as atualizações do original (da próxima vez)
+1. `git worktree add <pasta-temporária> original` (o ramo `original` guarda o último retrato do `EstudioSeries`).
+2. Na pasta temporária: apagar tudo menos `.git` e `.githooks`, copiar o `EstudioSeries` sem `node_modules`, `logs`, `frontend/dist*` e `.tmp`.
+3. Converter CRLF→LF nos arquivos de texto, `git add -A`, commit "Atualização do Estúdio de Séries original (data)".
+4. No `main`: `git merge original`. Conflitos típicos: `backend/src/routes.js` (refazer `controllersMapa.js` com o mapa novo), menu e rotas das telas (manter os dois), `CLAUDE.md`/README (manter as regras da versão web), `docs/PROGRESSO.md` (manter o do site; o do original vai para `docs/PROGRESSO-ESTUDIO-PC.md`).
+5. Conferir no código novo: `require` de módulo do Node sem substituto, `fetch` direto nas telas, e rota paga que use ffmpeg depois de pagar (entra em `ROTAS_SO_NO_PC` de `entrada.js`). Rodar `npm test`, `build:pages` e olhar no navegador.
+
 ## Próximos passos
 1. **Rafael:** no site, Configurações → "Entrar com OpenRouter" (ou colar uma chave com limite de crédito). A chave é dele e só ele pode pôr.
 2. **Rafael (gasto real, com OK e custo antes):** 1ª geração paga pelo navegador para confirmar o download do vídeo (domínio do arquivo e CORS) e o `frame_images` com data URL.

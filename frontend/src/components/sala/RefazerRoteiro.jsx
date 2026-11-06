@@ -6,7 +6,7 @@ import { Esqueleto, Girador, MOV, avisar, motion } from '../subComponents/Movime
 import { PreverApagar, RefazerRoteiro as pedirRefazer, rotaIndisponivel } from '../funcionalidades/bancoGet';
 import { erroDe } from '../funcionalidades/fetchFunc';
 import { SEM_ROTA } from './ApagarSerie';
-import { DURACAO_MAX_S, DURACAO_MIN_S, LIMITE_SEM_ESCOLHA_S, TETO_ETAPA_USD, faixaPlanos, plural, textoDuracao } from './serieUtil';
+import { DURACAO_MAX_S, DURACAO_MIN_S, LIMITE_SEM_ESCOLHA_S, TETO_ETAPA_USD, faixaPlanos, plural, textoDuracao, textoMemoria } from './serieUtil';
 import '../../assets/css/NovoEpisodio.css';
 import '../../assets/css/Lixeira.css';
 
@@ -17,11 +17,12 @@ const dois = (n) => String(n).padStart(2, '0');
 /**
  * Refazer o roteiro do zero. O roteiro atual (e, marcado, o que foi feito a partir dele: falas, áudio, edição,
  * legendas e montagem) vai para episodios\epNN\_versoes\<data>\ — recuperável. Takes e imagens pagos NUNCA saem.
- * Duração e "sem votação" vêm preenchidos com os do episódio; instruções novas são opcionais.
+ * Duração e "sem votação" vêm preenchidos com os do episódio; as observações do roteiro (notas.json) vêm
+ * preenchidas e o que ficar no campo passa a ser as observações do episódio.
  * Não chama a IA: onFeito({ duracaoAlvoS, semEscolha, instrucoes }) e quem chamou abre a confirmação de custo.
  * ep: { n, titulo, duracaoAlvoS, semEscolha }.
  */
-export default function RefazerRoteiro({ aberto, serieId, ep, onFechar, onFeito }) {
+export default function RefazerRoteiro({ aberto, serieId, ep, observacoes = '', onFechar, onFeito }) {
     const [previa, setPrevia] = useState(null);
     const [erroPrevia, setErroPrevia] = useState('');
     const [derivados, setDerivados] = useState(true);
@@ -40,7 +41,7 @@ export default function RefazerRoteiro({ aberto, serieId, ep, onFechar, onFeito 
         setDuracao(String(d0));
         // Se o episódio segue a regra dos 20 s, a caixa continua automática; senão, fica a escolha dele.
         setSemManual(sem0 === d0 < LIMITE_SEM_ESCOLHA_S ? null : sem0);
-        setDerivados(true); setInstrucoes(''); setErro(''); setOcupado(false); setPrevia(null); setErroPrevia('');
+        setDerivados(true); setInstrucoes(observacoes || ''); setErro(''); setOcupado(false); setPrevia(null); setErroPrevia('');
         PreverApagar({ serie: serieId, ep: n, acao: 'roteiro' }).then((r) => {
             if (!vivo) return;
             if (rotaIndisponivel(r)) setErroPrevia(SEM_ROTA);
@@ -60,6 +61,7 @@ export default function RefazerRoteiro({ aberto, serieId, ep, onFechar, onFeito 
     const fica = previa ? previa.preservados || [] : [];
     const pode = Boolean(previa) && !bloqueios.length && valida && !ocupado;
     const idEp = n ? `ep${dois(n)}` : '';
+    const memoria = previa ? textoMemoria(previa.memoria) : '';
 
     async function refazer(e) {
         e.preventDefault();
@@ -119,7 +121,12 @@ export default function RefazerRoteiro({ aberto, serieId, ep, onFechar, onFeito 
                                     {vai.map((i) => <li key={i.nome}><Ico.historico aria-hidden="true" /><span>{i.o}</span></li>)}
                                 </motion.ul>
                             ) : <p className="lx-texto">Ainda não há roteiro salvo: nada para guardar.</p>}
-                            <p className="lx-texto">Em <code className="lx-caminho">{`episodios\\${idEp}\\_versoes\\<data>\\`}</code>. Para voltar a uma versão, mova os arquivos de lá para a pasta do episódio.</p>
+                            {memoria && (
+                                <ul className="lx-lista">
+                                    <li><Ico.memoria aria-hidden="true" /><span>Memória da série: <strong>{memoria}</strong> que vieram deste roteiro saem da memória e ficam guardados junto (voltam se você voltar a esta versão).</span></li>
+                                </ul>
+                            )}
+                            <p className="lx-texto">Em <code className="lx-caminho">{`episodios\\${idEp}\\_versoes\\<data>\\`}</code>. Para voltar, use <strong>Versões do roteiro</strong> no menu de ações do episódio: a versão que estiver valendo fica guardada.</p>
                         </div>
                         <div className="lx-bloco fica">
                             <h3><Ico.bloqueado aria-hidden="true" />Fica onde está</h3>
@@ -196,16 +203,16 @@ export default function RefazerRoteiro({ aberto, serieId, ep, onFechar, onFeito 
                         </label>
 
                         <label className="dlg-campo">
-                            <span>Instruções novas para o showrunner</span>
+                            <span>Observações para o roteiro</span>
                             <textarea
                                 rows={3}
-                                maxLength={800}
+                                maxLength={4000}
                                 value={instrucoes}
                                 disabled={ocupado}
                                 placeholder="Ex.: comece pelo rádio chiando, menos narração e a Mara só fala no fim."
                                 onChange={(e) => setInstrucoes(e.target.value)}
                             />
-                            <small>Opcional. Entram no pedido do roteiro novo, junto com a memória da série.</small>
+                            <small>Opcional. São as observações do episódio: ficam guardadas e entram no pedido do roteiro novo, junto com a memória da série.</small>
                         </label>
 
                         {(previa.avisos || []).map((a) => <p key={a} className="dlg-aviso"><Ico.aviso aria-hidden="true" />{a}</p>)}

@@ -134,6 +134,21 @@ test('rota que depende de ffmpeg/Python responde com erro claro', { skip: !temEs
     assert.equal(nao.status, 404);
 });
 
+test('vídeo dos planos e regerar trecho são recusados ANTES da cotação (seriam aparados com ffmpeg depois de pagos)', { skip: !temEsbuild }, async () => {
+    for (const rota of ['CotarVideoPlanos', 'GerarVideoPlanos', 'CotarTrecho', 'RegerarTrecho', 'AnexarVideoTrecho', 'RegerarFalasVoz']) {
+        const r = await post(rota, { serie: 'o-ultimo-farol', ep: 1 });
+        assert.equal(r.status, 501, rota);
+        assert.match(r.json.Error, /Estúdio do PC/, rota);
+    }
+});
+
+test('registro (log) do motor vai para /dados/_registro no armazém', { skip: !temEsbuild }, async () => {
+    await post('CriarSerie', { titulo: 'Registro de Teste' });
+    const r = await get('Registro', {});
+    assert.equal(r.status, 200, r.json && r.json.Error);
+    assert.ok([...armazem.arquivos.keys()].some((k) => /^_registro\/registro-\d{4}-\d{2}-\d{2}\.jsonl$/.test(k)), 'arquivo do dia no armazém');
+});
+
 test('modo real com fetch falso: chave vai só no Authorization, job é gravado, vídeo é baixado e custo entra no livro', { skip: !temEsbuild }, async () => {
     const videos = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'videos-models.json'), 'utf8'));
     const bytesVideo = new Uint8Array(4096).fill(9);

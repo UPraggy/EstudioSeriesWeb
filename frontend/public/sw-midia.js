@@ -40,7 +40,11 @@ function json(status, corpo) {
 }
 
 async function responder(evento, rota, url) {
-    if (rota !== 'Midia' && rota !== 'MidiaSimples') return json(404, { Error: `Rota ${rota} não é mídia.` });
+    // Só mídia passa por aqui; as outras rotas vão direto ao motor (fetchFunc). Quem chega é tela que ainda faz
+    // fetch próprio para funções do PC (ex.: ouvir uma voz).
+    if (rota !== 'Midia' && rota !== 'MidiaSimples') {
+        return json(501, { Error: 'Esta função ainda precisa do Estúdio do PC (vozes, áudio e montagem usam ffmpeg/Python). Ligue o Estúdio do PC em Configurações.' });
+    }
     const cliente = await acharCliente(evento.clientId || evento.resultingClientId);
     if (!cliente) return json(503, { Error: 'Abra o Estúdio numa aba para ver as mídias.' });
     const r = await perguntar(cliente, { tipo: 'estudio:midia', rota, query: Object.fromEntries(url.searchParams) });

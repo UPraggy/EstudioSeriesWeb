@@ -1,0 +1,13 @@
+/* Revisão da decupagem: um bloco por plano, o pedido de vídeo abre ao clicar. */
+.dec-planos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e2); max-height: min(60vh, 560px); overflow: auto; }
+.dec-plano { padding: var(--e2) var(--e3); border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie-2); }
+.dec-cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e2); font-size: var(--t-sm); }
+.dec-modelo { margin-left: auto; font-size: var(--t-xs); color: var(--texto-3); }
+.dec-pt { margin: 6px 0 0; font-size: var(--t-sm); color: var(--texto); }
+.dec-prompt { margin-top: 6px; font-size: var(--t-xs); }
+.dec-prompt summary { cursor: pointer; color: var(--texto-2); }
+.dec-prompt pre { margin: 6px 0 0; padding: var(--e2); white-space: pre-wrap; border-radius: var(--raio-sm); background: var(--fundo); color: var(--texto); font: 12px/1.5 var(--fonte); }
+.dec-ancoras { margin: 6px 0 0; font-size: var(--t-xs); }
+.dec-erros { list-style: none; margin: 0 0 var(--e2); padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: var(--t-xs); color: var(--aviso); }
+.dec-erros li { display: flex; gap: 6px; }
+.dec-erros svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }

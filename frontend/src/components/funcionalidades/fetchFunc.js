@@ -51,4 +51,22 @@ export const fetchPost = async (rota, body) => {
     }
 };
 
+// Envia um arquivo como corpo BINÁRIO (vídeos grandes: sem base64), com os dados na query.
+// No motor do navegador a rota recebe os mesmos dados (a de hoje, AnexarVideoTrecho, ainda recusa: precisa de ffmpeg).
+export const fetchBinario = async (rota, params, arquivo, tipo = 'application/octet-stream') => {
+    try {
+        await motorPronto();
+        const m = estadoMotor();
+        if (!modoPronto(m)) return { 'ERROR SERVER': semMotor(m) };
+        if (m.modo === 'navegador') {
+            const { chamarNavegador } = await import('../../motorNavegador/cliente.js');
+            return chamarNavegador('POST', rota, { ...(params || {}), arquivo: { nome: (params && params.nome) || (arquivo && arquivo.name) || 'arquivo' } });
+        }
+        const q = params ? `?${new URLSearchParams(params)}` : '';
+        return await tratar(await fetch(`${GlobalVar.serverBase}${rota}${q}`, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': tipo }, body: arquivo }));
+    } catch (error) {
+        return { 'ERROR SERVER': error.message };
+    }
+};
+
 export const erroDe = (r) => (r && r['ERROR SERVER']) || null;

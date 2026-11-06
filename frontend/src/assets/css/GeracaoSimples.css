@@ -170,3 +170,6 @@
   .gs .gs-modelos th:nth-child(4), .gs .gs-modelos td:nth-child(4),
   .gs .gs-modelos th:nth-child(5), .gs .gs-modelos td:nth-child(5) { display: none; }
 }
+
+/* "Ver pedido completo": o pedido inteiro para copiar e gerar em outra plataforma (sem gastar) */
+.gs .gs-ver-pedido { width: 100%; margin-top: var(--e2); }

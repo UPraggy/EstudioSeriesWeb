@@ -340,3 +340,37 @@ test('teto de custo interrompe novas tentativas', async () => {
     assert.strictEqual(llm.chamadas.length, 1);
     assert.ok(r.avisos.some((a) => /Teto/.test(a)));
 });
+
+test('resposta cortada no limite de tokens: tenta de novo sozinha com o dobro e soma o custo pago', async () => {
+    const roteiro = ler('farol-ep01-roteiro.json');
+    const limites = [];
+    let n = 0;
+    const llm = async (mensagens, op) => {
+        limites.push(op.maxTokens);
+        n++;
+        if (n === 1) { const e = new Error('A resposta foi cortada no limite de 15200 tokens.'); e.cortado = true; e.custoUsd = 0.002; throw e; }
+        return { conteudo: roteiro, custoUsd: 0.003 };
+    };
+    const r = await executarEtapa('roteiro', { ep: 1, biblia: ler('o-ultimo-farol/biblia.json') }, { chamarLLM: llm });
+    assert.strictEqual(r.ok, true, JSON.stringify(r.erros));
+    assert.strictEqual(limites.length, 2);
+    assert.strictEqual(limites[1], limites[0] * 2);
+    assert.ok(limites[0] >= 15000, `roteiro de 60 s começa com limite maior (${limites[0]})`);
+    assert.ok(Math.abs(r.custoUsd - 0.005) < 1e-9);
+    assert.ok(r.avisos.some((a) => /cortada em \d+ tokens; tentei de novo/.test(a)));
+});
+
+test('corte em todas as tentativas vira erro claro, sem quebrar', async () => {
+    const llm = async () => { const e = new Error('cortada'); e.cortado = true; e.custoUsd = 0.001; throw e; };
+    const r = await executarEtapa('ideias', { modo: 'A' }, { chamarLLM: llm, maxTentativas: 2 });
+    assert.strictEqual(r.ok, false);
+    assert.match(r.erros[0], /cortada no limite/);
+});
+
+test('negação em lista não vira "sangue afirmado" (falso positivo do prompt do ChatGPT)', () => {
+    const { sangueAfirmado } = require('../src/showrunner/validar');
+    assert.strictEqual(sangueAfirmado('The outbreak has just begun. No visible blood, wounds, gore, or explicit violence.'), null);
+    assert.strictEqual(sangueAfirmado('Sem sangue, feridas ou violência explícita.'), null);
+    assert.strictEqual(sangueAfirmado('A dark street. Blood on the wall.'), 'Blood');
+    assert.strictEqual(sangueAfirmado('No screams here. Gore everywhere.'), 'Gore');
+});

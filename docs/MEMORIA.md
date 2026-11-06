@@ -84,6 +84,25 @@ consolidarEpisodio(N) ──▶ proposta (fatos novos, encerrados, estado, resum
 
 Nada canônico muda sem aprovação: `consolidarEpisodio` e `semearDaBiblia` só gravam com `aprovar: true` (o rascunho fica em `propostas/`).
 
+## Apagar episódio, refazer e restaurar (05/11/2026)
+
+Código: `backend/src/memoria/doEpisodio.js` (chamado por `series/lixeira.js`). A memória viva não pode continuar "lembrando" de um episódio que foi para a lixeira ou de um roteiro que foi refeito; mas nada é destruído.
+
+| Ação | O que acontece com a memória |
+|---|---|
+| Apagar episódio | o que veio do Ep. N sai da memória viva e vai para `_lixeira/<item>/memoria/` |
+| Refazer o roteiro do zero | o que veio do Ep. N sai e vai para `episodios/epNN/_versoes/<data>/memoria/` |
+| Restaurar da lixeira | volta para a memória viva (e a cópia guardada some) |
+| Voltar a uma versão do roteiro | a memória do roteiro atual vai para a versão nova de `_versoes`; a da versão escolhida volta |
+
+**O que "veio do Ep. N"** (`separarLinhas`): a origem de um fato é o id (`epNN-…`); sem id de episódio, o `desde`; senão a `fonte` (`ep01/p05`, `ep01/votacao`). Saem: todas as linhas desses ids (inclusive encerramentos feitos depois por outros episódios), os encerramentos `{id, ate: "epNN"}` que o Ep. N fez em fatos de outros episódios (o fato volta a valer, como antes do Ep. N), `resumos/epNN.md` e `propostas/epNN.json` (para a proposta antiga não ser reaplicada por engano). O `fatos.jsonl` é regravado só com as linhas que ficam (exceção à regra "só cresce": o que sai fica guardado inteiro); a cópia guardada é gravada **antes** da memória viva mudar.
+
+**O que fica, com aviso na tela:** fato sem origem identificável (sem id `epNN-`, sem `desde`/`fonte` de episódio); termos do glossário (não guardam de qual episódio vieram; o aviso lista os do `glossarioNovo` da proposta aprovada); `estado.json` (é a foto do mundo depois do último episódio consolidado; as cópias de antes de cada aprovação ficam em `historico/`). A bíblia (`ep00`) e os outros episódios nunca são mexidos. Linha quebrada do `fatos.jsonl` fica onde está.
+
+**Devolver** acrescenta as linhas guardadas ao fim do `fatos.jsonl` na ordem original (a última linha de cada id continua vencendo, então a memória colapsada volta igual) e move resumo/proposta de volta. Se a memória viva já tem fatos ou resumo **novos** do mesmo episódio (consolidado de novo nesse meio tempo), não mistura: a cópia guardada vai para `historico/epNN-nao-devolvida-<data>/` e vem um aviso. No "voltar a uma versão" isso não acontece, porque a memória atual sai antes.
+
+Pasta guardada: `memoria/fatos.jsonl`, `memoria/resumos/epNN.md`, `memoria/propostas/epNN.json`, `memoria/manifesto.json` (`{ versao, ep, retiradoEm, fatos, encerramentos, ids, resumo, proposta, avisos, comoDevolver }`). Sem nada do episódio na memória, a pasta não é criada.
+
 ## `montarContexto(serie, finalidade, { ep, plano, limiteCaracteres, maxImagens, dataUrl })`
 
 `serie` = caminho da pasta, série carregada (`carregarSerie`) ou só a memória. Opcionais: `roteiro`, `planos`, `votacao` (para usar uma versão ainda não gravada).

@@ -382,6 +382,22 @@ function gerarAss(blocos, opcoes = {}) {
 
 // Lê falas.json do episódio e grava legendas.srt + legendas.ass (+ legendas-palavra.ass com modo "palavra").
 function gerarLegendasEpisodio(serie, episodio, opcoes = {}) {
+    const registro = require('../log/registro');
+    const fim = registro.cronometro();
+    try {
+        const r = gerarLegendasEpisodioSemRegistro(serie, episodio, opcoes);
+        registro.registrar({
+            area: 'legenda', evento: 'gerar', serie, ep: episodio, ms: fim(), msg: `Legendas geradas: ${r.blocos} bloco(s)`,
+            dados: { blocos: r.blocos, modo: opcoes.modo || 'frase', posicao: opcoes.posicao, arquivos: Object.keys(r.arquivos) },
+        });
+        return r;
+    } catch (e) {
+        registro.registrar({ nivel: 'erro', area: 'legenda', evento: 'gerar-falhou', serie, ep: episodio, ms: fim(), msg: `Legendas falharam: ${e.message}`, erro: e });
+        throw e;
+    }
+}
+
+function gerarLegendasEpisodioSemRegistro(serie, episodio, opcoes = {}) {
     const pastaEp = cfg.pastaEpisodio(serie, episodio);
     const arqFalas = path.join(pastaEp, 'falas.json');
     if (!fs.existsSync(arqFalas)) throw new Error(`falas.json não encontrado: gere as falas primeiro (${arqFalas})`);

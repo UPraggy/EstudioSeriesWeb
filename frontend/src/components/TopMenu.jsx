@@ -5,15 +5,19 @@ import { ListarSeries, SaldoOpenRouter } from './funcionalidades/bancoGet';
 import { erroDe } from './funcionalidades/fetchFunc';
 import { saldoDisponivel } from './subComponents/ConfirmarCusto';
 import { Ico } from './subComponents/icones';
-import { Contador, MOV, motion, AnimatePresence } from './subComponents/Movimento';
+import { Contador, Girador, MOV, avisar, motion, AnimatePresence } from './subComponents/Movimento';
 import '../assets/css/TopMenu.css';
 
 const LINKS = [
     { para: '/', rotulo: 'Séries', icone: Ico.series, fim: true },
     { para: '/geracao-simples', rotulo: 'Geração simples', icone: Ico.geracaoSimples },
     { para: '/custos', rotulo: 'Custos', icone: Ico.custos },
+    { para: '/registro', rotulo: 'Registro', icone: Ico.registro },
     { para: '/configuracoes', rotulo: 'Configurações', icone: Ico.config },
 ];
+
+// Saldo sozinho ao voltar para a janela: no máximo uma consulta a cada 30 s.
+const INTERVALO_SALDO_FOCO_MS = 30000;
 
 // "Séries" continua marcado dentro de uma série (sala e Mesa).
 const ativoExtra = (link, caminho) => link.para === '/' && caminho.startsWith('/serie/');
@@ -38,6 +42,7 @@ function migalhasDe(caminho, titulo) {
     }
     if (caminho.startsWith('/geracao-simples')) return [{ rotulo: 'Geração simples', para: caminho }];
     if (caminho.startsWith('/custos')) return [{ rotulo: 'Custos', para: caminho }];
+    if (caminho.startsWith('/registro')) return [{ rotulo: 'Registro', para: caminho }];
     if (caminho.startsWith('/configuracoes')) return [{ rotulo: 'Configurações', para: caminho }];
     return [{ rotulo: 'Séries', para: '/' }];
 }
@@ -114,6 +119,24 @@ function Saldo({ saldo, compacto = false }) {
     );
 }
 
+// Botão só-ícone ao lado do saldo: consulta o OpenRouter na hora (o backend não guarda cache).
+function AtualizarSaldo({ ocupado, onClick, compacto = false }) {
+    return (
+        <button
+            type="button"
+            className={`btn fantasma icone topo-saldo-atualizar${compacto ? ' mini' : ''}`}
+            onClick={onClick}
+            disabled={ocupado}
+            aria-busy={ocupado}
+            aria-label="Atualizar saldo"
+            title="Atualizar saldo (consulta o OpenRouter de novo, use depois de recarregar créditos)"
+        >
+            {ocupado && <Girador />}
+            <Ico.regerar className="ico-girar" aria-hidden="true" />
+        </button>
+    );
+}
+
 export default function TopMenu({ ativaResp }) {
     const { pathname } = useLocation();
     const [saldo, setSaldo] = useState(null);
@@ -123,9 +146,50 @@ export default function TopMenu({ ativaResp }) {
     const gaveta = useRef(null);
     const primeiroLink = useRef(null);
 
+    const [atualizandoSaldo, setAtualizandoSaldo] = useState(false);
+    const ultimaConsulta = useRef(0);
+    const ultimoValor = useRef(null);
+    const ocupadoSaldo = useRef(false);
+
+    // Lê o saldo e devolve a resposta; guarda quando consultou e o último valor (para o aviso de "mudou").
     const carregarSaldo = useCallback(() => {
-        SaldoOpenRouter().then(setSaldo);
+        ultimaConsulta.current = Date.now();
+        return SaldoOpenRouter().then((r) => {
+            setSaldo(r);
+            const d = erroDe(r) || r.simulado ? null : saldoDisponivel(r);
+            const antes = ultimoValor.current;
+            ultimoValor.current = d;
+            return { r, d, mudou: d !== null && antes !== null && Math.abs(antes - d) >= 0.005 };
+        });
     }, []);
+
+    // Botão "Atualizar saldo": consulta na hora e confirma com um aviso.
+    const atualizarSaldo = useCallback(async () => {
+        if (ocupadoSaldo.current) return;
+        ocupadoSaldo.current = true;
+        setAtualizandoSaldo(true);
+        const { r, d } = await carregarSaldo();
+        ocupadoSaldo.current = false;
+        setAtualizandoSaldo(false);
+        if (erroDe(r)) avisar(`Não consegui atualizar o saldo: ${erroDe(r)}`, 'erro');
+        else if (r.simulado) avisar('Modo simulado: o saldo não é consultado', 'info');
+        else avisar(d === null ? 'Saldo atualizado: a chave não tem limite' : `Saldo atualizado: ${GlobalVar.usd(d)}`);
+    }, [carregarSaldo]);
+
+    // Voltou para a janela (recarregou créditos em outra aba?): relê o saldo, no máximo a cada 30 s.
+    useEffect(() => {
+        const aoVoltar = () => {
+            if (document.visibilityState === 'hidden' || ocupadoSaldo.current) return;
+            if (Date.now() - ultimaConsulta.current < INTERVALO_SALDO_FOCO_MS) return;
+            carregarSaldo().then(({ d, mudou }) => { if (mudou) avisar(`Saldo atualizado: ${GlobalVar.usd(d)}`); });
+        };
+        window.addEventListener('focus', aoVoltar);
+        document.addEventListener('visibilitychange', aoVoltar);
+        return () => {
+            window.removeEventListener('focus', aoVoltar);
+            document.removeEventListener('visibilitychange', aoVoltar);
+        };
+    }, [carregarSaldo]);
 
     // Saldo ao abrir, depois de qualquer geração paga (as telas disparam "estudio:gasto")
     // e quando o site publicado se conecta ao Estúdio do PC (motor híbrido: "estudio:motor").
@@ -216,7 +280,10 @@ export default function TopMenu({ ativaResp }) {
                         );
                     })}
                 </nav>
-                <Saldo saldo={saldo} />
+                <div className="topo-saldo-grupo">
+                    <Saldo saldo={saldo} />
+                    <AtualizarSaldo ocupado={atualizandoSaldo} onClick={atualizarSaldo} />
+                </div>
                 <button
                     ref={botaoMenu}
                     type="button"
@@ -290,7 +357,10 @@ export default function TopMenu({ ativaResp }) {
                         </nav>
                         <div className="topo-gaveta-saldo">
                             <span>Saldo da chave</span>
-                            <Saldo saldo={saldo} compacto />
+                            <span className="topo-gaveta-saldo-valor">
+                                <Saldo saldo={saldo} compacto />
+                                <AtualizarSaldo ocupado={atualizandoSaldo} onClick={atualizarSaldo} />
+                            </span>
                         </div>
                     </motion.aside>
                 )}

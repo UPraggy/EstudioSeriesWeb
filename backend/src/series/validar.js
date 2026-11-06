@@ -21,7 +21,6 @@ const VOZES_PERMITIDAS = [
     'piper:pt_BR-cadu-medium',
     'en-AU-WilliamMultilingualNeural',
     'en-US-AndrewMultilingualNeural',
-    'en-US-BrianMultilingualNeural',
     'fr-FR-RemyMultilingualNeural',
     'it-IT-GiuseppeMultilingualNeural',
     'ko-KR-HyunsuMultilingualNeural',

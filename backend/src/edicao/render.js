@@ -16,6 +16,7 @@ const { spawn } = require('child_process');
 const U = require('./util');
 const E = require('./edicao');
 const legendasMod = require('../audio/legendas');
+const registro = require('../log/registro');
 
 const estados = new Map(); // `${serie}|${epId}` → status
 const FONTES = [
@@ -384,7 +385,16 @@ async function renderizar({ serie, ep, motor = 'ffmpeg' } = {}) {
         iniciadoEm: new Date().toISOString(), avisos: [], saida: null, erro: null,
     };
     let ultimoGravado = 0;
+    const fimTotal = registro.cronometro();
+    let fimEtapa = registro.cronometro();
+    const base = { area: 'render', serie, ep: c.n };
+    registro.registrar({ ...base, evento: 'inicio', msg: `Montagem começou (motor ${motor}, revisão ${doc.revisao})`, dados: { motor, revisao: doc.revisao, duracaoS: doc.duracaoS } });
     const atualizar = async (campos, leve = false) => {
+        // cada etapa nova (não o % do ffmpeg) vira uma linha no registro, com o tempo da etapa anterior
+        if (campos.etapa && campos.etapa !== st.etapa && !['pronto', 'falhou'].includes(campos.etapa)) {
+            registro.registrar({ ...base, evento: 'etapa', ms: fimEtapa(), msg: `Etapa: ${campos.etapa}`, dados: { etapa: campos.etapa, anterior: st.etapa, pct: campos.pct } });
+            fimEtapa = registro.cronometro();
+        }
         Object.assign(st, campos);
         estados.set(k, st);
         if (!leve || Date.now() - ultimoGravado > 1500) { ultimoGravado = Date.now(); await gravarStatus(c, st); }
@@ -400,7 +410,12 @@ async function renderizar({ serie, ep, motor = 'ffmpeg' } = {}) {
                 tamanhoMb: Math.round((fs.statSync(saida).size / 1048576) * 10) / 10, levouS: Math.round((Date.now() - inicio) / 100) / 10,
                 concluidoEm: new Date().toISOString(),
             });
+            registro.registrar({
+                ...base, evento: 'concluido', ms: fimTotal(), msg: `Episódio montado: ${st.duracaoS} s, ${st.tamanhoMb} MB em ${st.levouS} s`,
+                dados: { motor, revisao: doc.revisao, saida: st.saida, duracaoS: st.duracaoS, tamanhoMb: st.tamanhoMb, avisos: st.avisos.length, primeiroAviso: st.avisos[0] },
+            });
         } catch (e) {
+            registro.registrar({ ...base, nivel: 'erro', evento: 'falhou', ms: fimTotal(), msg: `Montagem falhou na etapa "${st.etapa}": ${e.message}`, dados: { motor, etapa: st.etapa, revisao: doc.revisao }, erro: e });
             await atualizar({ status: 'falhou', etapa: 'falhou', erro: e.message, concluidoEm: new Date().toISOString() });
         }
     })();

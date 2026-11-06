@@ -224,6 +224,9 @@ function acompanhar(serie, ep, id) {
     const chave = `${serie}|${ep}|${id}`;
     if (seguindo.has(chave)) return;
     seguindo.add(chave);
+    const registro = require('../log/registro');
+    const fim = registro.cronometro();
+    const log = (nivel, evento, msg, dados = {}, extra = {}) => registro.registrar({ nivel, area: 'edicao', evento, serie, ep, msg, ms: fim(), dados: { regeracao: id, ...dados }, ...extra });
     (async () => {
         try {
             const or = require('../openrouter');
@@ -240,15 +243,20 @@ function acompanhar(serie, ep, id) {
             }
             if (job.status === 'pendente') {
                 await mudarRegeracao(serie, ep, id, { etapa: 'ainda gerando (consulte de novo depois)' });
+                log('aviso', 'regeracao-pendente', 'Regeração ainda gerando depois do limite de espera (continua na próxima consulta)', { jobId: rec.jobId });
                 return;
             }
             if (job.status !== 'pronto') {
                 await mudarRegeracao(serie, ep, id, { status: 'falhou', etapa: 'falhou', erro: job.erro || `job ${job.status}` });
+                log('erro', 'regeracao-falhou', `Regeração falhou: ${job.erro || `job ${job.status}`}`, { jobId: rec.jobId, plano: rec.plano });
                 return;
             }
             await mudarRegeracao(serie, ep, id, { etapa: 'aparando', custoUsd: job.custoUsd ?? null });
-            await finalizarRegeracao(serie, ep, { ...rec, custoUsd: job.custoUsd ?? null });
+            const take = await finalizarRegeracao(serie, ep, { ...rec, custoUsd: job.custoUsd ?? null });
+            log('info', 'regeracao-pronta', `Trecho ${rec.deS}–${rec.ateS} s trocado pelo take ${take && take.id}`,
+                { jobId: rec.jobId, plano: rec.plano, take: take && take.id, ajuste: rec.ajuste, custoDoJobUsd: job.custoUsd ?? null, simulado: Boolean(rec.simulado) });
         } catch (e) {
+            log('erro', 'regeracao-falhou', `Regeração falhou: ${e.message}`, { jobId: undefined }, { erro: e });
             await mudarRegeracao(serie, ep, id, { status: 'falhou', etapa: 'falhou', erro: e.message }).catch(() => {});
         } finally {
             seguindo.delete(chave);
@@ -299,6 +307,11 @@ async function finalizarRegeracao(serie, ep, rec) {
         origem: 'take', take: take.id, regeracao: rec.id, mudo: true, volume: 0.6, descricao: rec.instrucao || `Take ${take.id}`,
     };
     await E.atualizarEdicao(serie, ep, (d) => E.substituirTrechoVideo(d, rec.deS, rec.ateS, novoSeg));
+    // lote "Gerar vídeo dos planos": o take do plano inteiro vira o take escolhido no planos.json
+    if (rec.lote) {
+        await require('./producao').registrarTakeNoPlano(serie, ep, take, { escolher: true, jobId: rec.jobId || null, fase: rec.fase || 'final' })
+            .catch((e) => require('../log/registro').registrar({ nivel: 'aviso', area: 'edicao', evento: 'take-planos-falhou', serie, ep, msg: `Take ${take.id} não entrou no planos.json: ${e.message}` }));
+    }
     await mudarRegeracao(serie, ep, rec.id, { status: 'pronto', etapa: 'pronto', concluidoEm: new Date().toISOString(), segmento: novoSeg.id });
     return take;
 }
@@ -405,6 +418,13 @@ async function regerarFala({ serie, ep, id, intencao, tom, velocidade, volume, t
         duracaoS: U.arred(fala.duracaoS), palavras: (fala.palavras || []).map((w) => ({ p: w.p, t: U.arred(w.t) })),
         palavrasEstimadas: Boolean(fala.palavrasEstimadas), status: 'pronta', regeradaEm: new Date().toISOString(),
     };
+    // tom/velocidade/volume escolhidos à mão ficam marcados: "voz mudou" não confunde com troca de ficha e
+    // "Regerar falas com a voz nova" mantém esses ajustes
+    const manual = { ...(it.ajusteManual || {}) };
+    if (!vazio(tom)) manual.tom = String(tom).trim();
+    if (!vazio(velocidade)) manual.velocidade = String(velocidade).trim();
+    if (!vazio(volume)) manual.volume = Number(volume);
+    if (Object.keys(manual).length) novo.ajusteManual = manual;
     let info = null;
     const r = await E.atualizarEdicao(serie, ep, (d) => {
         info = aplicarFalaNova(d, it.id, novo);
