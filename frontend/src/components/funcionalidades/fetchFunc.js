@@ -37,4 +37,15 @@ export const fetchPost = async (rota, body) => {
     }
 };
 
+// Envia um arquivo como corpo BINÁRIO (vídeos grandes: sem base64), com os dados na query.
+export const fetchBinario = async (rota, params, arquivo, tipo = 'application/octet-stream') => {
+    try {
+        if (!(await motorOk())) return { 'ERROR SERVER': SEM_MOTOR };
+        const q = params ? `?${new URLSearchParams(params)}` : '';
+        return await tratar(await fetch(`${GlobalVar.serverBase}${rota}${q}`, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': tipo }, body: arquivo }));
+    } catch (error) {
+        return { 'ERROR SERVER': error.message };
+    }
+};
+
 export const erroDe = (r) => (r && r['ERROR SERVER']) || null;

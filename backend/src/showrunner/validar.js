@@ -4,7 +4,7 @@ const { normalizar, slug, contarPalavras, lista, clonar } = require('../memoria/
 const { ocorrenciasAfirmativas } = require('../memoria/continuidade');
 const { CTA_PADRAO, CTA_FINAL, FASES, vozesPermitidas } = require('./prompts');
 const { custoPrevisto, ajustarDuracao, USD_QUADRO_CHAVE } = require('./precos');
-const { toleranciaDuracao } = require('../series/validar');
+const { toleranciaDuracao, ETAPAS: ETAPAS_SERIE } = require('../series/validar');
 
 const TIPOS_PLANO = ['video_ia', 'apresentador', 'grafico', 'reaproveitar'];
 const VIAS = ['narracao', 'radio', 'telefone', 'em_cena'];
@@ -22,9 +22,20 @@ const SINONIMOS_IDEIA = {
 };
 
 // Primeiro termo de sangue/violência explícita que aparece SEM negação ("no blood" e "sem sangue" não contam).
+// Negação que vale para a frase inteira, inclusive em lista: "No visible blood, wounds, gore, or explicit violence".
+const RE_NEGA_FRASE = /\b(no|not|without|never|avoid|sem|nem|nenhum|nenhuma|evite|evitar|jamais)\b/i;
+function negadoNaFrase(texto, indice) {
+    const antes = String(texto).slice(0, indice);
+    const inicio = Math.max(antes.lastIndexOf('.'), antes.lastIndexOf(';'), antes.lastIndexOf('!'), antes.lastIndexOf('?'), antes.lastIndexOf('\n'));
+    return RE_NEGA_FRASE.test(antes.slice(inicio + 1));
+}
+
 function sangueAfirmado(texto) {
     const re = new RegExp(RE_SANGUE.source, 'gi');
-    for (const m of String(texto ?? '').matchAll(re)) if (ocorrenciasAfirmativas(texto, m[0])) return m[0];
+    for (const m of String(texto ?? '').matchAll(re)) {
+        if (negadoNaFrase(texto, m.index)) continue;
+        if (ocorrenciasAfirmativas(texto, m[0])) return m[0];
+    }
     return null;
 }
 
@@ -124,7 +135,8 @@ function validarBiblia(v, c = {}) {
         if (Number(e.n) !== i + 1) { e.n = i + 1; rel.consertos.push(`temporada: episódio ${i + 1} renumerado`); }
         if (!e.fase) { e.fase = FASES[i]; rel.consertos.push(`temporada: fase do Ep. ${i + 1} preenchida (${FASES[i]})`); }
         if (!e.titulo) rel.erros.push(`temporada: Ep. ${i + 1} sem título.`);
-        if (!e.status) e.status = 'planejado';
+        // status do mapa usa os nomes de etapa do biblia.json (ideia = só planejado); "planejado" antigo vira "ideia"
+        if (!e.status || !ETAPAS_SERIE.includes(e.status)) e.status = 'ideia';
     });
     b.temporada = t;
 
@@ -190,6 +202,96 @@ function chaveSimples(t) {
 
 function limitePalavras(dur) {
     return Math.ceil((dur * 15) / 8);
+}
+
+const TELA_CARTOES = 'CARTÕES A / B';
+const SILENCIO_MAX_S = 3;
+const FRACAO_APRESENTACAO = 0.35;
+const RE_CARTOES = /cart(õ|o)es\s*a\s*\/\s*b/i;
+const RE_TELA_AB = /(^|\n|\s)A\s*[:\-–·.)]\s*\S[\s\S]*(^|\n|\s|\|)\s*B\s*[:\-–·.)]\s*\S/;
+
+// O "tela" traz as opções A e B (formato "A: … B: …" ou o texto das duas)?
+function telaComOpcoes(tela, escolhas) {
+    if (!tela || RE_CARTOES.test(tela)) return false;
+    if (RE_TELA_AB.test(tela)) return true;
+    if (!escolhas || typeof escolhas !== 'object') return false;
+    const textoDe = (o) => chaveSimples(typeof o === 'string' ? o : o && o.texto);
+    const t = chaveSimples(tela);
+    const a = textoDe(escolhas.A);
+    const b = textoDe(escolhas.B);
+    return Boolean(a && b && t.includes(a) && t.includes(b));
+}
+
+// O "tela" é a chamada para comentar (o CTA)?
+function telaComCta(tela, cta) {
+    const t = chaveSimples(tela);
+    if (!t) return false;
+    if (/^comente|comenteaoub|maisvotada/.test(t)) return true;
+    const c = chaveSimples(cta);
+    return Boolean(c && (t === c || c.startsWith(t) && t.length > 8));
+}
+
+function cabeNaFala(p, texto) {
+    const palavras = p.falas.reduce((a, f) => a + contarPalavras(f.texto), 0) + contarPalavras(texto);
+    return palavras <= limitePalavras(p.ateS - p.deS);
+}
+
+// Conserta o "tela" com as opções A/B (vira "CARTÕES A / B") e com o CTA (sai do "tela" e vai para a fala do
+// narrador no último plano). Também garante que o narrador LEIA as opções no plano dos cartões, se couber.
+function consertarCartoesECta(r, { semEscolha, ultimo, ctaEsperado }, rel) {
+    const escolhas = r.escolhas && typeof r.escolhas === 'object' ? r.escolhas : null;
+    const comVotacao = !semEscolha && !ultimo && escolhas;
+    let ctaNaTela = false;
+    for (const p of r.planos) {
+        const rot = `plano ${p.n}`;
+        if (telaComOpcoes(p.tela, escolhas)) {
+            if (comVotacao) {
+                p.tela = TELA_CARTOES;
+                rel.consertos.push(`${rot}: opções A/B escritas no "tela" → "${TELA_CARTOES}" (a montagem desenha os cartões)`);
+            } else {
+                p.tela = '';
+                rel.consertos.push(`${rot}: opções A/B no "tela" de um episódio sem votação → "tela" limpo`);
+            }
+        } else if (telaComCta(p.tela, ctaEsperado || CTA_PADRAO)) {
+            p.tela = '';
+            ctaNaTela = true;
+            rel.consertos.push(`${rot}: CTA escrito no "tela" → limpo (o narrador fala o CTA)`);
+        }
+    }
+    if (comVotacao) {
+        const textoOpcao = (k) => {
+            const o = escolhas[k];
+            return String(typeof o === 'string' ? o : (o && o.texto) || '').trim().replace(/[.!;]+$/, '');
+        };
+        const a = textoOpcao('A');
+        const b = textoOpcao('B');
+        const cartoes = r.planos.filter((p) => RE_CARTOES.test(p.tela || ''));
+        if (!cartoes.length) rel.avisos.push(`Nenhum plano marca os cartões da escolha ("tela": "${TELA_CARTOES}").`);
+        for (const p of cartoes) {
+            if (!a || !b) break;
+            const falado = chaveSimples(p.falas.map((f) => f.texto).join(' '));
+            if (falado.includes(chaveSimples(a)) && falado.includes(chaveSimples(b))) continue;
+            const leitura = `${a.charAt(0)}${a.slice(1).toLocaleLowerCase("pt-BR")} ou ${b.toLocaleLowerCase("pt-BR")}?`;
+            if (cabeNaFala(p, leitura)) {
+                p.falas.push({ quem: 'narrador', texto: leitura, via: 'narracao' });
+                rel.consertos.push(`plano ${p.n}: o narrador passa a ler as duas opções em voz alta`);
+            } else {
+                rel.avisos.push(`plano ${p.n}: o narrador não lê as opções A e B em voz alta (não coube sem passar do limite de palavras).`);
+            }
+        }
+    }
+    if (ctaNaTela && ctaEsperado) {
+        const ultimoPlano = r.planos[r.planos.length - 1];
+        const falado = chaveSimples(ultimoPlano.falas.map((f) => f.texto).join(' '));
+        if (!falado.includes('comente')) {
+            if (cabeNaFala(ultimoPlano, ctaEsperado)) {
+                ultimoPlano.falas.push({ quem: 'narrador', texto: ctaEsperado, via: 'narracao' });
+                rel.consertos.push(`plano ${ultimoPlano.n}: o CTA que estava no "tela" virou fala do narrador`);
+            } else {
+                rel.avisos.push(`plano ${ultimoPlano.n}: o CTA estava no "tela" e não coube na fala do narrador; encurte a fala desse plano.`);
+            }
+        }
+    }
 }
 
 function validarRoteiro(v, c = {}) {
@@ -275,6 +377,10 @@ function validarRoteiro(v, c = {}) {
     const somaS = Math.round(t * 10) / 10;
     if (Math.abs(somaS - alvo) > tolerancia) rel.erros.push(`Os planos somam ${somaS} s; o alvo é ${alvo} s (±${tolerancia}).`);
 
+    // cartões A/B e CTA: a montagem desenha os cartões; o narrador LÊ as opções e FALA o CTA (nada disso no "tela")
+    const ctaEsperado = semEscolha ? (ultimo && alvo >= 20 ? CTA_FINAL : '') : (ultimo ? CTA_FINAL : CTA_PADRAO);
+    consertarCartoesECta(r, { semEscolha, ultimo, ctaEsperado }, rel);
+
     let videosIa = 0;
     const minPlanoS = Math.min(2, alvo);
     for (const p of r.planos) {
@@ -302,6 +408,8 @@ function validarRoteiro(v, c = {}) {
             }
             if (/\d/.test(f.texto)) rel.avisos.push(`${rot}: número em algarismo na fala ("${f.texto}"): escreva por extenso.`);
         }
+        // silêncio: nenhum trecho sem fala por mais de ~3 s (o gancho, plano 1, pode ser só imagem)
+        if (p.n > 1 && !p.falas.length && dur > SILENCIO_MAX_S) rel.avisos.push(`${rot}: ${dur} s sem fala nenhuma (mais de ${SILENCIO_MAX_S} s em silêncio perde o público); ponha uma fala curta ou encurte.`);
         const textoPlano = `${p.visual || ''} ${p.tela || ''} ${p.falas.map((f) => f.texto).join(' ')}`;
         if (RE_FLASHBACK.test(textoPlano)) rel.avisos.push(`${rot}: parece flashback ("${textoPlano.match(RE_FLASHBACK)[0]}"); a série é linear.`);
         const sangue = sangueAfirmado(textoPlano);
@@ -309,6 +417,16 @@ function validarRoteiro(v, c = {}) {
         if (c.locaisIds && p.local && !c.locaisIds.includes(p.local) && !novosDeclarados.has(p.local)) rel.avisos.push(`${rot}: local "${p.local}" não existe nas fichas.`);
         for (const id of p.elenco) {
             if (elencoConhecido && !elencoConhecido.has(id) && !novosDeclarados.has(id)) rel.avisos.push(`${rot}: "${id}" em cena não existe no elenco.`);
+        }
+    }
+    // piloto: o público não sabe nada; a protagonista é apresentada pelo nome logo no começo
+    if (ep === 1 && c.protagonista && c.protagonista.nome && alvo >= 20) {
+        const limiteS = Math.round(alvo * FRACAO_APRESENTACAO * 10) / 10;
+        const nome = normalizar(String(c.protagonista.nome).split(/\s+/)[0]);
+        const cedo = r.planos.filter((p) => p.deS < limiteS).flatMap((p) => p.falas.map((f) => normalizar(f.texto)));
+        const re = new RegExp(`\\b${nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+        if (nome && !cedo.some((txt) => re.test(txt))) {
+            rel.avisos.push(`Ep. 1 (piloto): o nome da protagonista (${c.protagonista.nome}) não aparece nas falas dos primeiros ${limiteS} s; o público precisa saber quem ela é, onde está e o que aconteceu com o mundo.`);
         }
     }
     if (videosIa > 3) rel.avisos.push(`${videosIa} clipes novos de vídeo IA (produção barata pede 2 a 3; use reaproveitar/apresentador/gráfico).`);
@@ -537,7 +655,7 @@ function validarAtualizarMundo(v, c = {}) {
         if (!n) continue;
         if (n <= ep) { rel.consertos.push(`mapa do Ep. ${n} não muda (já publicado)`); continue; }
         const i = b.temporada.findIndex((x) => Number(x.n) === n);
-        if (i >= 0) b.temporada[i] = { ...b.temporada[i], ...t, n, status: b.temporada[i].status || 'planejado' };
+        if (i >= 0) b.temporada[i] = { ...b.temporada[i], ...t, n, status: b.temporada[i].status || 'ideia' };
     }
     const atual = b.temporada.find((x) => Number(x.n) === ep);
     if (atual) atual.status = 'publicado';
@@ -555,6 +673,7 @@ function validarAtualizarMundo(v, c = {}) {
 }
 
 module.exports = {
+    sangueAfirmado,
     TIPOS_PLANO, VIAS, validarIdeias, validarBiblia, validarRoteiro, validarDecupagem, validarAtualizarMundo,
     votacaoValida, limitePalavras, ordenarGrafo, juntarPrompt,
 };

@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import GlobalVar from './subComponents/GlobalVar';
 import { Ico } from './subComponents/icones';
 import { Abas, Esqueleto, Trocar, Vazio } from './subComponents/Movimento';
 import { LerSerie, LerEpisodio } from './funcionalidades/bancoGet';
 import { erroDe } from './funcionalidades/fetchFunc';
 import { episodiosDaTemporada, quadrosDaSerie, textoDuracao } from './sala/serieUtil';
+import { etapasDaSerie } from './sala/producaoUtil';
 import VisaoGeral from './sala/VisaoGeral';
 import Temporada from './sala/Temporada';
 import Biblia from './sala/Biblia';
 import ElencoLocais from './sala/ElencoLocais';
 import Episodios from './sala/Episodios';
 import NovoEpisodio from './sala/NovoEpisodio';
+import ApagarSerie from './sala/ApagarSerie';
+import MenuAcoes from './subComponents/MenuAcoes';
 import '../assets/css/Telas.css';
 import '../assets/css/SalaShowrunner.css';
 
@@ -24,7 +27,7 @@ const ABAS = [
 ];
 
 // Cabeçalho de cena: os quadros da série (a capa primeiro) sob um véu escuro, o título como cartaz e a ação principal.
-function CabecalhoCena({ serieId, dados, onNovoEpisodio }) {
+function CabecalhoCena({ serieId, dados, onNovoEpisodio, onApagarSerie, onVerLixeira }) {
     const { serie, biblia } = dados;
     const quadros = quadrosDaSerie(dados);
     const eps = episodiosDaTemporada(serie, biblia);
@@ -52,7 +55,8 @@ function CabecalhoCena({ serieId, dados, onNovoEpisodio }) {
                 <h1 className="cena-titulo">{serie.titulo}</h1>
                 {premissa && <p className="cena-premissa">{premissa}</p>}
                 <ul className="cena-fatos" aria-label="Dados da série">
-                    <li><Ico.series aria-hidden="true" /><span>Etapa <strong>{GlobalVar.nomeEtapa(serie.etapa)}</strong></span></li>
+                    {/* estado REAL da base da série (ideia, bíblia, elenco); serie.etapa ficava parado e não decide mais nada */}
+                    {(() => { const f = etapasDaSerie(dados).find((x) => x.estado !== 'feito'); return <li><Ico.series aria-hidden="true" /><span>{f ? <>Falta <strong>{f.nome.toLowerCase()}</strong></> : <>Base da série <strong>pronta</strong></>}</span></li>; })()}
                     <li><Ico.episodio aria-hidden="true" /><span><strong className="num">{criados.length}</strong> de <span className="num">{eps.length || criados.length}</span> episódios</span></li>
                     <li><Ico.duracao aria-hidden="true" /><span><strong className="num">{textoDuracao(serie.duracaoAlvoS || 60)}</strong> por padrão</span></li>
                     <li><Ico.custo aria-hidden="true" /><span><strong className="num">{GlobalVar.usd(gasto)}</strong>{teto ? <> de <span className="num">{GlobalVar.usd(teto)}</span></> : ' gastos'}</span></li>
@@ -72,6 +76,14 @@ function CabecalhoCena({ serieId, dados, onNovoEpisodio }) {
                             <Ico.novo className="ico-pular" aria-hidden="true" />Criar o primeiro episódio
                         </button>
                     )}
+                    <MenuAcoes
+                        rotulo="Mais ações da série"
+                        classeBotao="btn icone cena-mais"
+                        itens={[
+                            { id: 'lixeira', rotulo: 'Ver a lixeira', icone: Ico.lixeira, onSelecionar: onVerLixeira },
+                            { id: 'apagar', rotulo: 'Apagar série', icone: Ico.apagar, perigo: true, onSelecionar: onApagarSerie },
+                        ]}
+                    />
                 </div>
             </div>
         </header>
@@ -109,6 +121,8 @@ export default function SalaShowrunner({ ativaResp }) {
     const [detalhes, setDetalhes] = useState({});
     const [erro, setErro] = useState('');
     const [novo, setNovo] = useState(null); // null = fechado; { n?, titulo? } = aberto
+    const [apagar, setApagar] = useState(false);
+    const navegar = useNavigate();
     const abasRef = useRef(null);
 
     const carregar = useCallback(async () => {
@@ -179,7 +193,13 @@ export default function SalaShowrunner({ ativaResp }) {
 
     return (
         <main className={`sala${ativaResp ? ' resp' : ''}`}>
-            <CabecalhoCena serieId={id} dados={dados} onNovoEpisodio={abrirNovo} />
+            <CabecalhoCena
+                serieId={id}
+                dados={dados}
+                onNovoEpisodio={abrirNovo}
+                onApagarSerie={() => setApagar(true)}
+                onVerLixeira={() => navegar('/?lixeira=1')}
+            />
 
             <div className="tela sala-corpo">
                 <div ref={abasRef} className="sala-abas-faixa">
@@ -207,6 +227,13 @@ export default function SalaShowrunner({ ativaResp }) {
                     await carregar();
                     irPara('episodios', { ep: ep.n });
                 }}
+            />
+
+            <ApagarSerie
+                aberto={apagar}
+                serie={{ id, titulo: dados.serie.titulo }}
+                onFechar={() => setApagar(false)}
+                onApagada={() => { setApagar(false); navegar('/'); }}
             />
         </main>
     );

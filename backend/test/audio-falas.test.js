@@ -54,7 +54,7 @@ function criarSerie(id, roteiro, extra = {}) {
     const pasta = path.join(DADOS, 'series', id);
     cfg.gravarJson(path.join(pasta, 'serie.json'), {
         versao: 1, id, titulo: 'O Último Farol', genero: 'Sobrevivência · apocalipse zumbi',
-        vozes: { narrador: 'de-DE-FlorianMultilingualNeural', mara: 'pt-BR-ThalitaMultilingualNeural', davi: 'piper:pt_BR-cadu-medium', alerta: 'en-US-BrianMultilingualNeural' },
+        vozes: { narrador: 'de-DE-FlorianMultilingualNeural', mara: 'pt-BR-ThalitaMultilingualNeural', davi: 'piper:pt_BR-cadu-medium', alerta: 'piper:pt_BR-cadu-medium' },
         tons: { alerta: '-6Hz' }, ...extra,
     });
     cfg.gravarJson(path.join(pasta, 'episodios', 'ep01', 'roteiro.json'), roteiro);
@@ -82,7 +82,9 @@ test('roteiro → falas: ids, vozes da lista, intenção pela via, pronúncia e 
     assert.strictEqual(narr.textoExibido, 'Sete km de mar separam Mara do fim do mundo.');
     assert.strictEqual(narr.textoFalado, 'Sete quilômetros de mar separam Mára do fim do mundo.');
     assert.strictEqual(alerta.intencao, 'radio');
-    assert.strictEqual(alerta.tom, '-6Hz'); // papel (-6Hz) + rádio (+0Hz)
+    // alerta = Cadu (Piper) desde 06/11/2026: o tom do papel em Hz vira semitons (-6Hz ≈ -1st) + rádio (+0)
+    assert.strictEqual(alerta.motor, 'piper');
+    assert.strictEqual(alerta.tom, '-1st');
     assert.match(alerta.filtro, /acrusher/);
     assert.ok(alerta.frases.length >= 2, 'fala longa dividida em frases');
     assert.strictEqual(alerta.frases.map((f) => f.texto).join(' '), alerta.textoExibido);

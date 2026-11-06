@@ -4,6 +4,7 @@
 const fsp = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
+let contadorVideo = 0;
 const { ErroOpenRouter } = require('./erros');
 
 const AMOSTRAS = path.join(__dirname, 'amostras');
@@ -77,7 +78,10 @@ function criarClienteSimulado({ pastaAmostras = AMOSTRAS } = {}) {
         if (metodo === 'POST') {
             const hash = crypto.createHash('sha1').update(JSON.stringify(corpo || {})).digest('hex').slice(0, 20);
             if (rota === '/videos') {
-                return { id: `sim-vid-${hash}`, polling_url: `/api/v1/videos/sim-vid-${hash}`, status: 'pending' };
+                // id único por pedido enviado (como o OpenRouter de verdade): o mesmo corpo enviado de novo (outro take do
+                // mesmo plano) não pode cair no job antigo, que já baixou para outro destino
+                const id = `sim-vid-${hash}-${(++contadorVideo).toString(36)}${Date.now().toString(36).slice(-4)}`;
+                return { id, polling_url: `/api/v1/videos/${id}`, status: 'pending' };
             }
             if (rota === '/images') {
                 const png = await fsp.readFile(amostra('simulado.png'));

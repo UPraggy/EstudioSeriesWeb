@@ -1,5 +1,6 @@
 // Uma função por rota do backend (padrão do Rafael). Rotas novas entram aqui.
 import { fetchGet, fetchPost } from './fetchFunc';
+import { fetchBinario } from './fetchFunc';
 
 export const Saude = () => fetchGet('/Saude');
 export const ListarSeries = () => fetchGet('/ListarSeries');
@@ -66,3 +67,42 @@ export const ApagarEpisodio = ({ serie, ep }) => fetchPost('/ApagarEpisodio', { 
 export const RefazerRoteiro = ({ serie, ep, duracaoAlvoS, semEscolha, apagarDerivados = true }) => fetchPost('/RefazerRoteiro', { serie, ep, duracaoAlvoS, semEscolha, apagarDerivados });
 export const ListarLixeira = () => fetchGet('/ListarLixeira');
 export const RestaurarDaLixeira = ({ item }) => fetchPost('/RestaurarDaLixeira', { item });
+// Versões do roteiro (episodios\epNN\_versoes): listar é só leitura; voltar guarda antes a versão atual.
+export const ListarVersoesRoteiro = ({ serie, ep }) => fetchGet('/ListarVersoesRoteiro', { serie, ep });
+export const RestaurarVersaoRoteiro = ({ serie, ep, versao }) => fetchPost('/RestaurarVersaoRoteiro', { serie, ep, versao });
+// ---- Modelos da série (tudo pelo OpenRouter): catálogo por papel e troca ----
+export const CatalogoModelos = ({ forcar } = {}) => fetchGet('/CatalogoModelos', forcar ? { forcar: '1' } : undefined);
+export const SalvarModelos = ({ serie, modelos }) => fetchPost('/SalvarModelos', { serie, modelos });
+// ---- Registro (log): histórico de como o Estúdio está rodando (logs/registro-AAAA-MM-DD.jsonl) ----
+// filtros: dia (AAAA-MM-DD), nivel/area/serie (vários separados por vírgula), busca, limite, antesDe (paginação).
+export const Registro = (filtros = {}) => fetchGet('/Registro', Object.fromEntries(Object.entries(filtros).filter(([, v]) => v !== undefined && v !== null && v !== '')));
+export const RegistroResumo = ({ dias = 7 } = {}) => fetchGet('/RegistroResumo', { dias });
+// ---- Notas do roteiro por episódio: observações (antes de gerar) + histórico de propostas (episodios/epNN/notas.json) ----
+export const LerNotasEpisodio = ({ serie, ep }) => fetchGet('/LerNotasEpisodio', { serie, ep });
+export const SalvarNotasEpisodio = ({ serie, ep, observacoes }) => fetchPost('/SalvarNotasEpisodio', { serie, ep, observacoes });
+// ---- Bíblia aprovada e ideia da série ----
+export const AprovarBiblia = ({ serie, proposta }) => fetchPost('/AprovarBiblia', { serie, proposta });
+export const SalvarIdeiaSerie = ({ serie, ideia }) => fetchPost('/SalvarIdeiaSerie', { serie, ideia });
+// ---- Gerado fora (outra plataforma): ver o pedido/prompt SEM gastar e anexar o resultado com custo 0 ----
+export const VerPedidoGeracao = ({ tipo, serie, pedido }) => fetchPost('/VerPedidoGeracao', { tipo, serie, pedido });
+export const AnexarImagemFicha = ({ serie, tipo, id, estado, vista, arquivo }) => fetchPost('/AnexarImagemFicha', { serie, tipo, id, estado, vista, arquivo });
+export const AnexarQuadroChave = ({ serie, ep, plano, arquivo }) => fetchPost('/AnexarQuadroChave', { serie, ep, plano, arquivo });
+// Vídeo vai como corpo binário (até 300 MB); trecho por deS/ateS ou o plano inteiro.
+export const AnexarVideoTrecho = ({ serie, ep, deS, ateS, plano, instrucao, aplicar = true, arquivo }) => fetchBinario('/AnexarVideoTrecho', Object.fromEntries(Object.entries({
+    serie, ep, deS, ateS, plano, instrucao, aplicar: aplicar ? '1' : 'false', nome: arquivo && arquivo.name,
+}).filter(([, v]) => v !== undefined && v !== null && v !== '')), arquivo, (arquivo && arquivo.type) || 'application/octet-stream');
+export const VerPromptEtapa = ({ etapa, serieId, contexto = {} }) => fetchPost('/VerPromptEtapa', { etapa, serieId, contexto });
+export const ProporResultadoExterno = ({ etapa, serieId, contexto = {}, texto }) => fetchPost('/ProporResultadoExterno', { etapa, serieId, contexto, texto });
+// ---- Do roteiro ao vídeo (06/11/2026): duração do episódio, voz nova nas falas, estado das etapas, decupagem e vídeo dos planos ----
+export const AlterarDuracaoEpisodio = ({ serie, ep, duracaoAlvoS, semEscolha }) => fetchPost('/AlterarDuracaoEpisodio', { serie, ep, duracaoAlvoS, ...(semEscolha !== undefined ? { semEscolha } : {}) });
+export const ConferirVozesFalas = ({ serie, ep }) => fetchGet('/ConferirVozesFalas', { serie, ep });
+// TTS grátis: regera as falas com a voz/tom atuais (quem = só esse personagem). A edição troca só as falas (Ctrl+Z desfaz).
+export const RegerarFalasVoz = ({ serie, ep, quem }) => fetchPost('/RegerarFalasVoz', { serie, ep, ...(quem ? { quem } : {}) });
+export const EstadoProducao = ({ serie, ep }) => fetchGet('/EstadoProducao', { serie, ep });
+export const SalvarDecupagem = ({ serie, ep, decupagem }) => fetchPost('/SalvarDecupagem', { serie, ep, decupagem });
+// Vídeo dos planos em lote: cotar (grátis, um token por plano) → gerar com os tokens → acompanhar por StatusRegeracao.
+export const CotarVideoPlanos = ({ serie, ep, planos, modelo }) => fetchPost('/CotarVideoPlanos', { serie, ep, ...(planos ? { planos } : {}), ...(modelo ? { modelo } : {}) });
+export const GerarVideoPlanos = ({ serie, ep, confirmacoes }) => fetchPost('/GerarVideoPlanos', { serie, ep, confirmacoes });
+// ---- Quadros-chave em lote (uma imagem por plano a partir das fichas; o vídeo começa nela) ----
+export const CotarQuadrosChave = ({ serie, ep, planos }) => fetchPost('/CotarQuadrosChave', { serie, ep, planos });
+export const GerarQuadrosChave = ({ serie, ep, confirmacoes }) => fetchPost('/GerarQuadrosChave', { serie, ep, confirmacoes });

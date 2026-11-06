@@ -248,6 +248,25 @@ function montarMixagem({ falas = [], duracaoS, clipe = null, ambiente = null, du
 
 // Mixa e masteriza: falas + clipe/ambiente (com ducking) → master -14 LUFS / -1,5 dBTP.
 async function mixarEpisodio(opcoes) {
+    const registro = require('../log/registro');
+    const fim = registro.cronometro();
+    const base = { area: 'audio', dados: { falas: (opcoes.falas || []).length, clipe: Boolean(opcoes.clipe), ambiente: Boolean(opcoes.ambiente), master: opcoes.master !== false } };
+    try {
+        const r = await mixarEpisodioSemRegistro(opcoes);
+        const depois = r.depois || {};
+        registro.registrar({
+            ...base, evento: 'tratamento', ms: fim(),
+            msg: `Áudio mixado e masterizado: ${r.duracaoS} s${depois.I != null ? `, ${depois.I} LUFS` : ''}`,
+            dados: { ...base.dados, duracaoS: r.duracaoS, lufs: depois.I, picoDb: depois.TP },
+        });
+        return r;
+    } catch (e) {
+        registro.registrar({ ...base, nivel: 'erro', evento: 'tratamento-falhou', ms: fim(), msg: `Mixagem do áudio falhou: ${e.message}`, erro: e });
+        throw e;
+    }
+}
+
+async function mixarEpisodioSemRegistro(opcoes) {
     const { saida, master = true, alvo } = opcoes;
     const m = montarMixagem(opcoes);
     fs.mkdirSync(path.dirname(saida), { recursive: true });

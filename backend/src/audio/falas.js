@@ -10,6 +10,22 @@ const cfg = require('./config');
 const P = require('./parametros');
 const tratamento = require('./tratamento');
 const { chamarFalaCli } = require('./motor');
+const registro = require('../log/registro');
+
+// Registro do TTS: quantas falas, quantas do cache, falhas e tempo (nunca o texto inteiro nem o áudio).
+function registrarTts(evento, { serie, ep, falas, ms, regerar, tratar }) {
+    const falhas = falas.filter((f) => f.status === 'falhou');
+    const doCache = falas.filter((f) => f.doCache).length;
+    registro.registrar({
+        nivel: falhas.length ? 'aviso' : 'info', area: 'audio', evento, serie, ep, ms,
+        msg: `${falas.length} fala(s): ${doCache} do cache, ${falas.length - doCache - falhas.length} geradas${falhas.length ? `, ${falhas.length} falharam` : ''}`,
+        dados: {
+            total: falas.length, doCache, geradas: falas.length - doCache - falhas.length, falhas: falhas.length, regerar, tratar,
+            erros: falhas.slice(0, 5).map((f) => ({ id: f.id, quem: f.quem, erro: f.erro })),
+            vozes: [...new Set(falas.map((f) => f.voz).filter(Boolean))],
+        },
+    });
+}
 
 const VERSAO_CACHE = 1;
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -218,7 +234,14 @@ async function gerarFalasEpisodio(serieId, episodio, { regerar = false, tratar =
         }
     }
     const falas = montarFalas({ roteiro, serie, fichas, vozesCfg });
-    await gerarAudios(falas, { pastaAudio: path.join(pastaEp, 'audio'), tratar, regerar, serie, executor });
+    const fim = registro.cronometro();
+    try {
+        await gerarAudios(falas, { pastaAudio: path.join(pastaEp, 'audio'), tratar, regerar, serie, executor });
+    } catch (e) {
+        registro.registrar({ nivel: 'erro', area: 'audio', evento: 'falas-falhou', serie: serieId, ep: epId, ms: fim(), msg: `TTS das falas falhou: ${e.message}`, erro: e, dados: { total: falas.length } });
+        throw e;
+    }
+    registrarTts('falas', { serie: serieId, ep: epId, falas, ms: fim(), regerar, tratar });
     const prontas = falas.filter((f) => f.status === 'pronta');
     const linha = calcularLinhaDoTempo(prontas, roteiro.planos || [], roteiro.duracaoAlvoS);
 
@@ -250,7 +273,9 @@ async function gerarFalaAvulsa(entrada, { serie: serieId, tratar = true, executo
         pastaAudio = path.join(s.pasta, 'audio', 'previas');
     }
     const fala = { id: 'previa', ...prepararFala(entrada, { serie, ficha, vozesCfg: cfg.carregarVozes(), tipoPlano: entrada.tipoPlano }) };
+    const fim = registro.cronometro();
     await gerarAudios([fala], { pastaAudio, tratar, serie, executor });
+    registrarTts('fala-avulsa', { serie: serieId, falas: [fala], ms: fim(), tratar });
     if (fala.status !== 'pronta') throw new Error(fala.erro || 'falha ao gerar a fala');
     const limpo = limparInternos(fala, pastaAudio);
     return { ...limpo, arquivo: fala._arq, arquivoBruto: fala._arqBruto };

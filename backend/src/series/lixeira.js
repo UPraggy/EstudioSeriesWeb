@@ -3,7 +3,11 @@
 //    (o que era, quando, de onde veio) e a pasta original dentro (o nome dela não muda).
 //  - "Refazer o roteiro do zero" guarda a versão atual em episodios/epNN/_versoes/<AAAA-MM-DD_HHmmss>/ e limpa o
 //    episódio. Takes de vídeo/imagem pagos (takes/, quadros/, planos.json, mesa.json) NUNCA saem do lugar.
-//  - Restaurar = mover a pasta de volta (à mão ou por restaurarDaLixeira).
+//  - Restaurar = mover a pasta de volta (à mão ou por restaurarDaLixeira). Voltar a uma versão do roteiro =
+//    restaurarVersaoRoteiro (a versão ATUAL vai antes para uma pasta nova de _versoes: nada é sobrescrito).
+//  - Memória da série: ao apagar o episódio ou refazer/restaurar o roteiro, os fatos e o resumo que VIERAM daquele
+//    episódio saem da memória viva e ficam guardados junto (<item da lixeira>/memoria/ ou _versoes/<data>/memoria/);
+//    restaurar devolve. Ver memoria/doEpisodio.js.
 // Travas: nada é movido com geração paga em andamento, com montagem rodando ou (episódio) com votação registrada.
 // Todas as funções aceitam { raiz } nas opções (testes usam pasta temporária); sem ela vale ESTUDIO_DADOS.
 const fs = require('fs');
@@ -13,6 +17,7 @@ const armazem = require('./armazem');
 const episodios = require('./episodios');
 const validar = require('./validar');
 const { criarLivroCustos } = require('./custos');
+const memoriaEp = require('../memoria/doEpisodio');
 
 const { erro } = armazem;
 
@@ -23,6 +28,7 @@ const STATUS_JOB_ATIVO = ['enviando', 'pendente'];
 const RE_VIDEO = /\.(mp4|mov|webm|mkv|m4v)$/i;
 const RE_IMAGEM = /\.(png|jpe?g|webp|gif)$/i;
 const RE_ITEM = /^\d{4}-\d{2}-\d{2}_\d{6}-[a-z0-9-]+$/;
+const RE_VERSAO = /^\d{4}-\d{2}-\d{2}_\d{6}(-\d{1,2})?$/;
 
 // O que sai do episódio ao refazer o roteiro: o roteiro e o que foi feito a partir dele (refaz de graça).
 const DERIVADOS = [
@@ -247,6 +253,41 @@ async function bloqueios(serieId, pastaSerie, n = null) {
 
 const motivoBase = (tipo, extra) => ({ versao: 1, tipo, apagadoEm: new Date().toISOString(), ...extra });
 
+// ---------------------------------------------------------------- memória da série (o que veio do episódio)
+// Nunca derruba a operação principal (o que já mudou de pasta continua guardado): falha vira aviso.
+function contarMemoria(pastaSerie, n, avisos) {
+    try {
+        const m = memoriaEp.contarMemoriaDoEpisodio(pastaSerie, n);
+        avisos.push(...m.avisos);
+        return { fatos: m.fatos, encerramentos: m.encerramentos, resumo: m.resumo, vazia: m.vazia };
+    } catch (e) {
+        avisos.push(`Não consegui ler a memória da série (${e.message}).`);
+        return null;
+    }
+}
+
+function retirarMemoria(pastaSerie, n, pastaGuarda, avisos) {
+    try {
+        const m = memoriaEp.retirarMemoriaDoEpisodio(pastaSerie, n, pastaGuarda);
+        avisos.push(...m.avisos);
+        return { guardada: m.guardada, fatos: m.fatos, encerramentos: m.encerramentos, resumo: m.resumo, proposta: m.proposta };
+    } catch (e) {
+        avisos.push(`A memória da série ficou como estava: não consegui tirar o que veio do Ep. ${n} (${e.message}).`);
+        return null;
+    }
+}
+
+function devolverMemoria(pastaSerie, n, pastaGuarda, avisos) {
+    try {
+        const m = memoriaEp.devolverMemoriaDoEpisodio(pastaSerie, n, pastaGuarda);
+        avisos.push(...m.avisos);
+        return { devolvida: m.devolvida, fatos: m.fatos, encerramentos: m.encerramentos, resumo: m.resumo, proposta: m.proposta, historico: m.historico || null };
+    } catch (e) {
+        avisos.push(`A memória guardada do Ep. ${n} não voltou sozinha (${e.message}): ela continua em ${path.join(pastaGuarda, memoriaEp.PASTA_GUARDA)}.`);
+        return null;
+    }
+}
+
 // ---------------------------------------------------------------- série
 /** O que acontece se apagar a série (só leitura): tamanho, episódios, takes, gasto e travas. */
 async function preverApagarSerie(serieId, opcoes = {}) {
@@ -356,6 +397,8 @@ async function preverApagarEpisodio(serieId, ep, opcoes = {}) {
     if (votado) {
         travas.unshift(`O Ep. ${d.n} já tem votação registrada (${textoVotos(d.escolha, d.votacao)}). É resultado real do público e decide o próximo episódio: não dá para apagar.`);
     }
+    const avisos = [];
+    const memoria = contarMemoria(d.pastaSerie, d.n, avisos);
     return {
         acao: 'episodio',
         serie: { id: serieId, titulo: d.serie.titulo },
@@ -369,8 +412,9 @@ async function preverApagarEpisodio(serieId, ep, opcoes = {}) {
         votado,
         origem: relDados(opcoes, d.pastaEp),
         destino: `${PASTA_LIXEIRA}/<data>-${serieId}-${episodios.idEpisodio(d.n)}/${episodios.idEpisodio(d.n)}`,
+        memoria,
         bloqueios: travas,
-        avisos: [],
+        avisos,
     };
 }
 
@@ -445,7 +489,13 @@ async function apagarEpisodio(serieId, ep, opcoes = {}) {
                 avisos.push(`A escolha A/B do Ep. ${n} ficou na bíblia (${e.message}).`);
             }
         }
-        return { ok: true, lixeira: relDados(opcoes, item), item: path.basename(item), episodio: { n, titulo: motivo.titulo }, avisos };
+        // Fatos e resumo que vieram deste episódio saem da memória viva e vão junto (<item>/memoria/).
+        const memoria = retirarMemoria(pastaSerie, n, item, avisos);
+        if (memoria && memoria.guardada) {
+            motivo.memoria = { fatos: memoria.fatos, encerramentos: memoria.encerramentos, resumo: memoria.resumo, pasta: relDados(opcoes, path.join(item, memoriaEp.PASTA_GUARDA)) };
+            await armazem.escreverJsonAtomico(path.join(item, 'motivo.json'), motivo).catch(() => {});
+        }
+        return { ok: true, lixeira: relDados(opcoes, item), item: path.basename(item), episodio: { n, titulo: motivo.titulo }, memoria, avisos };
     });
 }
 
@@ -464,6 +514,7 @@ async function preverRefazerRoteiro(serieId, ep, { apagarDerivados = true } = {}
     if (temVotos(d.escolha) || d.votacao) {
         avisos.push(`O Ep. ${d.n} já tem votação registrada (${textoVotos(d.escolha, d.votacao)}): ela continua valendo e fica no episódio.`);
     }
+    const memoria = contarMemoria(d.pastaSerie, d.n, avisos);
     return {
         acao: 'roteiro',
         serie: { id: serieId, titulo: d.serie.titulo },
@@ -480,6 +531,7 @@ async function preverRefazerRoteiro(serieId, ep, { apagarDerivados = true } = {}
         imagens: await contarImagens(d.pastaEp),
         takesPagos: takesPagos(jobs, d.n),
         destino: `${prefixoEp(d.n)}${PASTA_VERSOES}/<data>`,
+        memoria,
         bloqueios: await bloqueios(serieId, d.pastaSerie, d.n),
         avisos,
     };
@@ -491,7 +543,8 @@ async function preverRefazerRoteiro(serieId, ep, { apagarDerivados = true } = {}
  * Pode trocar a duração e o "sem votação". Takes/quadros/planos.json/mesa.json/votacao.json ficam onde estão.
  * → { ok, versao, movidos, preservados, episodio, avisos }
  */
-async function refazerRoteiro(serieId, ep, { duracaoAlvoS, semEscolha, apagarDerivados = true } = {}, opcoes = {}) {
+// tipo: 'refazerRoteiro' (padrão) | 'antesDeAjuste' (o roteiro salvo foi ajustado e a versão nova vai ser salva).
+async function refazerRoteiro(serieId, ep, { duracaoAlvoS, semEscolha, apagarDerivados = true, tipo = 'refazerRoteiro' } = {}, opcoes = {}) {
     await armazem.exigirSerie(serieId, opcoes);
     const n = numeroDoEp(ep);
     const duracao = lerDuracao(duracaoAlvoS);
@@ -508,9 +561,10 @@ async function refazerRoteiro(serieId, ep, { duracaoAlvoS, semEscolha, apagarDer
         const itens = itensParaVersao(pastaEp, derivados);
         const preservados = PRESERVADOS.filter((i) => fs.existsSync(path.join(pastaEp, i.nome)));
         const roteiroAntes = await armazem.lerJson(path.join(pastaEp, 'roteiro.json'), null).catch(() => null);
+        const memoriaAntes = contarMemoria(d.pastaSerie, n, []);
         let versao = null;
         const movidos = [];
-        if (itens.length) {
+        if (itens.length || (memoriaAntes && !memoriaAntes.vazia)) {
             versao = await criarPastaNova(path.join(pastaEp, PASTA_VERSOES), carimbo());
             try {
                 for (const i of itens) {
@@ -553,10 +607,13 @@ async function refazerRoteiro(serieId, ep, { duracaoAlvoS, semEscolha, apagarDer
                 return b;
             }, opcoes);
         }
+        // Fatos e resumo que vieram do roteiro antigo saem da memória viva e ficam na versão (<versao>/memoria/).
+        const memoria = versao ? retirarMemoria(d.pastaSerie, n, versao, avisos) : null;
         if (versao) {
             await armazem.escreverJsonAtomico(path.join(versao, 'motivo.json'), {
                 versao: 1,
-                tipo: 'refazerRoteiro',
+                tipo: tipo === 'antesDeAjuste' ? 'antesDeAjuste' : 'refazerRoteiro',
+                memoria: memoria && memoria.guardada ? { fatos: memoria.fatos, encerramentos: memoria.encerramentos, resumo: memoria.resumo } : null,
                 serie: serieId,
                 ep: n,
                 guardadoEm: new Date().toISOString(),
@@ -565,7 +622,7 @@ async function refazerRoteiro(serieId, ep, { duracaoAlvoS, semEscolha, apagarDer
                 escolhaAntes: votado ? null : d.escolha,
                 movidos: movidos.map((i) => i.nome),
                 preservados: preservados.map((i) => i.nome),
-                comoRestaurar: `Mova os itens desta pasta de volta para "${relDados(opcoes, pastaEp)}" (antes, guarde ou apague o roteiro novo).`,
+                comoRestaurar: `Use "Versões do roteiro" na página do episódio (a versão atual fica guardada). À mão: mova os itens desta pasta de volta para "${relDados(opcoes, pastaEp)}" (antes, guarde o roteiro novo) e devolva memoria/ à memória da série.`,
             });
         }
         return {
@@ -574,6 +631,240 @@ async function refazerRoteiro(serieId, ep, { duracaoAlvoS, semEscolha, apagarDer
             movidos: movidos.map((i) => i.nome),
             preservados: preservados.map((i) => i.nome),
             episodio: { ...entrada },
+            memoria,
+            avisos,
+        };
+    });
+}
+
+// ---------------------------------------------------------------- versões do roteiro (_versoes)
+const ITENS_VERSAO = [{ nome: 'roteiro.json', o: 'Roteiro (roteiro.json)' }, ...DERIVADOS];
+
+// "2026-11-04_223015[-2]" → ISO (hora local), para versões sem motivo.json.
+function dataDoNome(nome) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})/.exec(nome);
+    if (!m) return null;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6]));
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+// Duração que os planos somam (o fim do último plano), ou null.
+function duracaoDosPlanos(roteiro) {
+    const planos = roteiro && Array.isArray(roteiro.planos) ? roteiro.planos : [];
+    const fins = planos.map((p) => Number(p && p.ateS)).filter(Number.isFinite);
+    return fins.length ? Math.round(Math.max(...fins) * 10) / 10 : null;
+}
+
+const resumoRoteiro = (r) => (r ? {
+    titulo: r.titulo || '',
+    duracaoAlvoS: r.duracaoAlvoS ?? null,
+    aprovado: r.aprovado ?? null,
+} : null);
+
+/**
+ * Versões guardadas do roteiro do episódio (só leitura), da mais nova para a mais velha, com o que cada uma tem.
+ * → { serie, episodio: { n, titulo, roteiroAtual }, versoes: [ { versao, guardadoEm, tipo, deVersao, titulo,
+ *     duracaoAlvoS, duracaoPlanosS, planos, aprovado, temRoteiro, arquivos: [{nome,o}], memoria, tamanhoMb, pasta } ],
+ *     bloqueios, avisos }
+ */
+async function listarVersoesRoteiro(serieId, ep, opcoes = {}) {
+    const d = await dadosDoEpisodio(serieId, ep, opcoes);
+    const base = path.join(d.pastaEp, PASTA_VERSOES);
+    let nomes = [];
+    try { nomes = await fsp.readdir(base, { withFileTypes: true }); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+    const versoes = [];
+    for (const dir of nomes) {
+        if (!dir.isDirectory() || !RE_VERSAO.test(dir.name)) continue;
+        const pasta = path.join(base, dir.name);
+        const motivo = await armazem.lerJson(path.join(pasta, 'motivo.json'), null).catch(() => null);
+        const roteiro = await armazem.lerJson(path.join(pasta, 'roteiro.json'), null).catch(() => null);
+        const tamanho = await medir(pasta);
+        versoes.push({
+            versao: dir.name,
+            guardadoEm: (motivo && motivo.guardadoEm) || dataDoNome(dir.name),
+            tipo: (motivo && motivo.tipo) || 'desconhecido',
+            deVersao: (motivo && motivo.restaurouVersao) || null,
+            titulo: (roteiro && roteiro.titulo) || (motivo && motivo.roteiro && motivo.roteiro.titulo) || '',
+            duracaoAlvoS: (roteiro && roteiro.duracaoAlvoS) ?? (motivo && motivo.roteiro && motivo.roteiro.duracaoAlvoS) ?? null,
+            duracaoPlanosS: duracaoDosPlanos(roteiro),
+            planos: roteiro && Array.isArray(roteiro.planos) ? roteiro.planos.length : 0,
+            semEscolha: roteiro ? roteiro.escolhas === null : null,
+            aprovado: roteiro ? roteiro.aprovado ?? null : null,
+            temRoteiro: fs.existsSync(path.join(pasta, 'roteiro.json')),
+            arquivos: ITENS_VERSAO.filter((i) => fs.existsSync(path.join(pasta, i.nome))),
+            memoria: memoriaEp.lerMemoriaGuardada(pasta),
+            tamanhoMb: Math.round((tamanho.bytes / 1048576) * 10) / 10,
+            pasta: relDados(opcoes, pasta),
+        });
+    }
+    versoes.sort((a, b) => String(b.versao).localeCompare(String(a.versao)));
+    const atual = await armazem.lerJson(path.join(d.pastaEp, 'roteiro.json'), null).catch(() => null);
+    const avisos = [];
+    if (temVotos(d.escolha) || d.votacao) {
+        avisos.push(`O Ep. ${d.n} já tem votação registrada (${textoVotos(d.escolha, d.votacao)}): ela continua valendo com qualquer versão.`);
+    }
+    return {
+        serie: { id: serieId, titulo: d.serie.titulo },
+        episodio: {
+            n: d.n,
+            titulo: (d.entrada && d.entrada.titulo) || '',
+            roteiroAtual: atual ? { ...resumoRoteiro(atual), duracaoPlanosS: duracaoDosPlanos(atual), planos: Array.isArray(atual.planos) ? atual.planos.length : 0 } : null,
+            memoriaAtual: contarMemoria(d.pastaSerie, d.n, avisos),
+        },
+        versoes,
+        pasta: relDados(opcoes, base),
+        bloqueios: await bloqueios(serieId, d.pastaSerie, d.n),
+        avisos,
+    };
+}
+
+/**
+ * Volta o episódio para uma versão guardada do roteiro. ANTES guarda a versão atual (roteiro e o que foi feito dele:
+ * falas, áudio, edição, legendas, montagem) numa pasta NOVA de _versoes, junto com a memória que veio dela; depois
+ * devolve os arquivos e a memória da versão escolhida (a pasta dela some, o conteúdo voltou inteiro).
+ * Takes/quadros/planos.json/mesa.json/votacao.json não mudam. Recusa (409) com geração paga, regeração ou montagem.
+ * → { ok, restaurada, guardada: "series/.../_versoes/<data>" | null, trazidos, guardados, episodio, memoria: { guardada, devolvida }, avisos }
+ */
+async function restaurarVersaoRoteiro(serieId, ep, versaoNome, opcoes = {}) {
+    await armazem.exigirSerie(serieId, opcoes);
+    const n = numeroDoEp(ep);
+    if (typeof versaoNome !== 'string' || !RE_VERSAO.test(versaoNome)) throw erro('Versão inválida: use o nome da pasta em _versoes (ex.: 2026-11-04_223015).');
+    const pastaEp = episodios.pastaEpisodio(serieId, n, opcoes);
+    const base = path.join(pastaEp, PASTA_VERSOES);
+    const pastaV = armazem.resolverDentro(base, versaoNome);
+    const chaves = [path.join(pastaEp, 'roteiro.json'), path.join(pastaEp, 'edicao.json'), path.join(pastaEp, 'falas.json')];
+    const comTravas = (fn) => chaves.reduceRight((dentro, chave) => () => armazem.comTrava(chave, dentro), fn)();
+    return comTravas(async () => {
+        const d = await dadosDoEpisodio(serieId, n, opcoes);
+        if (!fs.existsSync(pastaV)) throw erro(`A versão ${versaoNome} não existe mais no Ep. ${n}.`, 404);
+        if (!fs.existsSync(path.join(pastaV, 'roteiro.json'))) throw erro(`A versão ${versaoNome} não tem roteiro.json: restaure à mão.`, 400);
+        const travas = await bloqueios(serieId, d.pastaSerie, n);
+        if (travas.length) throw erro(`Não voltei à versão do Ep. ${n}. ${travas.join(' ')}`, 409, { erros: travas });
+
+        const motivoV = await armazem.lerJson(path.join(pastaV, 'motivo.json'), null).catch(() => null);
+        const roteiroV = await armazem.lerJson(path.join(pastaV, 'roteiro.json'), null).catch(() => null);
+        const roteiroAntes = await armazem.lerJson(path.join(pastaEp, 'roteiro.json'), null).catch(() => null);
+        const atuais = itensParaVersao(pastaEp, true);
+        const daVersao = ITENS_VERSAO.filter((i) => fs.existsSync(path.join(pastaV, i.nome)));
+        const preservados = PRESERVADOS.filter((i) => fs.existsSync(path.join(pastaEp, i.nome)));
+        const memoriaAtual = contarMemoria(d.pastaSerie, n, []);
+
+        // 1) a versão atual vai para uma pasta nova de _versoes (nunca sobrescreve sem guardar)
+        let nova = null;
+        const guardados = [];
+        if (atuais.length || (memoriaAtual && !memoriaAtual.vazia)) nova = await criarPastaNova(base, carimbo());
+        const desfazerGuardados = async () => {
+            for (const i of [...guardados].reverse()) {
+                if (!fs.existsSync(path.join(pastaEp, i.nome))) await mover(path.join(nova, i.nome), path.join(pastaEp, i.nome)).catch(() => {});
+            }
+            if (nova) await fsp.rmdir(nova).catch(() => {});
+        };
+        try {
+            for (const i of atuais) {
+                await mover(path.join(pastaEp, i.nome), path.join(nova, i.nome));
+                guardados.push(i);
+            }
+        } catch (e) {
+            await desfazerGuardados();
+            throw e;
+        }
+        // 2) os arquivos da versão escolhida voltam para o episódio
+        const trazidos = [];
+        try {
+            for (const i of daVersao) {
+                await mover(path.join(pastaV, i.nome), path.join(pastaEp, i.nome));
+                trazidos.push(i);
+            }
+        } catch (e) {
+            for (const i of [...trazidos].reverse()) {
+                if (!fs.existsSync(path.join(pastaV, i.nome))) await mover(path.join(pastaEp, i.nome), path.join(pastaV, i.nome)).catch(() => {});
+            }
+            await desfazerGuardados();
+            throw e;
+        }
+
+        // 3) memória: a do roteiro atual vai com ele; a da versão volta
+        const avisos = [];
+        const memoriaGuardada = nova ? retirarMemoria(d.pastaSerie, n, nova, avisos) : null;
+        const memoriaDevolvida = devolverMemoria(d.pastaSerie, n, pastaV, avisos);
+
+        // 4) serie.json: título, duração e "sem votação" da versão; status de quando ela foi guardada
+        const entradaV = motivoV && motivoV.entradaAntes && typeof motivoV.entradaAntes === 'object' ? motivoV.entradaAntes : null;
+        let entrada;
+        await armazem.atualizarSerie(serieId, (s) => {
+            s.episodios = Array.isArray(s.episodios) ? s.episodios : [];
+            entrada = s.episodios.find((e) => e.n === n);
+            if (!entrada) {
+                entrada = { n, id: episodios.idEpisodio(n), titulo: '', status: 'roteiro' };
+                s.episodios.push(entrada);
+                s.episodios.sort((a, b) => a.n - b.n);
+            }
+            const titulo = (roteiroV && roteiroV.titulo) || (entradaV && entradaV.titulo);
+            if (titulo) entrada.titulo = titulo;
+            entrada.status = (entradaV && entradaV.status) || 'roteiro';
+            const dur = (roteiroV && Number(roteiroV.duracaoAlvoS)) || (entradaV && Number(entradaV.duracaoAlvoS));
+            if (dur) entrada.duracaoAlvoS = dur;
+            if (roteiroV && 'escolhas' in roteiroV) entrada.semEscolha = roteiroV.escolhas === null;
+            else if (entradaV && typeof entradaV.semEscolha === 'boolean') entrada.semEscolha = entradaV.semEscolha;
+            return s;
+        }, opcoes);
+
+        // 5) bíblia: a escolha A/B sem votos passa a ser a da versão; com votos, a votação continua valendo
+        const votado = temVotos(d.escolha) || Boolean(d.votacao);
+        const escolhaAtual = votado ? null : d.escolha;
+        if (votado) {
+            avisos.push(`A votação registrada do Ep. ${n} (${textoVotos(d.escolha, d.votacao)}) continua valendo: a escolha A/B da bíblia não mudou.`);
+        } else {
+            const escolhasV = roteiroV && roteiroV.escolhas && roteiroV.escolhas.A && roteiroV.escolhas.B ? roteiroV.escolhas : null;
+            const daVersaoEscolha = (motivoV && motivoV.escolhaAntes)
+                || (escolhasV ? { ep: n, A: escolhasV.A.texto, B: escolhasV.B.texto, vencedora: null, votos: { A: 0, B: 0 } } : null);
+            if (d.escolha || daVersaoEscolha) {
+                await armazem.atualizarBiblia(serieId, (b) => {
+                    b.escolhas = (Array.isArray(b.escolhas) ? b.escolhas : []).filter((x) => x.ep !== n || temVotos(x));
+                    if (daVersaoEscolha && !b.escolhas.some((x) => x.ep === n)) {
+                        b.escolhas.push({ ...daVersaoEscolha, ep: n });
+                        b.escolhas.sort((x, y) => x.ep - y.ep);
+                    }
+                    return b;
+                }, opcoes);
+            }
+        }
+
+        // 6) registro da versão guardada agora
+        if (nova) {
+            await armazem.escreverJsonAtomico(path.join(nova, 'motivo.json'), {
+                versao: 1,
+                tipo: 'antesDeRestaurar',
+                serie: serieId,
+                ep: n,
+                guardadoEm: new Date().toISOString(),
+                restaurouVersao: versaoNome,
+                roteiro: resumoRoteiro(roteiroAntes),
+                entradaAntes: d.entrada,
+                escolhaAntes: escolhaAtual,
+                movidos: guardados.map((i) => i.nome),
+                preservados: preservados.map((i) => i.nome),
+                memoria: memoriaGuardada && memoriaGuardada.guardada ? { fatos: memoriaGuardada.fatos, encerramentos: memoriaGuardada.encerramentos, resumo: memoriaGuardada.resumo } : null,
+                comoRestaurar: `Use "Versões do roteiro" na página do episódio. À mão: mova os itens desta pasta de volta para "${relDados(opcoes, pastaEp)}" (antes, guarde o roteiro atual).`,
+            });
+        }
+        // 7) a pasta da versão restaurada some (o conteúdo voltou inteiro); se sobrou algo desconhecido, ela fica
+        await fsp.rm(path.join(pastaV, 'motivo.json'), { force: true });
+        try {
+            await fsp.rmdir(pastaV);
+        } catch {
+            const sobra = await fsp.readdir(pastaV).catch(() => []);
+            if (sobra.length) avisos.push(`Sobrou em ${relDados(opcoes, pastaV)}: ${sobra.slice(0, 5).join(', ')}. Ficou lá, intacto.`);
+        }
+        return {
+            ok: true,
+            restaurada: versaoNome,
+            guardada: nova ? relDados(opcoes, nova) : null,
+            trazidos: trazidos.map((i) => i.nome),
+            guardados: guardados.map((i) => i.nome),
+            preservados: preservados.map((i) => i.nome),
+            episodio: { ...entrada },
+            memoria: { guardada: memoriaGuardada, devolvida: memoriaDevolvida },
             avisos,
         };
     });
@@ -662,9 +953,12 @@ async function restaurarDaLixeira(item, opcoes = {}) {
                     return b;
                 }, opcoes);
             }
+            // A memória que saiu com o episódio volta (ou, se já há memória nova do Ep. N, vai para memoria/historico/).
+            const avisos = [];
+            const memoria = devolverMemoria(armazem.pastaSerie(serieId, opcoes), n, pastaItem, avisos);
             await fsp.rm(path.join(pastaItem, 'motivo.json'), { force: true });
             await fsp.rmdir(pastaItem).catch(() => {});
-            return { ok: true, tipo: 'episodio', serie: serieId, ep: n, titulo: motivo.titulo || '' };
+            return { ok: true, tipo: 'episodio', serie: serieId, ep: n, titulo: motivo.titulo || '', memoria, avisos };
         });
     }
     throw erro(`Tipo de item desconhecido (${motivo.tipo}): restaure à mão.`);
@@ -684,6 +978,8 @@ module.exports = {
     apagarEpisodio,
     preverRefazerRoteiro,
     refazerRoteiro,
+    listarVersoesRoteiro,
+    restaurarVersaoRoteiro,
     listarLixeira,
     restaurarDaLixeira,
 };

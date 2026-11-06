@@ -111,3 +111,6 @@
   .sala .sala-conteudo { padding-top: var(--e5); }
   .sala .sala-esq-grade { grid-template-columns: 1fr; }
 }
+
+/* "Mais ações" da série (⋯): quadrado, do tamanho dos botões do cabeçalho, não estica no celular */
+.sala-cena .cena-acoes .btn.cena-mais { width: 40px; padding: 0; flex: none; }

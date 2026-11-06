@@ -109,6 +109,24 @@ async function lerRoteiro(serie, n, opcoes = {}) {
     return armazem.lerJson(path.join(pasta, 'roteiro.json'), null);
 }
 
+async function conferirDoc(serie, doc, opcoes) {
+    return armazem.exigirValido(validar.validarRoteiro(doc, await contextoDaSerie(serie, opcoes)), 'roteiro.json');
+}
+
+// Só confere (mesmas regras do salvar, nada é gravado): 400 com "erros" se não passar. Devolve { avisos }.
+async function conferirRoteiro(serie, n, roteiro, opcoes = {}) {
+    await armazem.exigirSerie(serie, opcoes);
+    const num = numeroEpisodio(n);
+    if (!roteiro || typeof roteiro !== 'object' || Array.isArray(roteiro)) throw erro('O roteiro precisa ser um objeto.');
+    if (roteiro.n !== undefined && roteiro.n !== num) throw erro(`O roteiro é do episódio ${roteiro.n}, não do ${num}.`);
+    const s = await armazem.lerSerie(serie, opcoes);
+    const doc = { versao: 1, n: num, ...roteiro, n: num };
+    const entradaEp = (s.episodios || []).find((e) => e.n === num);
+    if (doc.duracaoAlvoS === undefined) doc.duracaoAlvoS = (entradaEp && entradaEp.duracaoAlvoS) || s.duracaoAlvoS || 60;
+    const r = await conferirDoc(serie, doc, opcoes);
+    return { avisos: r.avisos };
+}
+
 /**
  * Valida e grava o roteiro (cria o episódio se ainda não existir). Erros de validação → status 400 com "erros".
  * Também deixa a escolha A/B do episódio na biblia.escolhas (sem mexer em votos já registrados).
@@ -124,7 +142,7 @@ async function salvarRoteiro(serie, n, roteiro, opcoes = {}) {
     doc.n = num;
     const entradaEp = (s.episodios || []).find((e) => e.n === num);
     if (doc.duracaoAlvoS === undefined) doc.duracaoAlvoS = (entradaEp && entradaEp.duracaoAlvoS) || s.duracaoAlvoS || 60;
-    const resultado = armazem.exigirValido(validar.validarRoteiro(doc, await contextoDaSerie(serie, opcoes)), 'roteiro.json');
+    const resultado = await conferirDoc(serie, doc, opcoes);
 
     const pasta = pastaEpisodio(serie, num, opcoes);
     const pastaSerie = armazem.pastaSerie(serie, opcoes);
@@ -215,7 +233,44 @@ async function registrarVotacao(serie, n, { A, B, fonte = 'manual' } = {}, opcoe
     return { votacao, escolha };
 }
 
+/**
+ * Troca a duração-alvo de um episódio JÁ criado (serie.json → episodios[].duracaoAlvoS). Não mexe no roteiro:
+ * o roteiro novo sai pelo "Ajustar o roteiro para N s" (revisão) ou pelo "Refazer roteiro do zero".
+ * semEscolha: sem valor = abaixo de 20 s fica sem votação; acima, mantém o que era (o "sem votação" automático de
+ * quem era curto volta a ter votação). Devolve { episodio, antes, roteiro, precisaAjustar, avisos }.
+ */
+async function alterarDuracao(serie, n, { duracaoAlvoS, semEscolha } = {}, opcoes = {}) {
+    const dur = lerDuracao(duracaoAlvoS);
+    if (dur === undefined) throw erro('Informe a duração nova (duracaoAlvoS, de 1 a 600 s).');
+    const { num, pasta, entrada } = await exigirEpisodio(serie, n, opcoes);
+    const s = await armazem.lerSerie(serie, opcoes);
+    const antes = {
+        duracaoAlvoS: entrada.duracaoAlvoS ?? s.duracaoAlvoS ?? 60,
+        semEscolha: typeof entrada.semEscolha === 'boolean' ? entrada.semEscolha : (entrada.duracaoAlvoS ?? s.duracaoAlvoS ?? 60) < 20,
+    };
+    let sem;
+    if (semEscolha !== undefined && semEscolha !== null) sem = Boolean(semEscolha);
+    else if (dur < 20) sem = true;
+    else if (antes.semEscolha && antes.duracaoAlvoS < 20) sem = false;
+    else sem = antes.semEscolha;
+    const roteiro = await armazem.lerJson(path.join(pasta, 'roteiro.json'), null);
+    const avisos = [];
+    const votado = await armazem.lerJson(path.join(pasta, 'votacao.json'), null);
+    if (votado) avisos.push('Este episódio já tem votação registrada: trocar a duração não mexe nela.');
+    const novo = await armazem.comTrava(`eps:${serie}`, () => registrarNaSerie(serie, num, { duracaoAlvoS: dur, semEscolha: sem }, opcoes));
+    let infoRoteiro = null;
+    let precisaAjustar = false;
+    if (roteiro && Array.isArray(roteiro.planos)) {
+        const fim = roteiro.planos.reduce((m, p) => Math.max(m, Number(p.ateS) || 0), 0);
+        infoRoteiro = { duracaoAlvoS: roteiro.duracaoAlvoS ?? null, duracaoPlanosS: Math.round(fim * 10) / 10, planos: roteiro.planos.length, aprovado: roteiro.aprovado === true, semEscolha: roteiro.escolhas === null };
+        precisaAjustar = Math.abs(fim - dur) > Math.max(0.5, Math.min(3, dur * 0.1)) || infoRoteiro.semEscolha !== sem;
+        if (precisaAjustar) avisos.push(`O roteiro salvo ainda tem ${String(infoRoteiro.duracaoPlanosS).replace('.', ',')} s: ajuste o roteiro para ${String(dur).replace('.', ',')} s (ou refaça do zero).`);
+    }
+    return { episodio: novo, antes, roteiro: infoRoteiro, precisaAjustar, avisos };
+}
+
 module.exports = {
+    alterarDuracao,
     numeroEpisodio,
     idEpisodio,
     pastaEpisodio,
@@ -223,8 +278,10 @@ module.exports = {
     lerEpisodio,
     lerRoteiro,
     salvarRoteiro,
+    conferirRoteiro,
     lerPlanos,
     salvarPlanos,
     registrarVotacao,
     contextoDaSerie,
+    exigirEpisodio,
 };

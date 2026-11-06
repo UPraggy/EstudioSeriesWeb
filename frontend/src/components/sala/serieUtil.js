@@ -77,25 +77,38 @@ export function classeEstado(status) {
 // ---------------------------------------------------------------- duração livre
 const entradaDoEpisodio = (serie, n) => (serie && Array.isArray(serie.episodios) ? serie.episodios : []).find((e) => e.n === n) || null;
 
-// Duração-alvo (s): a do roteiro > a do episódio (serie.json) > a padrão da série > 60.
+// Duração-alvo (s): a do episódio (serie.json) > a do roteiro > a padrão da série > 60.
+// O episódio vence: salvar um roteiro grava a duração dele no serie.json, e "Duração" (AlterarDuracaoEpisodio) troca
+// só o serie.json até o roteiro ser ajustado — a tela mostra a duração NOVA e avisa que o roteiro ficou para trás.
 export function duracaoDoEpisodio(serie, n, roteiro) {
     const e = entradaDoEpisodio(serie, n);
-    const d = Number((roteiro && roteiro.duracaoAlvoS) || (e && e.duracaoAlvoS) || (serie && serie.duracaoAlvoS) || 60);
+    const d = Number((e && e.duracaoAlvoS) || (roteiro && roteiro.duracaoAlvoS) || (serie && serie.duracaoAlvoS) || 60);
     return Number.isFinite(d) && d > 0 ? d : 60;
 }
 
-// Sem votação A/B: roteiro salvo sem escolhas > marcado no episódio > abaixo de 20 s.
+// Sem votação A/B: marcado no episódio (salvar o roteiro grava) > roteiro salvo sem escolhas > abaixo de 20 s.
 export function semEscolhaDoEpisodio(serie, n, roteiro) {
-    if (roteiro && roteiro.escolhas === null) return true;
-    if (roteiro && roteiro.escolhas) return false;
     const e = entradaDoEpisodio(serie, n);
     if (e && typeof e.semEscolha === 'boolean') return e.semEscolha;
+    if (roteiro && roteiro.escolhas === null) return true;
+    if (roteiro && roteiro.escolhas) return false;
     return duracaoDoEpisodio(serie, n, roteiro) < LIMITE_SEM_ESCOLHA_S;
 }
 
 // "1 plano", "8 planos"
 export function plural(n, um, varios) {
     return `${n} ${Number(n) === 1 ? um : varios}`;
+}
+
+// O que a memória da série tem de um episódio ({ fatos, encerramentos, resumo }), em texto: "2 fatos e o resumo".
+// Vazio ('') quando não há nada.
+export function textoMemoria(m) {
+    if (!m) return '';
+    const partes = [];
+    if (m.fatos > 0) partes.push(plural(m.fatos, 'fato', 'fatos'));
+    if (m.resumo) partes.push('o resumo');
+    if (!partes.length && m.encerramentos > 0) partes.push(plural(m.encerramentos, 'fato encerrado', 'fatos encerrados'));
+    return partes.join(' e ');
 }
 
 // "60 s", "7,5 s"
@@ -255,3 +268,4 @@ export function proximosPassos({ serie, biblia, elenco = [], locais = [], objeto
     }
     return passos;
 }
+

@@ -1,8 +1,6 @@
-# CLAUDE.md — Estúdio de Séries Web
+# CLAUDE.md — Estúdio de Séries
 
-Projeto pessoal do Rafael: sistema para criar **séries** de vídeos verticais (9:16, episódios de **duração livre** — padrão 60 s com escolhas A/B; abaixo de 20 s sem votação) usando IA pelo OpenRouter. Plano completo: `E:\projects\ClaudeCode\ClaudCodeCodes\NarradorVideo\docs\PLANO-ESTUDIO-DE-SERIES.md`. Contratos de dados: `docs/CONTRATOS.md`.
-
-**Esta pasta (`EstudioSeriesWeb`) é a versão que roda sem backend** (GitHub Pages, PC e celular), copiada do `EstudioSeries` em 05/11/2026. O `EstudioSeries` original segue separado. Entrar por `docs/PROGRESSO.md` e `docs/MOTOR-NAVEGADOR.md`.
+Projeto pessoal do Rafael: sistema para criar **séries** de vídeos verticais (9:16, episódios de **duração livre** — padrão 60 s com escolhas A/B; abaixo de 20 s sem votação) usando IA pelo OpenRouter. **Entrar por `docs/PROGRESSO.md`** (estado atual, pendências, mapa dos docs). Plano completo: `E:\projects\ClaudeCode\ClaudCodeCodes\NarradorVideo\docs\PLANO-ESTUDIO-DE-SERIES.md`. Contratos de dados: `docs/CONTRATOS.md`. Versão sem backend: projeto irmão `..\EstudioSeriesWeb` (não mexer nele daqui).
 
 ## Regras
 - **Nada da Babita**: nem código, nem dados, nem o conector Memória Babita (ferramentas `mcp__d8fcf5b5…`). Diretriz do Rafael.
@@ -12,11 +10,12 @@ Projeto pessoal do Rafael: sistema para criar **séries** de vídeos verticais (
 - **Chave do OpenRouter** só no ambiente do servidor (`ASE_OPENROUTER_KEY` ou `OPENROUTER_API_KEY`). Nunca em arquivo, log, resposta HTTP ou commit.
 - **Dinheiro:** nenhuma chamada paga (imagem, vídeo) sem confirmação explícita do Rafael; custo previsto antes; teto por plano/episódio/série; job gravado logo após criado (nunca pagar 2x). Testes usam `fetch` falso. Chamadas GET gratuitas (catálogo, saldo) são permitidas.
 - **Dados das séries fora do repositório:** `ESTUDIO_DADOS` (padrão `E:\EstudioSeriesDados`). Uma pasta por série (ver CONTRATOS).
-- Montagem de vídeo, TTS e títulos: usar o motor Python existente do NarradorVideo (`E:\projects\ClaudeCode\ClaudCodeCodes\NarradorVideo\narrar.ps1`) por subprocesso; só as vozes de `NarradorVideo\vozes.json`, todas em português.
+- Montagem de vídeo, TTS e títulos: usar o motor Python existente do NarradorVideo (`E:\projects\ClaudeCode\ClaudCodeCodes\NarradorVideo\narrar.ps1`) por subprocesso; só as vozes de `NarradorVideo\vozes.json`, todas em português. O Rafael NÃO quer voz com sotaque carregado: o Brian foi removido em 06/11/2026 (alerta = Cadu); se ele reclamar de outra, tire da lista e acrescente em `VOZES_REMOVIDAS` (`backend/src/series/armazem.js`).
+- Backend mudou → o Estúdio precisa ser fechado e aberto (o site recarrega sozinho, o backend não). Arquivo de frontend salvo pela metade derruba o site do Rafael na hora: salve componentes completos.
+- Scripts que falam com o backend usam a porta 5190 (a 4190 é "porta proibida" para `fetch` no Node).
 - **Não copiar código** do StickEnglish nem do AutoShortEditor (só ideias). Repositórios de terceiros: só ideias.
 - Idioma: português do Brasil em código, docs e mensagens.
-- **Git:** repositório próprio (branch `main`). Autor só o Rafael (`git config user.email` = `100146657+UPraggy@users.noreply.github.com`), **nunca** co-autor Claude/IA; o gancho `.githooks/commit-msg` recusa (`git config core.hooksPath .githooks` numa cópia nova). Doc em `docs/` se commita na hora; antes de cada push, `git grep -n "sk-or-"` só pode achar a chave falsa dos testes e o filtro de `erros.js`.
-- **Motor do navegador:** o código do backend também roda no navegador (empacotado pelo esbuild, `frontend/vite-plugin-motor.js`). Por isso: nada de dependência nova de Node no backend sem substituto em `frontend/src/motorNavegador/`; `fs` síncrono só em arquivos de texto (JSON, JSONL, MD, SRT, ASS); o resto pelo `fs/promises`.
+- Sem git por enquanto: não fazer commit.
 - Interface: **tema escuro**, ícones pelo mapa `icones.js`, movimento por `Movimento.jsx`, moderna e vendável mas sem "cara de IA" — regras em `docs/GUIA-VISUAL.md` (substitui o guia claro das maquetes).
 
 ## Como rodar

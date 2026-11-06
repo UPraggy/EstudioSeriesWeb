@@ -2,11 +2,15 @@
 // Fonte da verdade: episodios/epNN/edicao.json no servidor. Toda mudança é salva sozinha (SalvarEdicao, com a
 // revisão para não sobrescrever uma regeração que terminou) e o desfazer/refazer é o histórico do servidor.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import '../../assets/css/Mesa.css';
 import {
     LerEdicao, SalvarEdicao, DesfazerEdicao, RefazerEdicao, EdicaoInicial, StatusRegeracao, IntencoesFala,
 } from '../funcionalidades/bancoGet';
+import { RegerarFalasVoz } from '../funcionalidades/bancoGet';
+import { lerProducao } from '../sala/producaoUtil';
+import ProximoPasso from '../producao/ProximoPasso';
+import MenuAcoes from '../subComponents/MenuAcoes';
 import { erroDe } from '../funcionalidades/fetchFunc';
 import { Relogio } from './mesaRelogio';
 import * as M from './mesaUtil';
@@ -102,6 +106,10 @@ export default function MesaEditor({ ativaResp }) {
     const [altura, setAltura] = useState(null);
     const [painelFala, setPainelFala] = useState(null);
     const [atalhos, setAtalhos] = useState(false);
+    const [prod, setProd] = useState(undefined); // estado das etapas do episódio (Próximo passo)
+    const [regerandoFalas, setRegerandoFalas] = useState(false);
+    const [busca] = useSearchParams();
+    const navegar = useNavigate();
 
     const relogio = useMemo(() => new Relogio(), []);
     if (import.meta.env.DEV) window.__mesaRelogio = relogio; // só em desenvolvimento: inspecionar a prévia
@@ -151,6 +159,14 @@ export default function MesaEditor({ ativaResp }) {
         IntencoesFala().then((r) => { if (!erroDe(r)) setIntencoes(r); });
         return () => relogio.soltar();
     }, [recarregar, relogio]);
+
+    // ---------- próximo passo (estado real das etapas; o mesmo cálculo da Sala) ----------
+    const carregarProd = useCallback(async () => {
+        const r = await lerProducao(serie, ep);
+        setProd(r);
+        return r;
+    }, [serie, ep]);
+    useEffect(() => { carregarProd(); }, [carregarProd]);
 
     // fontes da prévia (as mesmas do render: League Gothic e Barlow Condensed, do motor)
     useEffect(() => {
@@ -252,9 +268,63 @@ export default function MesaEditor({ ativaResp }) {
         setMontando(null);
         if (erroDe(r)) return mostrarAviso(erroDe(r), 'erro');
         await recarregar({ silencioso: true });
+        carregarProd();
         mostrarAviso(gerarFalas ? 'Edição montada com as falas geradas.' : 'Edição montada.', 'ok');
         return null;
     };
+
+    // O "Próximo passo" mudou algo no servidor (falas, decupagem, vídeos em lote): relê o estado das etapas, as
+    // regerações e, se a edição mudou lá (revisão nova), a edição — sem perder o que ainda não foi salvo.
+    const atualizarDoServidor = useCallback(async () => {
+        const p = await carregarProd();
+        const st = await StatusRegeracao({ serie, ep });
+        if (!montadoRef.current) return;
+        if (!erroDe(st)) setCtx((c) => (c ? { ...c, mesa: { regeracoes: st.regeracoes, takes: st.takes } } : c));
+        const revisao = p && p.edicao && p.edicao.existe ? p.edicao.revisao : null;
+        if (revisao !== null && revisao !== undefined && revisao !== revisaoRef.current) {
+            await salvarAgora();
+            await recarregar({ silencioso: true });
+        } else if (revisao === null && p && p.edicao && p.edicao.existe === false && docRef.current) {
+            await recarregar({ silencioso: true });
+        } else if (!docRef.current && p && p.edicao && p.edicao.existe) {
+            await recarregar({ silencioso: true });
+        }
+    }, [carregarProd, serie, ep, salvarAgora, recarregar]);
+
+    // Botões do Próximo passo que moram fora dele: roteiro e votação na Sala, quadros no inspetor, montar aqui.
+    const acaoDoPasso = useCallback(async (acao) => {
+        if (acao === 'montar') { await salvarAgora(); setRenderAberto(true); return; }
+        if (acao === 'quadros') {
+            const d = docRef.current;
+            const sem = d && (d.planos || []).find((p) => !(p.quadroChave && p.quadroChave.arquivo));
+            const seg = sem && (d.faixas.video || []).find((v) => v.plano === sem.n);
+            if (seg) setSelecao({ faixa: 'video', id: seg.id });
+            mostrarAviso(sem ? `Plano ${sem.n}: no inspetor, em "Quadro-chave", use o quadro do cursor, a referência ou anexe uma imagem.` : 'Todos os planos já têm quadro-chave.', 'info');
+            return;
+        }
+        if (acao === 'votar') { navegar(`/serie/${serie}?aba=temporada&ep=${ep}`); return; }
+        navegar(`/serie/${serie}?aba=episodios&ep=${ep}`); // escrever, aprovar ou ajustar o roteiro: na página do episódio
+    }, [salvarAgora, mostrarAviso, navegar, serie, ep]);
+
+    // Menu da Mesa → "Regerar todas as falas" (TTS grátis, voz/tom atuais; as que não mudaram vêm do cache).
+    const regerarTodasFalas = useCallback(async () => {
+        await salvarAgora();
+        setRegerandoFalas(true);
+        const r = await RegerarFalasVoz({ serie, ep });
+        setRegerandoFalas(false);
+        if (erroDe(r)) { mostrarAviso(`Não regerou as falas: ${erroDe(r)}`, 'erro'); return; }
+        if (r.edicao) aceitarServidor(r.edicao, r.historico);
+        const n = (r.regeradas || []).length;
+        mostrarAviso(`${n === 1 ? '1 fala' : `${n} falas`} com a voz atual (${r.doCache || 0} iguais, do cache). Ctrl+Z desfaz.`, 'ok');
+        (r.avisos || []).slice(0, 3).forEach((a) => mostrarAviso(a, 'aviso'));
+        carregarProd();
+    }, [serie, ep, salvarAgora, aceitarServidor, mostrarAviso, carregarProd]);
+
+    // ?montar=1 (vindo do "Próximo passo" da Sala): abre a montagem assim que a edição carrega
+    const pediuMontar = busca.get('montar') === '1';
+    useEffect(() => {
+        if (pediuMontar && doc && !renderAberto) setRenderAberto(true);
+    }, [pediuMontar, doc === null]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---------- relógio: duração e áudio ----------
     useEffect(() => {
@@ -452,6 +522,7 @@ export default function MesaEditor({ ativaResp }) {
         return (
             <div className="mesa" ref={raizRef} style={altura ? { height: altura } : undefined}>
                 <header className="mesa-barra">{cabecalho}</header>
+                {temRoteiro && <ProximoPasso serieId={serie} ep={ep} prod={prod} contexto="mesa" onRecarregar={atualizarDoServidor} onAcao={acaoDoPasso} />}
                 <div className="mesa-vazia">
                     <div className="mesa-cartao-vazio">
                         <Vazio
@@ -540,11 +611,25 @@ export default function MesaEditor({ ativaResp }) {
                             <Ico.refazer aria-hidden="true" />
                         </button>
                     </span>
+                    <MenuAcoes
+                        rotulo="Mais ações da Mesa"
+                        classeBotao="btn icone fantasma"
+                        itens={[
+                            { id: 'falas', rotulo: regerandoFalas ? 'Regerando as falas…' : 'Regerar todas as falas', icone: Ico.voz, dica: 'TTS grátis com a voz/tom atuais de cada personagem; vídeo e cortes ficam (Ctrl+Z desfaz)', desabilitado: regerandoFalas, onSelecionar: regerarTodasFalas },
+                            { id: 'remontar', rotulo: 'Montar de novo a partir do roteiro', icone: Ico.refazer, dica: 'Refaz a edição pelo roteiro e pelas falas (a atual fica no histórico)', onSelecionar: () => montarInicial({ forcar: true }) },
+                        ]}
+                    />
                     <button type="button" className="btn primario" onClick={async () => { await salvarAgora(); setRenderAberto(true); }}>
                         <Ico.montar aria-hidden="true" />Montar episódio
                     </button>
                 </div>
             </header>
+
+            <ProximoPasso
+                serieId={serie} ep={ep} prod={prod} contexto="mesa"
+                modeloTexto={ctx && ctx.serie && ctx.serie.modelos && ctx.serie.modelos.texto}
+                onRecarregar={atualizarDoServidor} onAcao={acaoDoPasso}
+            />
 
             <div className="mesa-corpo">
                 <MesaAcervo serie={serie} ctx={ctx} doc={doc} relogio={relogio} aplicar={aplicar} />
@@ -572,7 +657,7 @@ export default function MesaEditor({ ativaResp }) {
                 onDividir={dividirNoCursor} onRemover={removerSelecionado} atalhos={atalhos} setAtalhos={setAtalhos}
             />
 
-            {renderAberto && <MesaRender serie={serie} ep={ep} doc={doc} inicial={ctx.render} fechar={() => setRenderAberto(false)} />}
+            {renderAberto && <MesaRender serie={serie} ep={ep} doc={doc} inicial={ctx.render} fechar={() => { setRenderAberto(false); carregarProd(); }} />}
         </div>
     );
 }

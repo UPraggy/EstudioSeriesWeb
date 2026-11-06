@@ -479,3 +479,15 @@ test('render real (ffmpeg, tamanho reduzido): mp4 com vídeo e áudio na duraç�
     assert.ok(Math.abs(info.duracaoS - doc.duracaoS) < 0.25, `duração ${info.duracaoS} ≈ ${doc.duracaoS}`);
     assert.deepStrictEqual([info.largura, info.altura], [360, 640]);
 });
+
+test('montarEdicao: opções A/B e chamada escritas no texto de tela viram o cartão A/B (sem texto duplicado)', () => {
+    const roteiro = roteiroTeste();
+    roteiro.planos = roteiro.planos.map((p) => ({ ...p, tela: '' }));
+    const n = roteiro.planos.length;
+    roteiro.planos[n - 2] = { ...roteiro.planos[n - 2], tela: 'A: ' + roteiro.escolhas.A.texto + '\nB: ' + roteiro.escolhas.B.texto };
+    roteiro.planos[n - 1] = { ...roteiro.planos[n - 1], tela: 'Comente A ou B. A mais votada decide o próximo episódio.' };
+    const doc = E.montarEdicao({ roteiro, falas: [], acervo: { clipes: [] }, serie: {}, serieId: SERIE, epId: 'ep01' });
+    assert.deepStrictEqual(doc.faixas.texto, [], 'nenhum texto duplicando o cartão');
+    assert.strictEqual(doc.faixas.ab.length, 1);
+    assert.ok(Math.abs(doc.faixas.ab[0].inicioS - doc.planos[n - 2].deS) < 1e-6, 'o cartão começa no plano das opções');
+});

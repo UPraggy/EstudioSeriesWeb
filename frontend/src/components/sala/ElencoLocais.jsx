@@ -5,7 +5,26 @@ import { AnimatePresence, Expandir, Girador, Item, Lista, MOV, Trocar, Vazio, Vi
 import { CotarGeracao, DefinirCanonica, GerarImagem, IntencoesFala, SalvarFicha } from '../funcionalidades/bancoGet';
 import { erroDe } from '../funcionalidades/fetchFunc';
 import { PASTA_DO_TIPO, caminhoDaFicha, imagemPrincipal, refsDaFicha, urlDaFicha } from './serieUtil';
+import GlobalVar from '../subComponents/GlobalVar';
+import PedidoFicha from './PedidoFicha';
 import '../../assets/css/ElencoLocais.css';
+
+// Toca uma amostra da voz (TTS grátis: Edge/Piper no PC). Uma de cada vez; devolve a mensagem de erro, se houver.
+let audioAtual = null;
+async function tocarAmostra({ serieId, nome, voz, tom }) {
+    if (audioAtual) { audioAtual.pause(); audioAtual = null; }
+    const texto = `Olá, eu sou ${nome || 'esta personagem'}. É assim que a minha voz soa no episódio: calma quando conto, mais tensa quando o perigo chega.`;
+    const r = await fetch(`${GlobalVar.serverBase}/OuvirFala`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto, voz, tom: tom || undefined, serie: serieId, responder: 'arquivo' }),
+    });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); return j.Error || `HTTP ${r.status}`; }
+    const url = URL.createObjectURL(await r.blob());
+    audioAtual = new Audio(url);
+    audioAtual.onended = () => URL.revokeObjectURL(url);
+    await audioAtual.play();
+    return null;
+}
 
 const SUBS = [
     { id: 'elenco', rotulo: 'Elenco', icone: Ico.elenco },
@@ -29,12 +48,38 @@ const VISTAS = {
 };
 
 function promptDe(ficha, vista) {
-    const desc = [ficha.ancora, ficha.onde ? `fica em: ${ficha.onde}` : ''].filter(Boolean).join('. ');
+    // sem ponto final no fim de cada parte: o modelo abaixo já põe ". " (evita "pulso esquerdo..")
+    const desc = [ficha.ancora, ficha.onde ? `fica em: ${ficha.onde}` : ''].map((t) => String(t || '').trim().replace(/[.\s]+$/, '')).filter(Boolean).join('. ');
     if (ficha.tipo === 'personagem') {
         return `Folha de referência de personagem — ${vista.instrucao}. ${desc}. Fundo cinza-claro liso, luz suave de estúdio, fotografia realista, sem texto, sem moldura.`;
     }
     if (ficha.tipo === 'local') return `Referência de cenário: ${ficha.nome}. ${desc}. ${vista.instrucao}. Fotografia realista, formato vertical, sem pessoas, sem texto.`;
     return `Imagem de referência do objeto "${ficha.nome}". ${desc}. ${vista.instrucao}. Fundo neutro, luz suave, fotografia realista, sem texto.`;
+}
+
+// O pedido de UMA vista (o mesmo para gerar aqui, para "Ver prompt" e para levar a outra plataforma).
+// Personagem com rosto canônico: a folha usa esse rosto como referência (mesma pessoa nas 3 vistas).
+// A vista já tem imagem registrada no estado atual?
+function jaTemVista(ficha, vistaId) {
+    const est = (ficha.estados || []).find((e) => e.id === (ficha.estadoAtual || 'padrao')) || (ficha.estados || [])[0];
+    return Boolean(est && est.refs && est.refs[vistaId]);
+}
+
+function pedidoDaVista(ficha, v, modelo) {
+    const pasta = PASTA_DO_TIPO[ficha.tipo];
+    const estado = ficha.estadoAtual || 'padrao';
+    const referencias = ficha.tipo === 'personagem' && ficha.canonica ? [caminhoDaFicha(ficha, ficha.canonica)] : [];
+    const pedido = {
+        modelo,
+        prompt: referencias.length ? `${promptDe(ficha, v)} Mesmo rosto, cabelo e roupa da imagem de referência.` : promptDe(ficha, v),
+        proporcao: '9:16',
+        // vista que já tem imagem ("Gerar de novo"): arquivo novo, para a antiga continuar guardada
+        destino: `${pasta}/${ficha.id}/ref/${estado}-${v.id}${jaTemVista(ficha, v.id) ? `-${Date.now().toString(36)}` : ''}.png`,
+        etapa: 'elenco',
+        ref: `${ficha.id}/${v.id}`,
+    };
+    if (referencias.length) pedido.referencias = referencias;
+    return pedido;
 }
 
 // Campos editáveis comuns (âncora; voz e tom só no elenco). Salva a ficha inteira (o servidor valida e faz backup).
@@ -98,7 +143,7 @@ function BotaoSalvar({ ed, rotulo = 'Salvar ficha' }) {
     );
 }
 
-function FichaPersonagem({ serieId, ficha, vozes, onSalvar, onCanonica, onGerar, preparando, destaque }) {
+function FichaPersonagem({ serieId, ficha, vozes, onSalvar, onCanonica, onGerar, onPrompt, preparando, destaque }) {
     const ed = useEdicaoFicha(ficha, onSalvar);
     const [escolhendo, setEscolhendo] = useState('');
     const [otimista, setOtimista] = useState(null); // rosto escolhido antes da resposta do servidor
@@ -110,6 +155,21 @@ function FichaPersonagem({ serieId, ficha, vozes, onSalvar, onCanonica, onGerar,
     const candidatas = Array.isArray(ficha.candidatas) ? ficha.candidatas : [];
     const voz = vozes.find((v) => v.id === ed.rascunho.voz);
     const piper = String(ed.rascunho.voz || '').startsWith('piper:');
+    const [ouvindo, setOuvindo] = useState(false);
+    async function ouvir() {
+        setOuvindo(true);
+        const erro = await tocarAmostra({ serieId, nome: ficha.nome, voz: ed.rascunho.voz, tom: ed.rascunho.tom });
+        setOuvindo(false);
+        if (erro) avisar(`Não consegui tocar a voz: ${erro}`, 'erro', 5000);
+    }
+    // Edge usa Hz e Piper usa semitons (st): trocar de motor zera o tom na unidade certa.
+    function escolherVoz(id) {
+        ed.mudar('voz', id);
+        const paraPiper = String(id || '').startsWith('piper:');
+        const tom = String(ed.rascunho.tom || '');
+        if (paraPiper && /Hz$/.test(tom)) ed.mudar('tom', '+0st');
+        if (!paraPiper && /st$/.test(tom)) ed.mudar('tom', '+0Hz');
+    }
     const estadoAtual = (ficha.estados || []).find((e) => e.id === ficha.estadoAtual);
 
     async function escolher(c) {
@@ -157,6 +217,9 @@ function FichaPersonagem({ serieId, ficha, vozes, onSalvar, onCanonica, onGerar,
                         <small>3 imagens: frente, perfil e corpo inteiro{ficha.canonica ? ', com o rosto canônico como referência' : ''}. O custo aparece antes.</small>
                     </div>
                 )}
+                <button type="button" className="btn mini fantasma ficha-externo" onClick={() => onPrompt(ficha)} title="Ver o prompt de cada vista e anexar imagens geradas fora (sem custo)">
+                    <Ico.verPrompt aria-hidden="true" />Prompt e anexar
+                </button>
             </div>
 
             <div className="ficha-corpo">
@@ -227,13 +290,16 @@ function FichaPersonagem({ serieId, ficha, vozes, onSalvar, onCanonica, onGerar,
                 <div className="ficha-voz">
                     <label className="campo" htmlFor={`${ficha.id}-voz`}>
                         <span>Voz</span>
-                        <select id={`${ficha.id}-voz`} className="entrada" value={ed.rascunho.voz} onChange={(e) => ed.mudar('voz', e.target.value)}>
+                        <select id={`${ficha.id}-voz`} className="entrada" value={ed.rascunho.voz} onChange={(e) => escolherVoz(e.target.value)}>
                             {!ed.rascunho.voz && <option value="">Escolha uma voz</option>}
                             {vozes.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
                             {ed.rascunho.voz && !voz && vozes.length > 0 && <option value={ed.rascunho.voz} disabled>{ed.rascunho.voz} (fora da lista)</option>}
                         </select>
                         <small>{voz ? `${voz.motor}, ${voz.uso}` : 'Só as vozes recomendadas (vozes.json), todas falando português.'}</small>
                     </label>
+                    <button type="button" className="btn ficha-ouvir" onClick={ouvir} disabled={!ed.rascunho.voz || ouvindo || ed.tomInvalido} aria-busy={ouvindo} title="Ouvir uma amostra desta voz com este tom (grátis)">
+                        {ouvindo && <Girador />}<Ico.ouvir aria-hidden="true" />Ouvir
+                    </button>
                     <label className="campo campo-tom" htmlFor={`${ficha.id}-tom`}>
                         <span>Tom</span>
                         <input id={`${ficha.id}-tom`} className="entrada num" type="text" value={ed.rascunho.tom} placeholder={piper ? '+0st' : '+0Hz'} onChange={(e) => ed.mudar('tom', e.target.value)} aria-invalid={ed.tomInvalido || undefined} />
@@ -254,7 +320,7 @@ function FichaPersonagem({ serieId, ficha, vozes, onSalvar, onCanonica, onGerar,
     );
 }
 
-function FichaCartao({ serieId, ficha, onSalvar, onGerar, preparando, destaque }) {
+function FichaCartao({ serieId, ficha, onSalvar, onGerar, onPrompt, preparando, destaque }) {
     const ed = useEdicaoFicha(ficha, onSalvar);
     const [editando, setEditando] = useState(false);
     const principal = imagemPrincipal(ficha);
@@ -299,12 +365,16 @@ function FichaCartao({ serieId, ficha, onSalvar, onGerar, preparando, destaque }
                             <Ico.editar aria-hidden="true" />Editar âncora
                         </button>
                     )}
-                    {!principal && (
-                        <button type="button" className="btn mini" onClick={() => onGerar(ficha)} disabled={Boolean(preparando)} aria-busy={preparando === ficha.id}>
-                            {preparando === ficha.id && <Girador />}
-                            <Ico.gerarImagem aria-hidden="true" /><span>{rotGerar}</span>
-                        </button>
-                    )}
+                    {/* com imagem: "Gerar de novo" (ex.: depois de mudar a âncora); a imagem antiga fica guardada nas referências */}
+                    <button type="button" className="btn mini" onClick={() => onGerar(ficha)} disabled={Boolean(preparando)} aria-busy={preparando === ficha.id}
+                        title={principal ? 'Gera uma imagem nova com a âncora atual (mostra o custo antes)' : undefined}>
+                        {preparando === ficha.id && <Girador />}
+                        {principal ? <Ico.regerar className="ico-girar" aria-hidden="true" /> : <Ico.gerarImagem aria-hidden="true" />}
+                        <span>{principal ? 'Gerar de novo' : rotGerar}</span>
+                    </button>
+                    <button type="button" className="btn mini fantasma" onClick={() => onPrompt(ficha)} title="Ver o prompt e anexar uma imagem gerada fora (sem custo)">
+                        <Ico.verPrompt aria-hidden="true" />Prompt e anexar
+                    </button>
                 </div>
             </div>
         </article>
@@ -321,6 +391,7 @@ export default function ElencoLocais({ serieId, dados, recarregar, params, irPar
     const [gerando, setGerando] = useState(false);
     const [progresso, setProgresso] = useState('');
     const [erroGer, setErroGer] = useState('');
+    const [fichaPedido, setFichaPedido] = useState(null); // id da ficha aberta em "Prompt e anexar"
 
     useEffect(() => {
         IntencoesFala().then((r) => {
@@ -335,6 +406,7 @@ export default function ElencoLocais({ serieId, dados, recarregar, params, irPar
         if (el) el.scrollIntoView({ block: 'start' });
     }, [fichaAlvo, sub]);
 
+    const modeloImagem = (dados.serie.modelos && dados.serie.modelos.imagem) || 'google/gemini-3.1-flash-image';
     const listas = { elenco: dados.elenco, locais: dados.locais, objetos: dados.objetos };
     const lista = (listas[sub] || []).filter((f) => !f.erro);
     const comErro = (listas[sub] || []).filter((f) => f.erro);
@@ -355,80 +427,100 @@ export default function ElencoLocais({ serieId, dados, recarregar, params, irPar
         return r;
     };
 
-    // Passo 1: cota cada imagem (grátis) e abre a confirmação com o total.
-    async function prepararGeracao(ficha) {
-        const vistas = VISTAS[ficha.tipo] || VISTAS.objeto;
-        const pasta = PASTA_DO_TIPO[ficha.tipo];
-        const estado = ficha.estadoAtual || 'padrao';
-        const modelo = (dados.serie.modelos && dados.serie.modelos.imagem) || 'google/gemini-3.1-flash-image';
-        // Personagem com rosto canônico: a folha usa esse rosto como referência (mesma pessoa nas 3 vistas).
-        const referencias = ficha.tipo === 'personagem' && ficha.canonica ? [caminhoDaFicha(ficha, ficha.canonica)] : [];
-        setPreparando(ficha.id);
+    // Passo 1: cota cada imagem (grátis) de uma ou várias fichas e abre UMA confirmação com o total.
+    async function prepararGeracao(fichaOuLista) {
+        const fichas = Array.isArray(fichaOuLista) ? fichaOuLista : [fichaOuLista];
+        const modelo = modeloImagem;
+        setPreparando(fichas.length === 1 ? fichas[0].id : '__lote__');
         setErroGer('');
-        const itens = [];
-        for (const v of vistas) {
-            const pedido = {
-                modelo,
-                prompt: referencias.length ? `${promptDe(ficha, v)} Mesmo rosto, cabelo e roupa da imagem de referência.` : promptDe(ficha, v),
-                proporcao: '9:16',
-                destino: `${pasta}/${ficha.id}/ref/${estado}-${v.id}.png`,
-                etapa: 'elenco',
-                ref: `${ficha.id}/${v.id}`,
-            };
-            if (referencias.length) pedido.referencias = referencias;
-            const r = await CotarGeracao({ tipo: 'imagem', serie: serieId, pedido });
-            if (erroDe(r)) {
-                setPreparando(null);
-                const msg = `Não consegui cotar ${v.nome.toLowerCase()}: ${erroDe(r)}`;
-                setErroGer(msg);
-                avisar(msg, 'erro', 5000);
-                return;
+        const lotes = [];
+        for (const ficha of fichas) {
+            const vistas = VISTAS[ficha.tipo] || VISTAS.objeto;
+            const pasta = PASTA_DO_TIPO[ficha.tipo];
+            const itens = [];
+            for (const v of vistas) {
+                const pedido = pedidoDaVista(ficha, v, modelo);
+                const r = await CotarGeracao({ tipo: 'imagem', serie: serieId, pedido });
+                if (erroDe(r)) {
+                    setPreparando(null);
+                    const msg = `Não consegui cotar ${ficha.nome} (${v.nome.toLowerCase()}): ${erroDe(r)}`;
+                    setErroGer(msg);
+                    avisar(msg, 'erro', 5000);
+                    return;
+                }
+                itens.push({ vista: v, pedido, cot: r });
             }
-            itens.push({ vista: v, pedido, cot: r });
+            lotes.push({ ficha, pasta, itens });
         }
         setPreparando(null);
-        setGeracao({ ficha, pasta, itens });
+        setGeracao({ lotes });
     }
 
-    // Passo 2 (só depois do clique em "Gerar por US$ X"): gera com o token de cada cotação e registra na ficha.
+    // Passo 2 (só depois do clique em "Gerar por US$ X"): gera com o token de cada cotação e registra em cada ficha.
     async function confirmarGeracao() {
         if (!geracao) return;
-        const { ficha, pasta, itens } = geracao;
         setGerando(true);
         setErroGer('');
-        const refs = {};
-        const prefixo = `${pasta}/${ficha.id}/`;
-        for (const [i, it] of itens.entries()) {
-            setProgresso(`Gerando ${i + 1} de ${itens.length}: ${it.vista.nome.toLowerCase()}…`);
-            const r = await GerarImagem({ serie: serieId, pedido: it.pedido, token: it.cot.token });
-            if (erroDe(r)) { setErroGer(`${it.vista.nome}: ${erroDe(r)}`); break; }
-            const arquivo = (r.arquivos && r.arquivos[0]) || (r.job && r.job.arquivos && r.job.arquivos[0]);
-            if (arquivo) refs[it.vista.id] = arquivo.startsWith(prefixo) ? arquivo.slice(prefixo.length) : arquivo;
-        }
-        window.dispatchEvent(new Event('estudio:gasto'));
-        if (Object.keys(refs).length) {
-            setProgresso('Registrando na ficha…');
-            const nova = structuredClone(ficha);
-            nova.estados = Array.isArray(nova.estados) && nova.estados.length ? nova.estados : [{ id: 'padrao', desde: null, descricao: '', refs: {} }];
-            const est = nova.estados.find((e) => e.id === nova.estadoAtual) || nova.estados[0];
-            est.refs = { ...(est.refs || {}), ...refs };
-            if (!nova.canonica) nova.canonica = refs.frente || refs.geral || Object.values(refs)[0];
-            const r = await SalvarFicha({ serie: serieId, tipo: pasta, ficha: nova });
-            if (erroDe(r)) setErroGer(`As imagens foram geradas, mas não consegui registrar na ficha: ${erroDe(r)}`);
+        const total = geracao.lotes.reduce((n, l) => n + l.itens.length, 0);
+        let feitas = 0;
+        let falhou = false;
+        for (const { ficha, pasta, itens } of geracao.lotes) {
+            const refs = {};
+            const prefixo = `${pasta}/${ficha.id}/`;
+            for (const it of itens) {
+                feitas++;
+                setProgresso(`Gerando ${feitas} de ${total}: ${ficha.nome}, ${it.vista.nome.toLowerCase()}…`);
+                const r = await GerarImagem({ serie: serieId, pedido: it.pedido, token: it.cot.token });
+                if (erroDe(r)) { setErroGer(`${ficha.nome}, ${it.vista.nome}: ${erroDe(r)}`); falhou = true; break; }
+                const arquivo = (r.arquivos && r.arquivos[0]) || (r.job && r.job.arquivos && r.job.arquivos[0]);
+                if (arquivo) refs[it.vista.id] = arquivo.startsWith(prefixo) ? arquivo.slice(prefixo.length) : arquivo;
+            }
+            window.dispatchEvent(new Event('estudio:gasto'));
+            if (Object.keys(refs).length) {
+                setProgresso(`Registrando ${ficha.nome} na ficha…`);
+                const nova = structuredClone(ficha);
+                nova.estados = Array.isArray(nova.estados) && nova.estados.length ? nova.estados : [{ id: 'padrao', desde: null, descricao: '', refs: {} }];
+                const est = nova.estados.find((e) => e.id === nova.estadoAtual) || nova.estados[0];
+                const antes = { ...(est.refs || {}) };
+                // a anterior de cada vista fica guardada como "<vista>-anterior-N"
+                for (const vista of Object.keys(refs)) {
+                    if (antes[vista] && antes[vista] !== refs[vista]) {
+                        let n = 1;
+                        while (antes[`${vista}-anterior-${n}`]) n++;
+                        antes[`${vista}-anterior-${n}`] = antes[vista];
+                    }
+                }
+                est.refs = { ...antes, ...refs };
+                // gerou de novo a vista que era a oficial: a nova vira a oficial
+                const vistaOficial = Object.keys(refs).find((vista) => ficha.canonica && (est.refs[`${vista}-anterior-1`] === ficha.canonica || Object.entries(antes).some(([k, c]) => c === ficha.canonica && k.startsWith(`${vista}-anterior`))));
+                if (!nova.canonica) nova.canonica = refs.frente || refs.geral || Object.values(refs)[0];
+                else if (vistaOficial) nova.canonica = refs[vistaOficial];
+                const r = await SalvarFicha({ serie: serieId, tipo: pasta, ficha: nova });
+                if (erroDe(r)) { setErroGer(`As imagens de ${ficha.nome} foram geradas, mas não consegui registrar na ficha: ${erroDe(r)}`); falhou = true; }
+            }
+            if (falhou) break;
         }
         setGerando(false);
         setProgresso('');
-        if (Object.keys(refs).length === itens.length) {
+        if (!falhou) {
             setGeracao(null);
-            avisar(`${ficha.nome}: ${itens.length} ${itens.length === 1 ? 'imagem gerada' : 'imagens geradas'}`, 'ok', 4000);
+            avisar(`${feitas} ${feitas === 1 ? 'imagem gerada' : 'imagens geradas'}`, 'ok', 4000);
         }
         recarregar();
     }
 
-    const totalGer = geracao ? geracao.itens.reduce((s, it) => s + (Number(it.cot.custoPrevistoUsd) || 0), 0) : 0;
-    const orc = geracao && geracao.itens[0] ? geracao.itens[0].cot.orcamento || {} : {};
-    const avisosGer = geracao ? [...new Set(geracao.itens.flatMap((it) => it.cot.avisos || []))] : [];
+    // Fichas sem nenhuma imagem (elenco, locais e objetos) para o "Gerar imagens que faltam".
+    const semImagem = [...(dados.elenco || []), ...(dados.locais || []), ...(dados.objetos || [])]
+        .filter((f) => f && !f.erro && !f.canonica && !refsDaFicha(f).length);
+
+    const itensGer = geracao ? geracao.lotes.flatMap((l) => l.itens.map((it) => ({ ...it, ficha: l.ficha }))) : [];
+    const totalGer = itensGer.reduce((soma, it) => soma + (Number(it.cot.custoPrevistoUsd) || 0), 0);
+    const orc = itensGer[0] ? itensGer[0].cot.orcamento || {} : {};
+    const avisosGer = [...new Set(itensGer.flatMap((it) => it.cot.avisos || []))];
+    const unica = geracao && geracao.lotes.length === 1 ? geracao.lotes[0].ficha : null;
     const subAtual = SUBS.find((s) => s.id === sub);
+    // a ficha do "Prompt e anexar" vem sempre da lista atual (depois de anexar, recarrega com a imagem nova)
+    const fichaAberta = fichaPedido ? [...(dados.elenco || []), ...(dados.locais || []), ...(dados.objetos || [])].find((f) => f && !f.erro && f.id === fichaPedido) || null : null;
 
     return (
         <div className="elenco">
@@ -446,6 +538,15 @@ export default function ElencoLocais({ serieId, dados, recarregar, params, irPar
                     );
                 })}
             </div>
+
+            {semImagem.length > 0 && (
+                <div className="elenco-lote">
+                    <span className="suave">{semImagem.length} {semImagem.length === 1 ? 'ficha sem imagem' : 'fichas sem imagem'}: {semImagem.map((f) => f.nome).join(', ')}.</span>
+                    <button type="button" className="btn primario" disabled={Boolean(preparando) || gerando} aria-busy={preparando === '__lote__'} onClick={() => prepararGeracao(semImagem)}>
+                        {preparando === '__lote__' && <Girador />}<Ico.gerarImagem aria-hidden="true" />Gerar imagens que faltam
+                    </button>
+                </div>
+            )}
 
             {erroGer && !geracao && <p className="nota-erro" role="alert"><Ico.erro aria-hidden="true" />{erroGer}</p>}
             {erroVozes && sub === 'elenco' && <p className="nota-aviso"><Ico.aviso aria-hidden="true" />Não consegui ler as vozes recomendadas: {erroVozes}</p>}
@@ -467,6 +568,7 @@ export default function ElencoLocais({ serieId, dados, recarregar, params, irPar
                                 onSalvar={salvarFicha}
                                 onCanonica={definirCanonica}
                                 onGerar={prepararGeracao}
+                                onPrompt={(f) => setFichaPedido(f.id)}
                                 preparando={preparando}
                                 destaque={fichaAlvo === f.id}
                             />
@@ -477,27 +579,36 @@ export default function ElencoLocais({ serieId, dados, recarregar, params, irPar
                     <Lista as="ul" className="grade-fichas">
                         {lista.map((f) => (
                             <Item as="li" key={f.id}>
-                                <FichaCartao serieId={serieId} ficha={f} onSalvar={salvarFicha} onGerar={prepararGeracao} preparando={preparando} destaque={fichaAlvo === f.id} />
+                                <FichaCartao serieId={serieId} ficha={f} onSalvar={salvarFicha} onGerar={prepararGeracao} onPrompt={(x) => setFichaPedido(x.id)} preparando={preparando} destaque={fichaAlvo === f.id} />
                             </Item>
                         ))}
                     </Lista>
                 )}
             </Trocar>
 
+            <PedidoFicha
+                aberto={Boolean(fichaAberta)}
+                serieId={serieId}
+                ficha={fichaAberta}
+                itens={fichaAberta ? (VISTAS[fichaAberta.tipo] || VISTAS.objeto).map((v) => ({ vista: v, pedido: pedidoDaVista(fichaAberta, v, modeloImagem) })) : []}
+                onFechar={() => setFichaPedido(null)}
+                onAnexado={() => recarregar()}
+            />
+
             <ConfirmarCusto
                 aberto={Boolean(geracao)}
-                titulo={geracao ? (geracao.ficha.tipo === 'personagem' ? `Folha de personagem — ${geracao.ficha.nome}` : `Referência — ${geracao.ficha.nome}`) : ''}
-                descricao={geracao ? `${geracao.itens.length} ${geracao.itens.length === 1 ? 'imagem' : 'imagens'} com ${geracao.itens[0].cot.nomeModelo || geracao.itens[0].cot.modelo}.` : ''}
-                itens={geracao ? geracao.itens.map((it) => ({
-                    descricao: `${it.vista.nome} · ${(it.cot.parametros && it.cot.parametros.resolucao) || ''} ${(it.cot.parametros && it.cot.parametros.proporcao) || ''}`.trim(),
+                titulo={!geracao ? '' : unica ? (unica.tipo === 'personagem' ? `Folha de personagem — ${unica.nome}` : `Referência — ${unica.nome}`) : `Imagens que faltam — ${geracao.lotes.length} fichas`}
+                descricao={itensGer.length ? `${itensGer.length} ${itensGer.length === 1 ? 'imagem' : 'imagens'} com ${itensGer[0].cot.nomeModelo || itensGer[0].cot.modelo}.` : ''}
+                itens={itensGer.map((it) => ({
+                    descricao: `${unica ? '' : `${it.ficha.nome}: `}${it.vista.nome} · ${(it.cot.parametros && it.cot.parametros.resolucao) || ''} ${(it.cot.parametros && it.cot.parametros.proporcao) || ''}`.trim(),
                     usd: it.cot.custoPrevistoUsd,
                     estimativa: it.cot.estimativa,
-                })) : []}
+                }))}
                 totalUsd={totalGer}
                 teto={orc.tetos ? { rotulo: 'Teto da série', tetoUsd: orc.tetos.serie, gastoUsd: orc.gastoSerieUsd || 0 } : undefined}
                 avisos={avisosGer}
-                simulado={geracao ? geracao.itens.some((it) => it.cot.simulado) : false}
-                arquivos={geracao ? geracao.itens.map((it) => it.pedido.destino) : []}
+                simulado={itensGer.some((it) => it.cot.simulado)}
+                arquivos={itensGer.map((it) => it.pedido.destino)}
                 ocupado={gerando}
                 progresso={progresso}
                 erro={erroGer}

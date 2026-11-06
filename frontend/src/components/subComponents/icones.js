@@ -19,6 +19,12 @@ import { LayoutDashboard, CircleDashed, ScanFace, ImagePlus } from 'lucide-react
 import { Laptop, PlugZap, Unplug } from 'lucide-react';
 // acrescentados para a lixeira recuperável (apagar série/episódio, refazer roteiro, restaurar)
 import { Ellipsis, Archive, ArchiveRestore, FilePenLine } from 'lucide-react';
+// acrescentados para o Registro (log/histórico)
+import { Activity, Globe, Server, Cloud } from 'lucide-react';
+// acrescentados para as notas do roteiro (observações, pedir ajustes, comparar propostas)
+import { NotebookPen, MessageSquarePlus, Columns2 } from 'lucide-react';
+// acrescentados para "gerado fora" (ver prompt/pedido, colar resposta, anexar arquivo de outra plataforma)
+import { ClipboardPaste, Braces, FileUp } from 'lucide-react';
 
 export const Ico = {
     // navegação e casca
@@ -52,4 +58,10 @@ export const Ico = {
     computador: Laptop, conectado: PlugZap, desconectado: Unplug,
     // lixeira recuperável: menu "Mais ações", lixeira, restaurar, refazer o roteiro do zero
     maisAcoes: Ellipsis, lixeira: Archive, restaurar: ArchiveRestore, refazerRoteiro: FilePenLine,
+    // registro (log)
+    registro: Activity, requisicao: Globe, sistema: Server, openrouter: Cloud,
+    // notas do roteiro: observações, pedir ajustes, comparar propostas
+    observacoes: NotebookPen, ajustar: MessageSquarePlus, comparar: Columns2,
+    // gerado fora: ver o prompt/pedido, colar a resposta de fora, copiar JSON, anexar arquivo gerado fora
+    verPrompt: Eye, colar: ClipboardPaste, json: Braces, anexarArquivo: FileUp,
 };

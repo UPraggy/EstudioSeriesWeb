@@ -1,0 +1,55 @@
+/* Duração do episódio: o chip "30 s · Duração" abre o editor (número livre + atalhos, como no Novo episódio). */
+.dur-ep { display: flex; flex-direction: column; gap: var(--e2); margin: var(--e2) 0; }
+.dur-chip {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; height: 32px; padding: 0 var(--e3);
+  border: 1px solid var(--borda-forte); border-radius: var(--raio-sm); background: var(--superficie-2); color: var(--texto);
+  font: 500 var(--t-sm)/1 var(--fonte); cursor: pointer;
+  transition: border-color var(--motion-fast) var(--ease-standard), background var(--motion-fast) var(--ease-standard);
+}
+.dur-chip:hover { border-color: var(--texto-3); background: var(--superficie-3); }
+.dur-chip > svg { width: 15px; height: 15px; color: var(--texto-2); }
+.dur-chip strong { font-size: var(--t-md); font-weight: 700; }
+.dur-editar { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; padding-left: var(--e2); border-left: 1px solid var(--borda-forte); color: var(--texto-2); font-size: var(--t-xs); }
+.dur-editar svg { width: 13px; height: 13px; }
+
+.dur-form { display: flex; flex-direction: column; gap: var(--e2); padding: var(--e3); border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); }
+.dur-linha { display: flex; align-items: center; gap: var(--e3); flex-wrap: wrap; }
+.dur-numero {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 2px var(--e3) 4px; border: 1px solid var(--borda-forte);
+  border-radius: var(--raio-sm); background: var(--fundo); cursor: text;
+}
+.dur-numero:focus-within { border-color: var(--texto); box-shadow: 0 0 0 3px var(--acao-suave); }
+.dur-ep .dur-numero input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]) {
+  width: 3.6ch; min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; outline: none;
+  color: var(--texto); font: 780 32px/1.1 var(--fonte); font-stretch: 72%; font-variant-numeric: tabular-nums; text-align: right;
+}
+.dur-numero input[aria-invalid="true"] { color: var(--perigo); }
+.dur-unidade { font-size: var(--t-md); font-weight: 600; color: var(--texto-2); }
+.dur-atalhos { display: inline-flex; gap: var(--e1); padding: 3px; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--fundo); }
+.dur-atalho {
+  position: relative; height: 30px; min-width: 50px; padding: 0 var(--e2); border: 0; border-radius: var(--raio-sm); background: none;
+  color: var(--texto-2); font: 600 var(--t-xs)/1 var(--fonte); cursor: pointer;
+  transition: color var(--motion-fast) var(--ease-standard);
+}
+.dur-atalho:hover { color: var(--texto); }
+.dur-atalho.ativo { color: var(--acao-texto); }
+.dur-atalho > .num { position: relative; z-index: 1; }
+.dur-atalho-marca { position: absolute; inset: 0; border-radius: var(--raio-sm); background: var(--acao); }
+.dur-erro-txt { color: var(--perigo); }
+.dur-check { display: inline-flex; align-items: center; gap: var(--e2); font-size: var(--t-sm); cursor: pointer; }
+.dur-acoes { display: flex; gap: var(--e2); justify-content: flex-end; }
+.dur-nota { display: flex; align-items: center; gap: 6px; margin: 0; font-size: var(--t-xs); }
+.dur-nota svg { width: 14px; height: 14px; flex: none; }
+
+.dur-atraso {
+  display: flex; align-items: center; gap: var(--e2) var(--e3); flex-wrap: wrap; padding: var(--e2) var(--e3);
+  border: 1px solid var(--aviso-borda); border-radius: var(--raio); background: var(--aviso-suave);
+}
+.dur-atraso-ico { width: 16px; height: 16px; color: var(--aviso); flex: none; }
+.dur-atraso p { flex: 1 1 260px; margin: 0; font-size: var(--t-sm); }
+.dur-atraso p span { color: var(--texto-2); }
+.dur-atraso-acoes { display: flex; gap: var(--e2); flex-wrap: wrap; }
+@media (max-width: 560px) {
+  .dur-atalhos { width: 100%; }
+  .dur-atalho { flex: 1; min-width: 0; }
+}

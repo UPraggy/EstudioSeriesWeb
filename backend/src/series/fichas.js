@@ -193,7 +193,9 @@ function nomeLivre(pasta, base, ext) {
  * A mesma imagem (mesmo conteúdo) nunca é copiada duas vezes. Devolve { ficha, caminho, copiado }.
  */
 async function adicionarReferencia(serie, tipo, id, caminhoArquivo, opcoes = {}) {
-    const { estado, vista, candidata = false, nomeOriginal } = opcoes;
+    // canonicaSeFaltar: a imagem vira a canônica se a ficha ainda não tem (igual à geração da folha);
+    // externo: { original, em } = anexada pelo Rafael (gerada fora do Estúdio), registrada em ficha.anexosExternos.
+    const { estado, vista, candidata = false, nomeOriginal, canonicaSeFaltar = false, externo = null } = opcoes;
     if (typeof caminhoArquivo !== 'string' || !caminhoArquivo.trim()) throw erro('Informe o caminho da imagem.');
     const origem = path.resolve(caminhoArquivo);
     const { ext, tamanho } = await conferirImagem(origem);
@@ -234,7 +236,15 @@ async function adicionarReferencia(serie, tipo, id, caminhoArquivo, opcoes = {})
                     if (!f.estadoAtual) f.estadoAtual = estadoId;
                 }
                 est.refs = est.refs && typeof est.refs === 'object' ? est.refs : {};
+                const anterior = est.refs[vistaId];
                 est.refs[vistaId] = rel;
+                // a canônica acompanha a troca quando era a imagem anterior desta mesma vista
+                if (canonicaSeFaltar && (!f.canonica || (anterior && f.canonica === anterior))) f.canonica = rel;
+            }
+            if (externo) {
+                f.anexosExternos = Array.isArray(f.anexosExternos) ? f.anexosExternos : [];
+                f.anexosExternos.push({ caminho: rel, original: nomeOrig, estado: candidata ? null : estadoId, vista: candidata ? null : vistaId, origem: 'externo', custoUsd: 0, em: externo.em || new Date().toISOString() });
+                if (f.anexosExternos.length > 60) f.anexosExternos = f.anexosExternos.slice(-60);
             }
             return f;
         }, opcoes);

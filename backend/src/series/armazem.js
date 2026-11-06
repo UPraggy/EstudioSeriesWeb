@@ -181,7 +181,8 @@ async function gravarNaSerie(pastaDaSerie, caminho, dados) {
 async function atualizarNaSerie(pastaDaSerie, caminho, mutar, { padrao = SEM_PADRAO, validador } = {}) {
     return comTrava(caminho, async () => {
         const atual = await lerJson(caminho, padrao === SEM_PADRAO ? SEM_PADRAO : structuredClone(padrao));
-        const novo = (await mutar(atual)) || atual;
+        let novo = (await mutar(atual)) || atual;
+        if (path.basename(caminho) === 'serie.json') novo = migrarVozes(novo);
         if (validador) exigirValido(validador(novo), path.basename(caminho));
         await gravarNaSerie(pastaDaSerie, caminho, novo);
         return novo;
@@ -214,7 +215,7 @@ function modeloSerie({ id, titulo, genero, ideia }) {
             videoFinal: 'google/veo-3.1-lite',
             apresentador: 'heygen/avatar-iv',
         },
-        vozes: { narrador: 'de-DE-FlorianMultilingualNeural', alerta: 'en-US-BrianMultilingualNeural' },
+        vozes: { narrador: 'de-DE-FlorianMultilingualNeural', alerta: 'piper:pt_BR-cadu-medium' },
         tons: {},
         etapa: 'ideia',
         ideia: ideia || '',
@@ -306,9 +307,20 @@ async function exigirSerie(id, opcoes = {}) {
     return pasta;
 }
 
+// Vozes que saíram da lista recomendada → substituta (o Rafael tirou o Brian em 06/11/2026: sotaque).
+// Séries antigas continuam abrindo e salvando: a troca acontece ao ler e ao atualizar o serie.json.
+const VOZES_REMOVIDAS = { 'en-US-BrianMultilingualNeural': 'piper:pt_BR-cadu-medium' };
+function migrarVozes(serie) {
+    if (!serie || typeof serie !== 'object' || !serie.vozes || typeof serie.vozes !== 'object') return serie;
+    for (const [papel, voz] of Object.entries(serie.vozes)) {
+        if (VOZES_REMOVIDAS[voz]) serie.vozes[papel] = VOZES_REMOVIDAS[voz];
+    }
+    return serie;
+}
+
 async function lerSerie(id, opcoes = {}) {
     const pasta = await exigirSerie(id, opcoes);
-    return lerJson(path.join(pasta, 'serie.json'));
+    return migrarVozes(await lerJson(path.join(pasta, 'serie.json')));
 }
 
 async function salvarSerie(id, dados, opcoes = {}) {

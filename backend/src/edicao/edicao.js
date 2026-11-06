@@ -188,6 +188,23 @@ function recalcularLegenda(doc, idsItens = null) {
 
 // ---------------------------------------------------------------- montagem inicial (função pura)
 const RE_CARTOES = /cart(õ|o)es\s*a\s*\/\s*b/i;
+const simplesTela = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// O texto de tela traz as opções A e B (pelo texto delas ou pelo formato "A: … B: …")?
+function telaComEscolhas(tela, escolhas) {
+    if (!tela) return false;
+    if (/(^|\s)A\s*[:\-–)]\s*\S[\s\S]*(^|\s)B\s*[:\-–)]\s*\S/.test(tela)) return true;
+    if (!escolhas) return false;
+    const t = simplesTela(tela);
+    const a = simplesTela(escolhas.A && escolhas.A.texto);
+    const b = simplesTela(escolhas.B && escolhas.B.texto);
+    return Boolean(a && b && t.includes(a) && t.includes(b));
+}
+// O texto de tela é a chamada para comentar (o CTA)?
+function telaEhChamada(tela, cta) {
+    if (!tela) return false;
+    const t = simplesTela(tela);
+    return /(^| )comente( |$)/.test(t) || Boolean(cta && t === simplesTela(cta));
+}
 
 /**
  * montarEdicao({ roteiro, falas, acervo, planosDoc, serie, fichas, agora }) → edicao.json
@@ -273,7 +290,11 @@ function montarEdicao({ roteiro, falas = [], acervo = { clipes: [] }, planosDoc 
 
         // texto de tela (o marcador "CARTÕES A / B" vira a faixa A/B)
         const tela = String(p.tela || '').trim();
-        if (RE_CARTOES.test(tela)) {
+        // A IA às vezes escreve as próprias opções ("A: … B: …") ou a chamada ("Comente A ou B…") no texto de tela:
+        // isso também vira a faixa A/B (o cartão já mostra as opções e a chamada), nunca texto duplicado por cima.
+        if (RE_CARTOES.test(tela) || telaComEscolhas(tela, roteiro.escolhas)) {
+            if (abInicio === null) abInicio = deS;
+        } else if (roteiro.escolhas && telaEhChamada(tela, roteiro.cta)) {
             if (abInicio === null) abInicio = deS;
         } else if (tela) {
             const ini = deS + Math.min(0.25, dur / 6);
@@ -529,12 +550,21 @@ async function salvarEdicao(serie, ep, doc, { revisaoBase, registrar = true } = 
 }
 
 // Ler-alterar-gravar no servidor (regeração, fala): sempre sobre a versão mais nova.
-async function atualizarEdicao(serie, ep, mutar) {
+// Duas gravações do servidor ao mesmo tempo (ex.: vários planos do lote de vídeo terminando juntos) batem no 409 da
+// revisão: relê a versão nova e aplica a mudança de novo (a mutação é sempre sobre a versão mais nova).
+async function atualizarEdicao(serie, ep, mutar, tentativas = 6) {
     const c = U.caminhos(serie, ep);
-    const atual = await U.lerJson(c.edicao, null);
-    if (!atual) throw U.erro('Este episódio ainda não tem edição: gere a edição inicial.', 404);
-    const novo = (await mutar(JSON.parse(JSON.stringify(atual)))) || atual;
-    return salvarEdicao(serie, ep, novo, { revisaoBase: atual.revisao });
+    for (let i = 0; ; i++) {
+        const atual = await U.lerJson(c.edicao, null);
+        if (!atual) throw U.erro('Este episódio ainda não tem edição: gere a edição inicial.', 404);
+        const novo = (await mutar(JSON.parse(JSON.stringify(atual)))) || atual;
+        try {
+            return await salvarEdicao(serie, ep, novo, { revisaoBase: atual.revisao });
+        } catch (e) {
+            if (e.status !== 409 || i >= tentativas - 1) throw e;
+            await new Promise((r) => setTimeout(r, 20 + Math.random() * 60));
+        }
+    }
 }
 
 async function moverNoHistorico(serie, ep, passo) {

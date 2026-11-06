@@ -14,8 +14,7 @@ const FASES = [
 const VOZES_PADRAO = [
     { id: 'de-DE-FlorianMultilingualNeural', uso: 'NARRADOR padrão', genero: 'masculina' },
     { id: 'pt-BR-ThalitaMultilingualNeural', uso: 'MULHER (prioridade)', genero: 'feminina' },
-    { id: 'piper:pt_BR-cadu-medium', uso: 'jovem masculino (evitar na fala dele: Davi, ilhota, feixe, turno, ponte)', genero: 'masculina' },
-    { id: 'en-US-BrianMultilingualNeural', uso: 'rádio / alerta', genero: 'masculina' },
+    { id: 'piper:pt_BR-cadu-medium', uso: 'voz brasileira nativa: rádio / alerta e personagem masculino (evitar na fala dele: Davi, ilhota, feixe, turno, ponte)', genero: 'masculina' },
     { id: 'en-AU-WilliamMultilingualNeural', uso: 'personagem masculino', genero: 'masculina' },
     { id: 'en-US-AndrewMultilingualNeural', uso: 'personagem masculino', genero: 'masculina' },
     { id: 'fr-FR-RemyMultilingualNeural', uso: 'personagem masculino', genero: 'masculina' },
@@ -66,6 +65,30 @@ function retencao(alvo, ultimo, semEscolha) {
     return `RETENÇÃO: 0–${t(5)} s gancho (imagem forte + frase que cria pergunta) · ${t(5)}–${t(15)} s contexto · ${t(15)}–${t(35)} s desenvolvimento · ${t(35)}–${t(48)} s virada · ${fim}.`;
 }
 
+// Abertura do episódio: o Ep. 1 é o PILOTO (o público não sabe nada); do Ep. 2 em diante, recapitulação curta.
+function abertura(ep, alvo) {
+    const n = Number(ep);
+    if (n === 1) {
+        if (alvo < 20) return 'PILOTO (Ep. 1, curto): o gancho do plano 1 vem com UMA frase que situe quem é a protagonista e onde ela está.';
+        const ate = Math.round(alvo * 0.35);
+        return `PILOTO (Ep. 1): o público NÃO sabe nada sobre a série.
+- Plano 1: gancho visual forte, MAS com uma frase que situe (quem, onde).
+- Até ~${ate} s (os primeiros 30–40%), o NARRADOR APRESENTA: o nome da protagonista e o que ela faz ali, onde ela está, o que aconteceu com o mundo e o que ela quer ou teme.
+- Depois, um problema CONCRETO que nasce dessa situação; o resto do episódio é a protagonista lidando com ele.`;
+    }
+    if (n >= 2) return `ABERTURA (Ep. ${n}): comece com uma recapitulação de UMA frase do narrador ("Antes: …") e siga pela consequência da escolha vencedora do episódio anterior.`;
+    return '';
+}
+
+// Modo revisão do roteiro: o Rafael leu uma proposta (ou o roteiro salvo) e pediu ajustes.
+const REVISAO_ROTEIRO = `
+MODO REVISÃO
+- Você recebe o ROTEIRO ATUAL (JSON) e os AJUSTES pedidos pelo Rafael.
+- Aplique os ajustes e MANTENHA todo o resto como está: título, planos, falas, ids, tempos e escolhas que o pedido não toca.
+- Se um ajuste obrigar a mexer em outra parte (tempo, fala vizinha, escolha), mexa só no necessário para a história continuar com nexo.
+- As regras de sempre valem: duração total, faixa de planos, limite de palavras, cartões A/B, CTA falado, continuidade.
+- Devolva o roteiro COMPLETO no mesmo formato JSON (não só o trecho mudado), com "aprovado": null.`;
+
 const SISTEMA = {
     ideias: (modo) => `${BASE}
 
@@ -89,14 +112,20 @@ ETAPA 2 — BÍBLIA DE CONTINUIDADE + MAPA DOS 10 EPISÓDIOS
 FORMATO: {"biblia":{"premissa":"","regras":[""],"cronologia":[],"recursos":{"agua":"","comida":"","energia":"","comunicacao":""},
 "objetos":[{"id":"","nome":"","onde":"id do local","fixo":false}],"personagens":[{"id":"","onde":"id do local","estado":"sem ferimentos","sabe":[""]}],
 "segredos":{"personagens":[""],"publico":[""]},"misterios":[""],"escolhas":[],
-"temporada":[{"n":1,"titulo":"","fase":"${FASES[0]}","resumo":"","status":"planejado"}]},
+"temporada":[{"n":1,"titulo":"","fase":"${FASES[0]}","resumo":"","status":"ideia"}]},
 "elenco":[{"id":"","nome":"","papel":"","ancora":"","ancoraEn":"","vozSugerida":""}],
 "locais":[{"id":"","nome":"","ancora":"","ancoraEn":""}]}`,
 
-    roteiro: (ultimo, alvo = 60, semEscolha = false) => `${BASE}
+    roteiro: (ultimo, alvo = 60, semEscolha = false, ep = null) => `${BASE}
 
 ETAPA 3 — ROTEIRO DE UM EPISÓDIO (${alvo} s)
 ${retencao(alvo, ultimo, semEscolha)}
+${abertura(ep, alvo)}
+NEXO (todo episódio)
+- Cada plano é CONSEQUÊNCIA do anterior: causa → efeito explícito na fala ou no visual ("por isso", "então", "mas"). Nada de cenas soltas.
+- Nenhum evento, lugar ou personagem sem apresentação: na primeira vez que aparece, a fala diz quem/o que é.
+- Nenhum mistério novo sem pista: se algo estranho acontece, mostre um detalhe que o público possa seguir.
+- Nenhum trecho sem fala nem som por mais de ~3 s (o gancho do plano 1 pode ser só imagem).
 PLANOS
 - ${faixaPlanos(alvo)} de 2 a 10 s; deS/ateS contínuos a partir de 0; soma = ${alvo} s.
 - "tipo": "apresentador" (o narrador na biblioteca falando para a câmera: situa e fecha; único com lip-sync; NO MÁXIMO 2 planos e nunca o plano 1 — o gancho é imagem da história) | "video_ia" (clipe novo; NO MÁXIMO 3 por episódio) | "reaproveitar" (clipe que já existe: ambiente, mão, paisagem) | "grafico" (mapa, cartão, título).
@@ -112,7 +141,10 @@ ${semEscolha
         ? '- Episódio curto, SEM votação: "escolhas": null e "cta": "". Termine numa imagem ou frase forte.'
         : ultimo
         ? '- Último episódio: "escolhas": null e "cta": "' + CTA_FINAL + '". Feche o mistério central.'
-        : `- "escolhas": A e B diferentes, plausíveis; "texto" com 2 a 4 palavras em CAIXA ALTA (ex.: "ACENDER O FAROL"), o custo em "detalhe" e a "consequencia" para o próximo episódio. "cta" exatamente: "${CTA_PADRAO}"`}
+        : `- "escolhas": A e B diferentes, plausíveis; "texto" com 2 a 4 palavras em CAIXA ALTA (ex.: "ACENDER O FAROL"), o custo em "detalhe" e a "consequencia" para o próximo episódio. "cta" exatamente: "${CTA_PADRAO}"
+- A escolha NASCE do problema mostrado no episódio: as duas opções são respostas diretas a ele.
+- No plano da escolha, "tela" é EXATAMENTE "CARTÕES A / B" (a montagem desenha os cartões sozinha; NUNCA escreva as opções no "tela") e o NARRADOR LÊ as duas opções em voz alta na fala desse plano.
+- O CTA é FALADO pelo narrador no último plano (fala com o texto do "cta"); nunca escreva o CTA no "tela".`}
 - Cumpra a consequência pendente da última escolha do público, se houver. Nunca invente votação. "aprovado": null.
 - "continuidade": o que este episódio estabelece (fatos novos e onde cada personagem/objeto termina).
 FORMATO: {"versao":1,"n":1,"titulo":"","objetivo":"","resumo":"3 a 5 frases","gancho":"","duracaoAlvoS":${alvo},
@@ -150,6 +182,12 @@ FORMATO: {"cronologia":[{"ep":1,"evento":""}],"personagens":[{"id":"","onde":"",
 "temporada":[{"n":2,"titulo":"","fase":"","resumo":""}],"consequencia":"o que o próximo episódio TEM de mostrar","mudancas":["..."]}`,
 };
 
+// "30 s", "7,5 s"
+const seg = (v) => `${String(Math.round(Number(v) * 10) / 10).replace('.', ',')} s`;
+// a revisão muda a duração do episódio? (roteiro escrito para outra duração)
+const mudouDuracao = (c) => Number(c.duracaoAntesS) > 0 && Number(c.duracaoAlvoS) > 0
+    && Math.abs(Number(c.duracaoAntesS) - Number(c.duracaoAlvoS)) > Math.max(0.5, Math.min(3, Number(c.duracaoAlvoS) * 0.1));
+
 function json(v) {
     return JSON.stringify(v, null, 0);
 }
@@ -163,6 +201,13 @@ const USUARIO = {
     biblia: (c) => `IDEIA APROVADA:\n${typeof c.ideia === 'string' ? c.ideia : json(c.ideia)}\n${c.observacoes ? `\nOBSERVAÇÕES DO RAFAEL: ${c.observacoes}\n` : ''}\nEscreva a bíblia e o mapa dos 10 episódios.`,
 
     roteiro: (c) => `TAREFA: escreva o roteiro do Ep. ${c.ep} (${c.duracaoAlvoS || 60} s) seguindo a memória acima.${c.instrucoes ? `\nINSTRUÇÕES DO RAFAEL: ${c.instrucoes}` : ''}`,
+
+    // revisão: c.roteiroBase (JSON atual) + c.ajustes (o que mudar); c.instrucoes = observações gerais do episódio
+    roteiroRevisao: (c) => `ROTEIRO ATUAL DO EP. ${c.ep} (JSON):\n${json(c.roteiroBase)}\n\n`
+        + `AJUSTES PEDIDOS PELO RAFAEL (aplique todos):\n${c.ajustes}\n`
+        + `${c.instrucoes ? `\nOBSERVAÇÕES GERAIS DO RAFAEL PARA ESTE EPISÓDIO (continuam valendo): ${c.instrucoes}\n` : ''}`
+        + `${mudouDuracao(c) ? `\nDURAÇÃO NOVA: o roteiro atual foi escrito para ${seg(c.duracaoAntesS)}${c.duracaoPlanosAntesS && Math.abs(c.duracaoPlanosAntesS - c.duracaoAntesS) > 0.5 ? ` (os planos somam ${seg(c.duracaoPlanosAntesS)})` : ''} e o episódio agora tem ${seg(c.duracaoAlvoS)}. Refaça os tempos (deS/ateS) para somar ${seg(c.duracaoAlvoS)}; ${c.duracaoAlvoS > c.duracaoAntesS ? 'acrescente cenas de introdução e desenvolvimento (cada plano novo mostra algo que a história precisa, sem encher linguiça)' : 'corte ou junte planos, mantendo o essencial da história'}. ${c.semEscolha ? 'Sem votação: "escolhas": null e "cta": "".' : 'Mantenha (ou crie) a escolha A/B no fim.'}\n` : ''}`
+        + `\nTAREFA: revise o roteiro do Ep. ${c.ep} (${c.duracaoAlvoS || 60} s) aplicando os ajustes e mantendo o que não foi pedido para mudar. Devolva o JSON completo.`,
 
     decupagem: (c) => `TAREFA: decupe o roteiro aprovado do Ep. ${c.ep} em planos.json.`
         + `${c.modelos ? `\nModelos padrão: vídeo final ${c.modelos.videoFinal || 'google/veo-3.1-lite'}; apresentador ${c.modelos.apresentador || 'heygen/avatar-iv'}.` : ''}`
@@ -180,4 +225,4 @@ const USUARIO = {
     },
 };
 
-module.exports = { BASE, SISTEMA, USUARIO, CTA_PADRAO, CTA_FINAL, FASES, vozesPermitidas, VOZES_PADRAO };
+module.exports = { BASE, SISTEMA, USUARIO, REVISAO_ROTEIRO, abertura, CTA_PADRAO, CTA_FINAL, FASES, vozesPermitidas, VOZES_PADRAO };

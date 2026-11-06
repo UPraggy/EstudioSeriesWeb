@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GlobalVar from './subComponents/GlobalVar';
 import ConfirmarCusto from './subComponents/ConfirmarCusto';
+import Dialogo from './subComponents/Dialogo';
+import { BlocoPedido } from './subComponents/PedidoExterno';
 import {
     CatalogoVideo, CotarGeracaoSimples, GerarGeracaoSimples, ListarGeracoesSimples, StatusJob, rotaIndisponivel,
 } from './funcionalidades/bancoGet';
@@ -151,6 +153,7 @@ export default function GeracaoSimples({ ativaResp }) {
 
     const [cotando, setCotando] = useState(false);
     const [cot, setCot] = useState(null);
+    const [visto, setVisto] = useState(null); // cotação aberta em "Ver pedido completo" (antes de decidir gerar)
     const [gerando, setGerando] = useState(false);
     const [progresso, setProgresso] = useState('');
     const [erro, setErro] = useState('');
@@ -255,7 +258,7 @@ export default function GeracaoSimples({ ativaResp }) {
                 : !temPedido ? 'Escreva o pedido (ou anexe um texto ou um primeiro quadro).' : '';
     const est = modelo ? estimar(modelo, Number(duracaoS), resolucao, audio) : null;
 
-    async function cotar() {
+    async function cotar(soVer = false) {
         if (bloqueio) return;
         setCotando(true);
         setErro('');
@@ -270,7 +273,8 @@ export default function GeracaoSimples({ ativaResp }) {
                 duracaoS: Number(duracaoS), proporcao, resolucao: resolucao || undefined, audio,
             });
             if (erroDe(r)) { setErro(erroDe(r)); avisar(`Não consegui cotar: ${erroDe(r)}`, 'erro'); return; }
-            setCot(r);
+            if (soVer === true) setVisto(r);
+            else setCot(r);
         } catch (e) {
             setErro(`Não consegui ler o anexo: ${e.message}`);
             avisar(`Não consegui ler o anexo: ${e.message}`, 'erro');
@@ -547,10 +551,13 @@ export default function GeracaoSimples({ ativaResp }) {
                             )}
                         </AnimatePresence>
                         {erro && !cot && <p className="nota-erro gs-nota-bloco" role="alert"><Ico.erro aria-hidden="true" /><span>{erro}</span></p>}
-                        <button type="button" className="btn primario gs-cotar" disabled={Boolean(bloqueio) || cotando || gerando} onClick={cotar} aria-busy={cotando}>
+                        <button type="button" className="btn primario gs-cotar" disabled={Boolean(bloqueio) || cotando || gerando} onClick={() => cotar(false)} aria-busy={cotando}>
                             {cotando && <Girador />}
                             <Ico.custo aria-hidden="true" />
                             <span>{cotando ? 'Cotando…' : 'Ver custo e gerar'}</span>
+                        </button>
+                        <button type="button" className="btn fantasma gs-ver-pedido" disabled={Boolean(bloqueio) || cotando || gerando} onClick={() => cotar(true)} title="O pedido completo (prompt, modelo, parâmetros, imagens) para copiar e gerar em outra plataforma. Não gasta nada.">
+                            <Ico.verPrompt aria-hidden="true" /><span>Ver pedido completo</span>
                         </button>
                         {progresso && !cot && <p className="gs-progresso" aria-live="polite"><span className="gs-ponto-sinal" aria-hidden="true" />{progresso}</p>}
                         <p className="gs-nota"><Ico.info aria-hidden="true" /><span>Cotar não cobra nada: grava o pedido em <code>geracao-simples/</code> e mostra o valor exato para você confirmar.</span></p>
@@ -583,6 +590,44 @@ export default function GeracaoSimples({ ativaResp }) {
                     </div>
                 )}
             </section>
+
+            <Dialogo
+                aberto={Boolean(visto)}
+                id="gs-pedido"
+                icone={Ico.verPrompt}
+                titulo="Pedido completo"
+                descricao="Exatamente o que iria para o OpenRouter. Copie para gerar em outra plataforma (Runway, Kling, Flow...) ou gere aqui."
+                largura={760}
+                onFechar={() => setVisto(null)}
+                rodape={(
+                    <>
+                        <span className="dlg-rodape-esq"><Ico.custo aria-hidden="true" />Ver o pedido não gasta nada.</span>
+                        <button type="button" className="btn" onClick={() => setVisto(null)} data-foco>Fechar</button>
+                        <button type="button" className="btn primario" onClick={() => { const c = visto; setVisto(null); setCot(c); }}>
+                            <Ico.custo aria-hidden="true" />Gerar aqui · {visto ? GlobalVar.usdFino(visto.custoPrevistoUsd) : ''}
+                        </button>
+                    </>
+                )}
+            >
+                {visto && visto.pedidoVisto ? (
+                    <BlocoPedido
+                        prompt={visto.pedidoVisto.prompt}
+                        dados={[
+                            ['Modelo', visto.nomeModelo || visto.modelo],
+                            ['Duração', visto.parametros && visto.parametros.duracaoS ? `${visto.parametros.duracaoS} s` : null],
+                            ['Proporção', visto.parametros && visto.parametros.proporcao],
+                            ['Resolução', visto.parametros && visto.parametros.resolucao],
+                            ['Áudio', visto.parametros ? (visto.parametros.audio ? 'sim' : 'não') : null],
+                            ['Custo aqui', GlobalVar.usdFino(visto.custoPrevistoUsd)],
+                        ]}
+                        imagens={(visto.pedidoVisto.arquivos || []).map((a) => {
+                            const rel = a.caminho ? a.caminho.replace(`${visto.id}/`, '') : null;
+                            return { rotulo: nomePapel(a.papel), url: rel ? GlobalVar.urlMidiaSimples(visto.id, rel) : a.url, nome: rel ? rel.split('/').pop() : undefined };
+                        })}
+                        json={{ ...visto.pedidoVisto, cotacao: { id: visto.id, custoPrevistoUsd: visto.custoPrevistoUsd, estimativa: visto.estimativa } }}
+                    />
+                ) : <p className="dlg-nota">O servidor não devolveu o pedido completo.</p>}
+            </Dialogo>
 
             <ConfirmarCusto
                 aberto={Boolean(cot)}

@@ -10,6 +10,26 @@ const imagem = require('./imagem');
 const simples = require('./geracaoSimples');
 const util = require('./util');
 const { ErroValidacao } = require('./erros');
+const registro = require('../log/registro');
+
+// Registro da cotação (não gasta: o previsto vai em dados, nunca em custoUsd) e das recusas antes de pagar.
+function logCotacao({ tipo, serie, pedido, cot, ms, simples }) {
+    registro.registrar({
+        area: 'openrouter', evento: 'cotacao', serie, ep: pedido && pedido.ep, ms,
+        msg: `Cotação de ${tipo}: previsto US$ ${cot.custoPrevistoUsd} (${cot.modelo || (pedido && pedido.modelo) || '?'})`,
+        dados: {
+            tipo, modelo: cot.modelo || (pedido && pedido.modelo), previstoUsd: cot.custoPrevistoUsd, estimativa: Boolean(cot.estimativa),
+            duracaoS: pedido && pedido.duracaoS, resolucao: pedido && pedido.resolucao, audio: pedido && pedido.audio, simples,
+        },
+    });
+}
+function logRecusa(evento, { tipo, serie, pedido, ms, simples }, e) {
+    registro.registrar({
+        nivel: 'aviso', area: 'openrouter', evento, serie, ep: pedido && pedido.ep, ms,
+        msg: `${evento === 'cotacao-falhou' ? 'Cotação' : 'Geração'} de ${tipo || '?'} recusada: ${e && e.message}`,
+        dados: { tipo, modelo: pedido && pedido.modelo, simples, motivo: e && e.motivo, limite: e && e.limite }, erro: e,
+    });
+}
 
 const MODULOS = {
     video: { normalizar: video.normalizarPedidoVideo, cotar: video.cotarVideo, gerar: video.gerarVideo },
@@ -73,6 +93,27 @@ const numOuNulo = (v) => (typeof v === 'number' && Number.isFinite(v) ? util.arr
 
 // Só números de saldo/limite (o `label` do /key traz parte da chave: nunca sai daqui).
 async function saldo() {
+    const fim = registro.cronometro();
+    try {
+        const r = await saldoSemRegistro();
+        registro.registrar({
+            area: 'openrouter', evento: 'saldo', ms: fim(),
+            msg: r.simulado ? 'Saldo não consultado (modo simulado)'
+                : `Saldo lido: ${r.conta ? `US$ ${r.conta.saldoUsd} na conta` : r.limiteRestanteUsd !== null ? `US$ ${r.limiteRestanteUsd} de limite restante` : 'sem limite definido'}`,
+            dados: {
+                simulado: r.simulado, saldoUsd: r.conta ? r.conta.saldoUsd : null, creditosUsd: r.conta ? r.conta.creditosUsd : null,
+                usadoUsd: r.conta ? r.conta.usadoUsd : null, limiteUsd: r.limiteUsd, limiteRestanteUsd: r.limiteRestanteUsd,
+                usoHojeUsd: r.usoHojeUsd, usoMesUsd: r.usoMesUsd,
+            },
+        });
+        return r;
+    } catch (e) {
+        registro.registrar({ nivel: 'erro', area: 'openrouter', evento: 'saldo-falhou', ms: fim(), msg: `Não consegui ler o saldo: ${e && e.message}`, erro: e });
+        throw e;
+    }
+}
+
+async function saldoSemRegistro() {
     const cliente = obterCliente();
     if (cliente.simulado) {
         return { simulado: true, chaveConfigurada: temChave(), limiteUsd: null, limiteRestanteUsd: null, usoUsd: null, conta: null, avisos: ['Modo simulado: saldo não consultado.'] };
@@ -114,17 +155,31 @@ async function chaveConfirmacao(tipo, ctx, pedido, extra = {}) {
 
 async function cotarGeracao({ tipo = 'video', serie = null, pedido } = {}) {
     if (!pedido) throw new ErroValidacao('Mande o pedido.');
-    const ctx = await obterContexto({ serie });
-    const chave = await chaveConfirmacao(tipo, ctx, pedido);
-    return orcamento.cotar(chave, () => modulo(tipo).cotar(pedido, ctx));
+    const fim = registro.cronometro();
+    try {
+        const ctx = await obterContexto({ serie });
+        const chave = await chaveConfirmacao(tipo, ctx, pedido);
+        const cot = await orcamento.cotar(chave, () => modulo(tipo).cotar(pedido, ctx));
+        logCotacao({ tipo, serie, pedido, cot, ms: fim() });
+        return cot;
+    } catch (e) {
+        logRecusa('cotacao-falhou', { tipo, serie, pedido, ms: fim() }, e);
+        throw e;
+    }
 }
 
 async function gerar({ tipo = 'video', serie = null, pedido, token, aguardar = false } = {}) {
     if (!pedido) throw new ErroValidacao('Mande o pedido.');
-    const ctx = await obterContexto({ serie });
-    const chave = await chaveConfirmacao(tipo, ctx, pedido);
-    const r = await orcamento.executar(chave, token, (_p, { custoPrevistoUsd }) => modulo(tipo).gerar(pedido, ctx, { custoConfirmadoUsd: custoPrevistoUsd, aguardar }));
-    return { ...r, job: vistaJob(r.job) };
+    const fim = registro.cronometro();
+    try {
+        const ctx = await obterContexto({ serie });
+        const chave = await chaveConfirmacao(tipo, ctx, pedido);
+        const r = await orcamento.executar(chave, token, (_p, { custoPrevistoUsd }) => modulo(tipo).gerar(pedido, ctx, { custoConfirmadoUsd: custoPrevistoUsd, aguardar }));
+        return { ...r, job: vistaJob(r.job) };
+    } catch (e) {
+        logRecusa('geracao-falhou', { tipo, serie, pedido, ms: fim() }, e);
+        throw e;
+    }
 }
 
 async function statusJob({ jobId, serie = null } = {}) {
@@ -150,10 +205,15 @@ async function cotarSimples(corpo = {}) {
         const { tipo, pedido } = await simples.pedidoDeGeracao(pj, pasta);
         const chave = await chaveConfirmacao(tipo, ctx, pedido, { simples: id });
         const cot = await orcamento.cotar(chave, () => modulo(tipo).cotar(pedido, ctx));
+        logCotacao({ tipo, serie: null, pedido, cot, simples: id });
         pj.custoPrevistoUsd = cot.custoPrevistoUsd;
         await simples.salvar(ctx.raiz, pj);
-        return { id, pasta, ...cot };
+        // o pedido completo (prompt, modelo, parâmetros, quadros/referências) para "Copiar" e levar para fora
+        let pedidoVisto = null;
+        try { pedidoVisto = require('./pedidoVisivel').verPedido({ tipo, pedido, base: ctx.base }); } catch { pedidoVisto = null; }
+        return { id, pasta, ...cot, pedidoVisto };
     } catch (e) {
+        logRecusa('cotacao-falhou', { tipo: corpo.tipo, serie: null, pedido: corpo, simples: id }, e);
         await fsp.rm(pasta, { recursive: true, force: true }).catch(() => {});
         throw e;
     }
@@ -164,7 +224,13 @@ async function gerarSimples({ id, token, aguardar = false } = {}) {
     const { pasta, pj } = await simples.ler(ctx.raiz, id);
     const { tipo, pedido } = await simples.pedidoDeGeracao(pj, pasta);
     const chave = await chaveConfirmacao(tipo, ctx, pedido, { simples: id });
-    const r = await orcamento.executar(chave, token, (_p, { custoPrevistoUsd }) => modulo(tipo).gerar(pedido, ctx, { custoConfirmadoUsd: custoPrevistoUsd, aguardar }));
+    let r;
+    try {
+        r = await orcamento.executar(chave, token, (_p, { custoPrevistoUsd }) => modulo(tipo).gerar(pedido, ctx, { custoConfirmadoUsd: custoPrevistoUsd, aguardar }));
+    } catch (e) {
+        logRecusa('geracao-falhou', { tipo, serie: null, pedido, simples: id }, e);
+        throw e;
+    }
     let job = r.job;
     // No simulado o "job" termina na primeira consulta: já entrega o resultado.
     if (ctx.simulado && job.status === 'pendente') job = await ctx.jobs.consultar(job.jobId);

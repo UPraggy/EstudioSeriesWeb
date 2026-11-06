@@ -228,3 +228,24 @@
   .series .poster-info { padding: var(--e3) var(--e3) var(--e3); }
   .series .poster-nova { padding: var(--e3); }
 }
+
+/* ---------- lixeira recuperável: menu do pôster (⋯ → Apagar série) e botão "Lixeira" ---------- */
+.series .series-cab-acoes { display: flex; align-items: center; gap: var(--e2); flex-wrap: wrap; }
+.series .series-lixeira-n {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 2px;
+  border-radius: 10px; background: var(--superficie-3); color: var(--texto); font-size: var(--t-xs); font-weight: 650;
+}
+/* o menu fica acima do link que cobre o pôster (z-index 2) e aparece no hover/foco; em tela de toque, sempre */
+.series .poster-menu { align-self: start; justify-self: end; z-index: 3; margin: 8px; }
+.series .poster-menu-btn {
+  display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--raio-sm);
+  background: rgba(12, 12, 13, .78); color: var(--texto); cursor: pointer; opacity: 0; transform: translateY(-2px);
+  transition: opacity var(--motion-base) var(--ease-standard), transform var(--motion-base) var(--ease-emphasized), background-color var(--motion-fast) var(--ease-standard);
+}
+.series .poster-menu-btn svg { width: 18px; height: 18px; }
+.series .poster-menu-btn:hover { background: rgba(12, 12, 13, .95); }
+.series .poster-menu-btn:active { transform: scale(0.94); }
+.series .poster:hover .poster-menu-btn, .series .poster:focus-within .poster-menu-btn, .series .poster-menu-btn[aria-expanded="true"] { opacity: 1; transform: none; }
+@media (hover: none) {
+  .series .poster-menu-btn { opacity: 1; transform: none; }
+}

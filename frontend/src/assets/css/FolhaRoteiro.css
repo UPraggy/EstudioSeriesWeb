@@ -43,3 +43,16 @@
   .folha-titulo { font-size: 18px; }
   .folha .cena-cab { font-size: 14px; flex-wrap: wrap; gap: 0 var(--e3); }
 }
+
+/* comparar propostas: folha mais estreita e os planos que mudaram marcados (borda + palavra "mudou", nunca só cor) */
+.folha.compacta { padding: 32px 28px 40px; font-size: 13.5px; }
+.folha.compacta .folha-cab { margin-bottom: 28px; }
+.folha.compacta .fala-texto { margin-left: 10% !important; width: 80%; }
+.folha .cena.mudou { position: relative; }
+.folha .cena.mudou::before {
+  content: ""; position: absolute; left: -16px; top: 2px; bottom: 2px; width: 3px; border-radius: 2px; background: var(--aviso);
+}
+.folha .cena-mudou {
+  margin-left: 8px; padding: 0 6px; border: 1px solid var(--aviso-borda); border-radius: var(--raio-sm);
+  font: 600 11px/1.6 var(--fonte); color: var(--aviso); vertical-align: 2px;
+}

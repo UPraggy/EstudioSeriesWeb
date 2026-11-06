@@ -25,7 +25,10 @@ export function esquecerNoNavegador(serieId, ep = null) {
     } catch { /* sem armazenamento */ }
 }
 
-export const mb = (v) => `${String(Math.round((Number(v) || 0) * 10) / 10).replace('.', ',')} MB`;
+export const mb = (v) => {
+    const x = Math.round((Number(v) || 0) * 10) / 10;
+    return x < 0.1 ? 'menos de 0,1 MB' : `${String(x).replace('.', ',')} MB`;
+};
 
 /**
  * Apagar série (zona de perigo), na Sala ("Mais ações") e no pôster em Séries.

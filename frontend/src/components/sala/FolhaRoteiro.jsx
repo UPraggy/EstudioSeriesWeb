@@ -20,8 +20,9 @@ function tc(s) {
 /**
  * roteiro: o roteiro.json (ou a proposta do showrunner).
  * nomes: { id → nome } de quem fala · locais: { id → nome do local } · rascunho: proposta ainda não salva.
+ * compacta: folha mais estreita (comparar lado a lado) · mudados: Set com os n dos planos que mudaram (comparação).
  */
-export default function FolhaRoteiro({ roteiro, nomes = {}, locais = {}, rascunho = false }) {
+export default function FolhaRoteiro({ roteiro, nomes = {}, locais = {}, rascunho = false, compacta = false, mudados = null }) {
     const planos = Array.isArray(roteiro.planos) ? roteiro.planos : [];
     const escolhas = roteiro.escolhas && (roteiro.escolhas.A || roteiro.escolhas.B) ? roteiro.escolhas : null;
     const nomeDe = (quem) => {
@@ -31,7 +32,7 @@ export default function FolhaRoteiro({ roteiro, nomes = {}, locais = {}, rascunh
     };
 
     return (
-        <article className={`folha${rascunho ? ' rascunho' : ''}`} aria-label={`Roteiro do episódio ${roteiro.n || ''}: ${roteiro.titulo || ''}`}>
+        <article className={`folha${rascunho ? ' rascunho' : ''}${compacta ? ' compacta' : ''}`} aria-label={`Roteiro do episódio ${roteiro.n || ''}: ${roteiro.titulo || ''}`}>
             <header className="folha-cab">
                 <h3 className="folha-titulo">{roteiro.titulo || `Episódio ${roteiro.n}`}</h3>
                 <p className="folha-credito">Episódio {roteiro.n}, {textoDuracao(roteiro.duracaoAlvoS || 60)}{escolhas ? ', com escolha A/B' : ''}</p>
@@ -40,10 +41,11 @@ export default function FolhaRoteiro({ roteiro, nomes = {}, locais = {}, rascunh
 
             {planos.map((p) => {
                 const local = locais[p.local] || p.local;
+                const mudou = Boolean(mudados && mudados.has(p.n));
                 return (
-                    <section key={p.n} className="cena" aria-label={`Plano ${p.n}`}>
+                    <section key={p.n} className={`cena${mudou ? ' mudou' : ''}`} aria-label={`Plano ${p.n}${mudou ? ', mudou' : ''}`}>
                         <h4 className="cena-cab">
-                            <span>{p.n}. {local || 'Sem local'}</span>
+                            <span>{p.n}. {local || 'Sem local'}{mudou && <span className="cena-mudou">mudou</span>}</span>
                             <span className="cena-tc">{tc(p.deS)}–{tc(p.ateS)}</span>
                         </h4>
                         {p.visual && <p className="rubrica">{p.visual}{TIPO[p.tipo] ? <span className="rubrica-tipo"> ({TIPO[p.tipo]})</span> : null}</p>}

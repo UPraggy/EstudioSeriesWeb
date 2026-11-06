@@ -1,0 +1,19 @@
+/* "Prompt e anexar" de uma ficha: uma linha por vista (imagem atual à esquerda, pedido à direita). */
+.pf-ficha { display: grid; gap: var(--e2); margin: 0; font-size: var(--t-sm); }
+.pf-ficha div { display: grid; grid-template-columns: 88px 1fr; gap: var(--e3); }
+.pf-ficha dt { color: var(--texto-3); font-size: var(--t-xs); padding-top: 2px; }
+.pf-ficha dd { margin: 0; color: var(--texto-2); }
+.pf-vistas { display: flex; flex-direction: column; gap: var(--e4); }
+.pf-vista { display: grid; grid-template-columns: 96px 1fr; gap: var(--e4); align-items: start; }
+.pf-atual { display: flex; flex-direction: column; gap: 6px; font-size: var(--t-xs); }
+.pf-atual img, .pf-sem {
+  width: 96px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: var(--raio); border: 1px solid var(--borda-forte);
+  background: var(--fundo);
+}
+.pf-sem { display: grid; place-content: center; justify-items: center; gap: 6px; color: var(--texto-3); }
+.pf-sem svg { width: 20px; height: 20px; }
+@media (max-width: 640px) {
+  .pf-vista { grid-template-columns: 1fr; }
+  .pf-atual { flex-direction: row; align-items: center; }
+  .pf-atual img, .pf-sem { width: 56px; }
+}

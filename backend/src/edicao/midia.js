@@ -1,5 +1,5 @@
-// MÃ­dia da Mesa: tira de miniaturas por clipe, forma de onda (picos em JSON) e quadro em t (png).
-// Tudo com cache em <sÃ©rie>/.cache/ (chave = arquivo + tamanho + data), servido pela rota /Midia.
+// Mídia da Mesa: tira de miniaturas por clipe, forma de onda (picos em JSON) e quadro em t (png).
+// Tudo com cache em <série>/.cache/ (chave = arquivo + tamanho + data), servido pela rota /Midia.
 const fsp = require('fs/promises');
 const path = require('path');
 const U = require('./util');
@@ -9,7 +9,7 @@ const TAXA_ONDA = 8000;
 
 async function chaveDe(abs, extra) {
     const st = await fsp.stat(abs).catch(() => null);
-    if (!st) throw U.erro(`Arquivo nÃ£o encontrado: ${path.basename(abs)}`, 404);
+    if (!st) throw U.erro(`Arquivo não encontrado: ${path.basename(abs)}`, 404);
     return U.sha(`${abs}|${st.size}|${st.mtimeMs}|${extra}`);
 }
 
@@ -18,8 +18,8 @@ function pastaCache(serie, sub) {
 }
 
 /**
- * Tira de miniaturas (uma imagem com N quadros lado a lado, altura fixa) de um vÃ­deo ou imagem.
- * â†’ { arquivo (relativo Ã  sÃ©rie), n, larguraQuadro, alturaQuadro, duracaoS }
+ * Tira de miniaturas (uma imagem com N quadros lado a lado, altura fixa) de um vídeo ou imagem.
+ * → { arquivo (relativo à série), n, larguraQuadro, alturaQuadro, duracaoS }
  */
 async function miniaturas({ serie, caminho, n, altura = 96 }) {
     const pastaSerie = U.pastasSerie(serie).pastaSerie;
@@ -31,7 +31,7 @@ async function miniaturas({ serie, caminho, n, altura = 96 }) {
         return { arquivo: caminho, n: 1, larguraQuadro: larg, alturaQuadro: alt, duracaoS: 0, imagem: true };
     }
     const info = await U.infoMidia(abs);
-    if (!info.temVideo) throw U.erro('Este arquivo nÃ£o tem vÃ­deo.');
+    if (!info.temVideo) throw U.erro('Este arquivo não tem vídeo.');
     const dur = Math.max(0.1, info.duracaoS);
     const qtd = Math.max(2, Math.min(60, Math.round(Number(n) || Math.ceil(dur * 2))));
     const larg = Math.round((alt * (info.largura || 9)) / (info.altura || 16) / 2) * 2;
@@ -49,7 +49,7 @@ async function miniaturas({ serie, caminho, n, altura = 96 }) {
     return { arquivo: U.relativoNaSerie(pastaSerie, saida), n: qtd, larguraQuadro: larg, alturaQuadro: alt, duracaoS: dur };
 }
 
-// Picos (0â€“1) a cada 1/100 s, de qualquer arquivo com Ã¡udio (wav, mp3, mp4).
+// Picos (0–1) a cada 1/100 s, de qualquer arquivo com áudio (wav, mp3, mp4).
 function picosDePcm(buf, porS = PICOS_POR_S, taxa = TAXA_ONDA) {
     const amostras = Math.floor(buf.length / 2);
     const passo = Math.max(1, Math.round(taxa / porS));
@@ -78,7 +78,7 @@ async function onda({ serie, caminho }) {
     if (!info.temAudio) return { duracaoS: info.duracaoS, porSegundo: PICOS_POR_S, picos: [], semAudio: true };
     const pcm = await U.rodarFfmpeg(['-i', abs, '-vn', '-ac', '1', '-ar', String(TAXA_ONDA), '-f', 's16le', '-acodec', 'pcm_s16le', 'pipe:1'], { saidaBinaria: true });
     const picos = picosDePcm(pcm);
-    // normaliza pelo maior pico (a forma fica legÃ­vel mesmo em fala baixa), guardando o pico real
+    // normaliza pelo maior pico (a forma fica legível mesmo em fala baixa), guardando o pico real
     const maior = Math.max(0.0001, ...picos);
     const r = { duracaoS: info.duracaoS, porSegundo: PICOS_POR_S, picoReal: maior, picos: picos.map((p) => Math.round((p / maior) * 1000) / 1000) };
     await fsp.mkdir(pasta, { recursive: true });
@@ -87,8 +87,8 @@ async function onda({ serie, caminho }) {
 }
 
 /**
- * Quadro do arquivo no tempo tS (do prÃ³prio arquivo) â†’ png.
- * saida (absoluto) opcional; sem ela vai para o cache. Imagem: devolve a prÃ³pria imagem.
+ * Quadro do arquivo no tempo tS (do próprio arquivo) → png.
+ * saida (absoluto) opcional; sem ela vai para o cache. Imagem: devolve a própria imagem.
  */
 async function extrairQuadro({ serie, caminho, tS = 0, saida = null, largura = null }) {
     const pastaSerie = U.pastasSerie(serie).pastaSerie;
@@ -111,7 +111,7 @@ async function extrairQuadro({ serie, caminho, tS = 0, saida = null, largura = n
     const vf = largura ? ['-vf', `scale=${Math.round(largura)}:-2`] : [];
     await U.rodarFfmpeg(['-y', '-ss', t.toFixed(3), '-i', abs, '-frames:v', '1', ...vf, destino]);
     if (!U.existe(destino)) {
-        // perto do fim alguns arquivos nÃ£o devolvem quadro com -ss antes do -i: tenta decodificando atÃ© lÃ¡
+        // perto do fim alguns arquivos não devolvem quadro com -ss antes do -i: tenta decodificando até lá
         await U.rodarFfmpeg(['-y', '-i', abs, '-ss', Math.max(0, t - 0.1).toFixed(3), '-frames:v', '1', ...vf, destino]);
     }
     return { arquivo: U.relativoNaSerie(pastaSerie, destino), tS: U.arred(t) };

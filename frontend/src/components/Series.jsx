@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import GlobalVar from './subComponents/GlobalVar';
 import Dialogo from './subComponents/Dialogo';
-import { ListarSeries, LerSerie, CriarSerie, Saude } from './funcionalidades/bancoGet';
+import { ListarSeries, LerSerie, CriarSerie, Saude, ListarLixeira } from './funcionalidades/bancoGet';
 import { erroDe } from './funcionalidades/fetchFunc';
 import { capaDaSerie, imagemPrincipal, indiceEtapa, urlDaFicha } from './sala/serieUtil';
 import { Ico } from './subComponents/icones';
 import { Lista, Item, Esqueleto, Vazio, Girador, avisar } from './subComponents/Movimento';
 import { lerUltimoLugar } from './TopMenu';
+import MenuAcoes from './subComponents/MenuAcoes';
+import ApagarSerie from './sala/ApagarSerie';
+import Lixeira from './Lixeira';
 import '../assets/css/Telas.css';
 import '../assets/css/Series.css';
 
@@ -77,7 +80,7 @@ function ImagemSerie({ src, className = '', onFalhar }) {
     );
 }
 
-function Poster({ s }) {
+function Poster({ s, onApagar }) {
     const [falhou, setFalhou] = useState(false);
     const capa = s.dados ? capaDaSerie(s.dados) : null;
     const comImagem = Boolean(capa) && !falhou;
@@ -99,6 +102,14 @@ function Poster({ s }) {
                 {s.erro && <p className="poster-erro"><Ico.erro aria-hidden="true" />{s.erro}</p>}
                 <span className="poster-acao" aria-hidden="true"><Ico.showrunner />Abrir Sala</span>
             </div>
+            {onApagar && (
+                <MenuAcoes
+                    className="poster-menu"
+                    classeBotao="poster-menu-btn"
+                    rotulo={`Mais ações: ${s.titulo}`}
+                    itens={[{ id: 'apagar', rotulo: 'Apagar série', icone: Ico.apagar, perigo: true, onSelecionar: () => onApagar(s) }]}
+                />
+            )}
         </article>
     );
 }
@@ -317,7 +328,7 @@ function NovaSerie({ aberto, pastaDados, onFechar, onCriada }) {
                 </label>
                 <label className="dlg-campo">
                     <span>Ideia em uma frase</span>
-                    <textarea rows={3} value={ideia} maxLength={400} placeholder="Ex.: Uma radioamadora capta pedidos de socorro de uma cidade que sumiu do mapa." onChange={(e) => setIdeia(e.target.value)} />
+                    <textarea rows={3} value={ideia} maxLength={20000} placeholder="Ex.: Uma radioamadora capta pedidos de socorro de uma cidade que sumiu do mapa." onChange={(e) => setIdeia(e.target.value)} />
                     <small>Opcional. O showrunner desenvolve a partir dela na etapa 1.</small>
                 </label>
                 <div className="dlg-campo">
@@ -338,6 +349,18 @@ export default function Series({ ativaResp }) {
     const [novaAberta, setNovaAberta] = useState(false);
     const [recarregar, setRecarregar] = useState(0);
     const [lugar] = useState(() => lerUltimoLugar());
+    const [apagando, setApagando] = useState(null); // { id, titulo } da série no diálogo de apagar
+    const [params, setParams] = useSearchParams();
+    const lixeiraAberta = params.get('lixeira') === '1';
+    const [naLixeira, setNaLixeira] = useState(0);
+
+    // Quantos itens há na lixeira (o botão só aparece quando há algo para restaurar).
+    useEffect(() => {
+        let vivo = true;
+        ListarLixeira().then((r) => { if (vivo) setNaLixeira(erroDe(r) ? 0 : (r.itens || []).length); });
+        return () => { vivo = false; };
+    }, [recarregar, lixeiraAberta]);
+    const abrirLixeira = (sim) => setParams(sim ? { lixeira: '1' } : {});
 
     useEffect(() => {
         let vivo = true;
@@ -374,11 +397,18 @@ export default function Series({ ativaResp }) {
                     <h1>Séries</h1>
                     <p>Minisséries verticais, episódio a episódio, do tamanho que a história pedir, com o público escolhendo o caminho.</p>
                 </div>
-                {total > 0 && (
-                    <button type="button" className="btn" onClick={abrirNova}>
-                        <Ico.novo className="ico-pular" aria-hidden="true" />Nova série
-                    </button>
-                )}
+                <div className="series-cab-acoes">
+                    {naLixeira > 0 && (
+                        <button type="button" className="btn fantasma" onClick={() => abrirLixeira(true)}>
+                            <Ico.lixeira aria-hidden="true" />Lixeira<span className="series-lixeira-n num">{naLixeira}</span>
+                        </button>
+                    )}
+                    {total > 0 && (
+                        <button type="button" className="btn" onClick={abrirNova}>
+                            <Ico.novo className="ico-pular" aria-hidden="true" />Nova série
+                        </button>
+                    )}
+                </div>
             </div>
 
             {erro && <p className="nota-erro series-erro" role="alert"><Ico.erro aria-hidden="true" />Não consegui listar as séries: {erro}</p>}
@@ -404,7 +434,7 @@ export default function Series({ ativaResp }) {
                     </div>
                     <Lista as="ul" className="grade-posteres">
                         {ordenadas.map((s) => (
-                            <Item as="li" key={s.id}><Poster s={s} /></Item>
+                            <Item as="li" key={s.id}><Poster s={s} onApagar={(x) => setApagando({ id: x.id, titulo: x.titulo })} /></Item>
                         ))}
                         <Item as="li" key="__nova">
                             <button type="button" className="poster-nova" onClick={abrirNova}>
@@ -426,6 +456,19 @@ export default function Series({ ativaResp }) {
                 pastaDados={pastaDados}
                 onFechar={() => setNovaAberta(false)}
                 onCriada={() => setRecarregar((v) => v + 1)}
+            />
+            <ApagarSerie
+                aberto={Boolean(apagando)}
+                serie={apagando}
+                pastaDados={pastaDados}
+                onFechar={() => setApagando(null)}
+                onApagada={() => { setApagando(null); setRecarregar((v) => v + 1); }}
+            />
+            <Lixeira
+                aberto={lixeiraAberta}
+                pastaDados={pastaDados}
+                onFechar={() => abrirLixeira(false)}
+                onRestaurado={() => setRecarregar((v) => v + 1)}
             />
         </main>
     );

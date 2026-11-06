@@ -119,3 +119,69 @@
   .visao .ia-resultado { padding-left: var(--e4); }
   .visao .visao-lateral { grid-template-columns: 1fr; }
 }
+
+/* proposta da bíblia legível + aprovar (05/11) */
+.visao .ia-biblia { display: flex; flex-direction: column; gap: var(--e2); padding: var(--e3) 0; font-size: var(--t-sm); color: var(--texto); }
+.visao .ia-biblia p { margin: 0; max-width: 72ch; }
+.visao .ia-temporada { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 4px; color: var(--texto-2); }
+.visao .ia-temporada strong { color: var(--texto); }
+.visao .ia-biblia-acoes { display: flex; align-items: center; gap: var(--e3); flex-wrap: wrap; padding-top: var(--e2); }
+.visao .ia-json summary { cursor: pointer; font-size: var(--t-xs); color: var(--texto-2); padding: var(--e2) 0; }
+.visao .lateral-nota { margin: 0 0 var(--e2); font-size: var(--t-xs); }
+
+/* Etapas (06/11/2026): série uma vez só + uma linha por episódio, calculadas do estado real; UMA ação recomendada. */
+.visao .vg-recomendada {
+  display: flex; align-items: center; gap: var(--e3); flex-wrap: wrap; margin-bottom: var(--e3); padding: var(--e3) var(--e4);
+  border: 1px solid var(--borda-forte); border-radius: var(--raio); background: var(--superficie-2);
+}
+.visao .vg-rec-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--raio); background: var(--acao); color: var(--acao-texto); flex: none; }
+.visao .vg-rec-ico svg { width: 18px; height: 18px; }
+.visao .vg-rec-txt { flex: 1 1 240px; display: flex; flex-direction: column; min-width: 0; }
+.visao .vg-rec-txt strong { font-size: var(--t-md); font-weight: 700; font-stretch: var(--largura-titulo); }
+.visao .vg-rec-txt span { font-size: var(--t-sm); color: var(--texto-2); }
+.visao .vg-etapas { display: flex; flex-direction: column; }
+.visao .vg-grupo { padding: var(--e3) var(--e4); }
+.visao .vg-grupo + .vg-grupo { border-top: 1px solid var(--borda); }
+.visao .vg-grupo-tit { margin: 0 0 var(--e2); font-size: var(--t-sm); font-weight: 700; color: var(--texto-2); }
+.visao .vg-linha { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e2); }
+.visao .vg-etapa {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; gap: 2px var(--e2); width: 100%; height: 100%;
+  padding: var(--e2) var(--e3); text-align: left; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie-2);
+  color: var(--texto); font: inherit; cursor: pointer; transition: border-color var(--motion-fast) var(--ease-standard), background var(--motion-fast) var(--ease-standard);
+}
+.visao .vg-etapa:hover { border-color: var(--borda-forte); background: var(--superficie-3); }
+.visao .vg-n { grid-row: 1 / 3; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--borda-forte); font-size: var(--t-xs); font-weight: 700; color: var(--texto-2); }
+.visao .vg-etapa.feito .vg-n { border-color: var(--ok-borda); background: var(--ok-suave); color: var(--ok); }
+.visao .vg-etapa-txt { display: flex; flex-direction: column; min-width: 0; }
+.visao .vg-etapa-nome { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-sm); font-weight: 640; }
+.visao .vg-etapa-nome svg { width: 15px; height: 15px; color: var(--texto-3); }
+.visao .vg-etapa-motivo { font-size: var(--t-xs); color: var(--texto-2); }
+.visao .vg-estado { grid-column: 2; display: inline-flex; align-items: center; gap: 5px; font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); }
+.visao .vg-estado svg { width: 13px; height: 13px; }
+.visao .vg-estado.feito { color: var(--ok); } .visao .vg-estado.aviso { color: var(--aviso); }
+.visao .vg-estado.perigo { color: var(--perigo); } .visao .vg-estado.falta { color: var(--texto); }
+.visao .vg-etapa.bloqueado { opacity: 0.62; }
+.visao .vg-vazio { margin: 0; font-size: var(--t-sm); }
+.visao .vg-eps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e2); }
+.visao .vg-ep {
+  display: flex; flex-direction: column; gap: 6px; width: 100%; padding: var(--e2) var(--e3); text-align: left;
+  border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie-2); color: var(--texto); font: inherit; cursor: pointer;
+  transition: border-color var(--motion-fast) var(--ease-standard), background var(--motion-fast) var(--ease-standard);
+}
+.visao .vg-ep:hover { border-color: var(--borda-forte); background: var(--superficie-3); }
+.visao .vg-ep-cab { display: flex; align-items: baseline; gap: var(--e2); flex-wrap: wrap; font-size: var(--t-sm); }
+.visao .vg-ep-n { font-weight: 700; }
+.visao .vg-ep-tit { font-weight: 640; }
+.visao .vg-ep-esq { display: block; height: 24px; border-radius: var(--raio-sm); }
+.visao .vg-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.visao .vg-chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 var(--e2); border: 1px solid var(--borda); border-radius: var(--raio-sm); font-size: 11.5px; color: var(--texto-2); }
+.visao .vg-chip svg { width: 13px; height: 13px; }
+.visao .vg-chip.feito svg { color: var(--ok); } .visao .vg-chip.aviso svg { color: var(--aviso); }
+.visao .vg-chip.perigo svg { color: var(--perigo); } .visao .vg-chip.andamento svg { color: var(--sinal); }
+.visao .vg-chip.atual { border-color: var(--acao); color: var(--texto); font-weight: 600; }
+.visao .vg-chip.bloqueado { opacity: 0.6; }
+.visao .vg-ep-prox { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-xs); color: var(--texto-2); }
+.visao .vg-ep-prox svg { width: 13px; height: 13px; flex: none; }
+@media (max-width: 720px) {
+  .visao .vg-linha { grid-template-columns: 1fr; }
+}

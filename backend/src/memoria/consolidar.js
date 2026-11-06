@@ -221,7 +221,7 @@ async function consolidarEpisodio(serie, ep, op = {}) {
 
     if (typeof op.chamarLLM === 'function') {
         const pacote = await montarContexto(s, 'consolidacao', { ep: n, roteiro, votacao: votacaoValida(votacao) ? votacao : null, limiteCaracteres: op.limiteCaracteres });
-        const r = await op.chamarLLM(pacote.mensagens, { modelo: op.modelo || s.serie?.modelos?.texto || 'openai/gpt-6-luna', maxTokens: op.maxTokens || 3000, json: true });
+        const r = await op.chamarLLM(pacote.mensagens, { modelo: op.modelo || s.serie?.modelos?.texto || 'openai/gpt-6-luna', maxTokens: op.maxTokens || 8000, json: true });
         custoUsd += Number(r?.custoUsd) || 0;
         const j = extrairJson(r?.conteudo);
         consertos.push(...j.consertos);

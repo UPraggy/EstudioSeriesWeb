@@ -139,6 +139,15 @@ export default function Biblia({ serieId, dados, recarregar }) {
                 <div className="biblia-col">
                     <section className="secao biblia-bloco" aria-labelledby="h-premissa-b">
                         <div className="secao-cab"><h2 id="h-premissa-b"><Ico.showrunner aria-hidden="true" />Premissa</h2></div>
+                        {!b.premissa && !(dados.biblia && dados.biblia.premissa) && (
+                            <p className="nota-aviso">
+                                <Ico.info aria-hidden="true" />
+                                <span>
+                                    A bíblia desta série ainda está vazia. Gere em <strong>Visão geral → Gerar bíblia e mapa</strong> e clique em
+                                    {' '}<strong>Aprovar e salvar bíblia</strong>, ou escreva a premissa aqui. Ideia da série: {String((dados.serie && dados.serie.ideia) || '').slice(0, 240)}{String((dados.serie && dados.serie.ideia) || '').length > 240 ? '…' : ''}
+                                </span>
+                            </p>
+                        )}
                         <textarea className="entrada biblia-premissa" rows={Math.max(3, linhas(b.premissa, 80))} value={b.premissa} onChange={(e) => mudar('premissa', e.target.value)} aria-labelledby="h-premissa-b" />
                     </section>
                     <section className="secao biblia-bloco" aria-labelledby="h-regras">

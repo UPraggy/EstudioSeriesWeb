@@ -154,3 +154,12 @@
   .episodios .ep-pag-poster { width: 132px; }
   .episodios .ep-etapas.compacto { grid-template-columns: 1fr; }
 }
+
+/* salvar uma proposta por cima do roteiro salvo: escolher se falas/edição/montagem vão junto para Versões */
+.episodios .proposta-check { display: flex; align-items: flex-start; gap: var(--e2); margin-top: var(--e2); font-size: var(--t-xs); color: var(--texto-2); cursor: pointer; }
+.episodios .proposta-check input { margin: 2px 0 0; accent-color: var(--texto); }
+
+/* Roteiro com uma IA de fora: ver o prompt e colar a resposta (sem custo) */
+.ep-externo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e1) var(--e2); margin: var(--e2) 0; font-size: var(--t-xs); }
+.ep-externo > .suave { display: inline-flex; align-items: center; gap: 6px; }
+.ep-externo > .suave svg { width: 14px; height: 14px; }
