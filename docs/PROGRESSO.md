@@ -50,6 +50,13 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - Ajustes para o navegador: o registro (log) grava em `/dados/_registro` (fica junto das séries; aba Registro funciona); `fetchBinario` (novo) passa pelo motor; **vídeo dos planos, regerar trecho, anexar vídeo feito fora e regerar falas com voz nova são recusados ANTES da cotação**, porque o vídeo pago é aparado com ffmpeg depois de baixado (no navegador cobraria e quebraria no fim). Quadros-chave em lote (só imagem) funcionam.
 - Testes: `npm test` **322/322**; motor do navegador 22/22 (2 novos: recusa antes de cotar e registro no armazém). Conferido no navegador: Séries, Sala nova, Registro, sem erro no console.
 
+- Push `a7559e6` (com o ramo `original`): o CI ganhou mais 2 exclusões (`externo.test.js` e `producao.test.js`, novos do original, precisam de ffmpeg/vozes); simulado aqui sem as ferramentas: 270 testes, 0 falhas.
+
+### Endereço próprio: series.rafaelmr.com.br (escolhido pelo Rafael em 06/11)
+- Código pronto: o Estúdio do PC libera `https://series.rafaelmr.com.br` como origem (teste em `saude.test.js`); o site troca `http://` por `https://` sozinho (o Cloudflare da zona não redireciona e sem https o service worker não funciona).
+- Falta: CNAME `series` → `upraggy.github.io` no Cloudflare (proxy ligado, igual ao plantafacil e ao apuracao) e o domínio em Settings → Pages → Custom domain. O Cloudflare pediu login no Chrome: esperando o Rafael entrar. A ordem importa: primeiro o DNS, depois o domínio no GitHub (senão o endereço antigo passa a redirecionar para um nome que ainda não existe).
+- Os dados das séries no navegador ficam por endereço: o que foi criado em `upraggy.github.io` não aparece em `series.rafaelmr.com.br` (exportar/importar `.zip` é a etapa 8).
+
 ### Como trazer as atualizações do original (da próxima vez)
 1. `git worktree add <pasta-temporária> original` (o ramo `original` guarda o último retrato do `EstudioSeries`).
 2. Na pasta temporária: apagar tudo menos `.git` e `.githooks`, copiar o `EstudioSeries` sem `node_modules`, `logs`, `frontend/dist*` e `.tmp`.
