@@ -16,7 +16,7 @@ Primeira vez numa máquina nova: `npm install` na pasta e dentro de `frontend\`.
 
 ## Site sem backend (GitHub Pages, PC e celular)
 Esta pasta é a **versão web**: o mesmo Estúdio também roda inteiro dentro do navegador, sem servidor. O próprio backend é empacotado para o navegador e as séries ficam no armazenamento do site ou numa pasta do computador. Sem chave, tudo funciona no modo simulado (nada é cobrado); com a chave do OpenRouter (colada ou pelo botão "Entrar com OpenRouter"), gera de verdade, sempre com cotação antes.
-- **No ar:** https://upraggy.github.io/EstudioSeriesWeb/ (publica sozinho a cada push na `main`, depois dos testes).
+- **No ar:** https://series.rafaelmr.com.br/ (publica sozinho a cada push na `main`, depois dos testes).
 - Como funciona: `docs\MOTOR-NAVEGADOR.md`.
 - Publicar: `docs\PUBLICAR-NO-PAGES.md`.
 - Andamento: `docs\PROGRESSO.md`.

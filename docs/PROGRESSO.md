@@ -11,7 +11,7 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - Regras do brief: o projeto novo fica em `EstudioSeriesWeb`, **sem mexer no `EstudioSeries` original** (outro agente trabalha nele). Publicar no GitHub da conta **UPraggy**, autor só o Rafael, sem co-autor Claude. Repositório **público só com o OK dele**. Login no GitHub, repositório público e gasto real: perguntar a ele.
 
 ## Estado (05/11/2026, manhã)
-**Etapas 1 a 4: feitas e NO AR.** Site: **https://upraggy.github.io/EstudioSeriesWeb/** · Repositório público: **https://github.com/UPraggy/EstudioSeriesWeb** (publica sozinho a cada push na `main`, depois dos testes).
+**Etapas 1 a 4: feitas e NO AR.** Site: **https://series.rafaelmr.com.br/** (desde 06/11; o antigo upraggy.github.io/EstudioSeriesWeb redireciona) · Repositório público: **https://github.com/UPraggy/EstudioSeriesWeb** (publica sozinho a cada push na `main`, depois dos testes).
 
 | Etapa | Situação |
 |---|---|
@@ -54,7 +54,9 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 
 ### Endereço próprio: series.rafaelmr.com.br (escolhido pelo Rafael em 06/11)
 - Código pronto: o Estúdio do PC libera `https://series.rafaelmr.com.br` como origem (teste em `saude.test.js`); o site troca `http://` por `https://` sozinho (o Cloudflare da zona não redireciona e sem https o service worker não funciona).
-- Falta: CNAME `series` → `upraggy.github.io` no Cloudflare (proxy ligado, igual ao plantafacil e ao apuracao) e o domínio em Settings → Pages → Custom domain. O Cloudflare pediu login no Chrome: esperando o Rafael entrar. A ordem importa: primeiro o DNS, depois o domínio no GitHub (senão o endereço antigo passa a redirecionar para um nome que ainda não existe).
+- O Rafael entrou no Cloudflare. Criado `CNAME series → upraggy.github.io` (proxy ligado; não havia registro "series" antes; a zona foi de 42 para 43 registros). Depois, no GitHub, Custom domain = `series.rafaelmr.com.br` (salvo, "DNS check successful"; "Enforce HTTPS" indisponível por causa do proxy, igual aos outros sites).
+- **Conferido:** https://series.rafaelmr.com.br/ abre o site pelo Cloudflare (`server: cloudflare`, CSP no HTML, `sw-midia.js` servido); `http://series.rafaelmr.com.br/#/configuracoes` vira `https://` mantendo a tela; o endereço antigo responde 301 para o novo. No Chrome do Rafael a tela foi "O Estúdio está aberto em outra aba": havia outra aba dele no endereço novo, então não tomei a vez dela.
+- Publicação #3 do Actions (com a atualização do original) passou: testes, build e deploy.
 - Os dados das séries no navegador ficam por endereço: o que foi criado em `upraggy.github.io` não aparece em `series.rafaelmr.com.br` (exportar/importar `.zip` é a etapa 8).
 
 ### Como trazer as atualizações do original (da próxima vez)
