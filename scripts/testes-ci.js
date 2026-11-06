@@ -10,6 +10,8 @@ const PRECISAM_DO_PC = new Set([
     'audio-falas.test.js',      // vozes.json do NarradorVideo
     'audio-tratamento.test.js', // ffmpeg de verdade
     'edicao.test.js',           // ffmpeg + vozes.json (Mesa, render)
+    'externo.test.js',          // ffmpeg/ffprobe (vídeo feito fora, conferido e aparado) — chegou na atualização de 06/11
+    'producao.test.js',         // ffmpeg + vozes.json (do roteiro ao vídeo) — chegou na atualização de 06/11
 ]);
 
 const arquivos = fs.readdirSync(PASTA)

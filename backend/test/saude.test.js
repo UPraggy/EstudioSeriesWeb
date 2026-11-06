@@ -28,6 +28,8 @@ test('CORS do motor híbrido: libera a máquina e o site do Pages, recusa outras
         const url = `http://127.0.0.1:${port}/api/Saude`;
         const de = async (origin) => (await fetch(url, { headers: { Origin: origin } })).headers.get('access-control-allow-origin');
         assert.strictEqual(await de('https://upraggy.github.io'), 'https://upraggy.github.io');
+        assert.strictEqual(await de('https://series.rafaelmr.com.br'), 'https://series.rafaelmr.com.br');
+        assert.strictEqual(await de('http://series.rafaelmr.com.br'), null); // só o https
         assert.strictEqual(await de('http://127.0.0.1:5196'), 'http://127.0.0.1:5196');
         assert.strictEqual(await de('https://site-qualquer.example'), null);
         const pre = await fetch(url, {

@@ -12,8 +12,8 @@ app.use(registroHttp);
 app.use(express.json({ limit: '100mb' }));
 
 // Quem pode chamar este backend pelo navegador: a própria máquina e o site publicado no GitHub Pages
-// (motor híbrido). Outras origens: ESTUDIO_ORIGENS="https://a.github.io,https://b.dev" (separadas por vírgula).
-const ORIGENS_PUBLICADAS = (process.env.ESTUDIO_ORIGENS || 'https://upraggy.github.io')
+// (motor híbrido; endereço próprio series.rafaelmr.com.br). Outras origens: ESTUDIO_ORIGENS="https://a.github.io,https://b.dev" (separadas por vírgula).
+const ORIGENS_PUBLICADAS = (process.env.ESTUDIO_ORIGENS || 'https://upraggy.github.io,https://series.rafaelmr.com.br')
     .split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean);
 const origemPermitida = (o) => !o
     || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(o)
