@@ -151,3 +151,23 @@ test('série: CotarGeracao → GerarVideo → StatusJob → RetomarJobs', async 
     const invalida = await chamar('CotarGeracao', { tipo: 'video', serie: '../fora', pedido });
     assert.match(invalida.json.Error, /Série inválida/);
 });
+
+test('geração simples NÃO tem teto por padrão (06/11: "mandar independente do custo"); ESTUDIO_TETO_SIMPLES_USD liga de novo', async () => {
+    // MiniMax H3 8 s 2K com 8 referências: 8 × 0,13 + 8 × 0,04 = US$ 1,36 (o caso do print do Rafael)
+    const refs = Array.from({ length: 8 }, (_, i) => ({ tipo: 'imagem', papel: 'referencia', nome: `ref${i}.png`, base64: aj.PNG_1PX.toString('base64') }));
+    const pedido = { texto: 'menino de samurai contra um exército de esqueletos', anexos: refs, modelo: 'minimax/hailuo-3', duracaoS: 8, proporcao: '9:16', resolucao: '2K', audio: true };
+    const cot = await chamar('CotarGeracaoSimples', pedido);
+    assert.strictEqual(cot.status, 200, cot.json.Error);
+    assert.ok(cot.json.custoPrevistoUsd > 1, `custo ${cot.json.custoPrevistoUsd}`);
+    assert.ok(cot.json.token);
+    const antes = process.env.ESTUDIO_TETO_SIMPLES_USD;
+    process.env.ESTUDIO_TETO_SIMPLES_USD = '0.5';
+    try {
+        const caro = await chamar('CotarGeracaoSimples', pedido);
+        assert.strictEqual(caro.status, 500);
+        assert.match(caro.json.Error, /passa do teto por plano/);
+    } finally {
+        if (antes === undefined) delete process.env.ESTUDIO_TETO_SIMPLES_USD;
+        else process.env.ESTUDIO_TETO_SIMPLES_USD = antes;
+    }
+});

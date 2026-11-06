@@ -173,3 +173,13 @@
 
 /* "Ver pedido completo": o pedido inteiro para copiar e gerar em outra plataforma (sem gastar) */
 .gs .gs-ver-pedido { width: 100%; margin-top: var(--e2); }
+
+/* Custo e gerar em dois passos (06/11): "Calcular custo" (grátis) e "Gerar por US$ X" (envia e cobra). */
+.gs .gs-botoes { display: grid; grid-template-columns: 1fr; gap: var(--e2); }
+.gs .gs-gerar { width: 100%; height: 42px; font-size: var(--t-md); }
+.gs .gs-detalhe { list-style: none; padding: 0; margin: calc(-1 * var(--e2)) 0 var(--e4); display: flex; flex-direction: column; gap: 4px;
+  font-size: var(--t-xs); color: var(--texto-2); }
+.gs .gs-detalhe li { display: flex; justify-content: space-between; gap: var(--e3); }
+.gs .gs-avisos { list-style: none; padding: var(--e2) var(--e3); display: flex; flex-direction: column; gap: 4px; }
+.gs .gs-avisos li { display: flex; gap: var(--e2); align-items: flex-start; }
+.gs .gs-avisos svg { width: 14px; height: 14px; flex: none; margin-top: 2px; }

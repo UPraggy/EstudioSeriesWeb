@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GlobalVar from './subComponents/GlobalVar';
-import ConfirmarCusto from './subComponents/ConfirmarCusto';
 import Dialogo from './subComponents/Dialogo';
 import { BlocoPedido } from './subComponents/PedidoExterno';
 import {
@@ -258,6 +257,11 @@ export default function GeracaoSimples({ ativaResp }) {
                 : !temPedido ? 'Escreva o pedido (ou anexe um texto ou um primeiro quadro).' : '';
     const est = modelo ? estimar(modelo, Number(duracaoS), resolucao, audio) : null;
 
+    // Qualquer mudança no pedido invalida o custo calculado: o botão "Gerar" só vale para o pedido que foi cotado.
+    useEffect(() => { setCot(null); }, [texto, anexos, modeloId, duracaoS, proporcao, resolucao, audio]);
+
+    // "Calcular custo" (soVer=false) mostra o valor exato no painel; "Ver pedido completo" (soVer=true) abre o pedido.
+    // Nenhum dos dois cobra nada.
     async function cotar(soVer = false) {
         if (bloqueio) return;
         setCotando(true);
@@ -295,12 +299,13 @@ export default function GeracaoSimples({ ativaResp }) {
         return null;
     }
 
-    async function confirmar() {
-        if (!cot) return;
+    // "Gerar por US$ X": o clique é a confirmação (o valor exato está no botão e no painel).
+    async function confirmar(c = cot) {
+        if (!c) return;
         setGerando(true);
         setErro('');
         setProgresso('Enviando o pedido…');
-        const r = await GerarGeracaoSimples({ id: cot.id, token: cot.token });
+        const r = await GerarGeracaoSimples({ id: c.id, token: c.token });
         if (erroDe(r)) { setErro(erroDe(r)); setGerando(false); setProgresso(''); avisar(`Não consegui gerar: ${erroDe(r)}`, 'erro'); return; }
         window.dispatchEvent(new Event('estudio:gasto'));
         const previa = (imagens.find((a) => a.papel === 'primeiro_quadro') || imagens[0] || {}).url || null;
@@ -532,12 +537,25 @@ export default function GeracaoSimples({ ativaResp }) {
                     <div className="painel-cab"><h2 id="h-custo"><Ico.custo aria-hidden="true" />Custo e gerar</h2></div>
                     <div className="painel-corpo">
                         <div className="gs-preco">
-                            <span className="gs-preco-rot">Custo previsto</span>
-                            {est
-                                ? <Contador valor={est.usd} formatar={(n) => `≈ ${GlobalVar.usdFino(n)}`} className="gs-preco-valor" />
-                                : <span className="gs-preco-valor vazio-valor">—</span>}
-                            <small>{est ? (est.mesmaResolucao ? 'Estimativa do catálogo. O valor exato aparece ao cotar.' : `Estimativa em ${est.resolucaoExemplo}; cote para o valor exato em ${resolucao}.`) : 'Escolha um modelo.'}</small>
+                            <span className="gs-preco-rot">{cot ? 'Custo calculado' : 'Custo previsto'}</span>
+                            {cot
+                                ? <Contador valor={cot.custoPrevistoUsd} formatar={(n) => `${cot.estimativa ? '≈ ' : ''}${GlobalVar.usdFino(n)}`} className="gs-preco-valor" />
+                                : est
+                                    ? <Contador valor={est.usd} formatar={(n) => `≈ ${GlobalVar.usdFino(n)}`} className="gs-preco-valor" />
+                                    : <span className="gs-preco-valor vazio-valor">—</span>}
+                            <small>
+                                {cot
+                                    ? `${cot.estimativa ? 'Estimativa do provedor (o valor final vem na cobrança).' : 'Valor deste pedido no catálogo do OpenRouter.'}${cot.simulado ? ' Modo simulado: nada é cobrado.' : ''}`
+                                    : est
+                                        ? (est.mesmaResolucao ? 'Estimativa do catálogo. Clique em "Calcular custo" para o valor exato.' : `Estimativa em ${est.resolucaoExemplo}; calcule para o valor exato em ${resolucao}.`)
+                                        : 'Escolha um modelo.'}
+                            </small>
                         </div>
+                        {cot && Array.isArray(cot.detalhe) && cot.detalhe.length > 1 && (
+                            <ul className="gs-detalhe">
+                                {cot.detalhe.map((d, i) => <li key={`${d.item}-${i}`}><span>{d.item}</span><span className="num">{GlobalVar.usdFino(d.usd)}</span></li>)}
+                            </ul>
+                        )}
                         <dl className="gs-resumo-dl">
                             <div><dt><Ico.video aria-hidden="true" />Modelo</dt><dd>{modelo ? modelo.nome : '—'}</dd></div>
                             <div><dt><Ico.duracao aria-hidden="true" />Vídeo</dt><dd className="num">{modelo ? [`${duracaoS} s`, proporcao, resolucao, audio ? 'com áudio' : null].filter(Boolean).join(', ') : '—'}</dd></div>
@@ -550,17 +568,34 @@ export default function GeracaoSimples({ ativaResp }) {
                                 </motion.p>
                             )}
                         </AnimatePresence>
-                        {erro && !cot && <p className="nota-erro gs-nota-bloco" role="alert"><Ico.erro aria-hidden="true" /><span>{erro}</span></p>}
-                        <button type="button" className="btn primario gs-cotar" disabled={Boolean(bloqueio) || cotando || gerando} onClick={() => cotar(false)} aria-busy={cotando}>
-                            {cotando && <Girador />}
-                            <Ico.custo aria-hidden="true" />
-                            <span>{cotando ? 'Cotando…' : 'Ver custo e gerar'}</span>
-                        </button>
+                        {cot && (cot.avisos || []).length > 0 && (
+                            <ul className="gs-avisos nota-aviso gs-nota-bloco">
+                                {cot.avisos.map((a) => <li key={a}><Ico.aviso aria-hidden="true" /><span>{a}</span></li>)}
+                            </ul>
+                        )}
+                        {erro && <p className="nota-erro gs-nota-bloco" role="alert"><Ico.erro aria-hidden="true" /><span>{erro}</span></p>}
+                        <div className="gs-botoes">
+                            <button type="button" className={`btn ${cot ? '' : 'primario'} gs-cotar`} disabled={Boolean(bloqueio) || cotando || gerando} onClick={() => cotar(false)} aria-busy={cotando}>
+                                {cotando ? <Girador /> : <Ico.custo aria-hidden="true" />}
+                                <span>{cotando ? 'Calculando…' : cot ? 'Calcular de novo' : 'Calcular custo'}</span>
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn ${cot ? 'primario' : ''} gs-gerar`}
+                                disabled={!cot || cotando || gerando}
+                                onClick={() => confirmar()}
+                                aria-busy={gerando}
+                                title={cot ? 'Envia o pedido para o OpenRouter e cobra o valor calculado.' : 'Calcule o custo antes de gerar.'}
+                            >
+                                {gerando ? <Girador /> : <Ico.enviar aria-hidden="true" />}
+                                <span>{gerando ? 'Enviando…' : cot ? `Gerar por ${GlobalVar.usdFino(cot.custoPrevistoUsd)}` : 'Gerar'}</span>
+                            </button>
+                        </div>
                         <button type="button" className="btn fantasma gs-ver-pedido" disabled={Boolean(bloqueio) || cotando || gerando} onClick={() => cotar(true)} title="O pedido completo (prompt, modelo, parâmetros, imagens) para copiar e gerar em outra plataforma. Não gasta nada.">
                             <Ico.verPrompt aria-hidden="true" /><span>Ver pedido completo</span>
                         </button>
-                        {progresso && !cot && <p className="gs-progresso" aria-live="polite"><span className="gs-ponto-sinal" aria-hidden="true" />{progresso}</p>}
-                        <p className="gs-nota"><Ico.info aria-hidden="true" /><span>Cotar não cobra nada: grava o pedido em <code>geracao-simples/</code> e mostra o valor exato para você confirmar.</span></p>
+                        {progresso && <p className="gs-progresso" aria-live="polite"><span className="gs-ponto-sinal" aria-hidden="true" />{progresso}</p>}
+                        <p className="gs-nota"><Ico.info aria-hidden="true" /><span>Calcular não cobra nada: grava o pedido em <code>geracao-simples/</code> e mostra o valor exato. Só "Gerar por US$ …" envia e cobra. Na geração simples não há teto: o valor que aparece é o que vale.</span></p>
                     </div>
                 </aside>
             </div>
@@ -603,8 +638,8 @@ export default function GeracaoSimples({ ativaResp }) {
                     <>
                         <span className="dlg-rodape-esq"><Ico.custo aria-hidden="true" />Ver o pedido não gasta nada.</span>
                         <button type="button" className="btn" onClick={() => setVisto(null)} data-foco>Fechar</button>
-                        <button type="button" className="btn primario" onClick={() => { const c = visto; setVisto(null); setCot(c); }}>
-                            <Ico.custo aria-hidden="true" />Gerar aqui · {visto ? GlobalVar.usdFino(visto.custoPrevistoUsd) : ''}
+                        <button type="button" className="btn primario" disabled={gerando} onClick={() => { const c = visto; setVisto(null); setCot(c); confirmar(c); }}>
+                            <Ico.enviar aria-hidden="true" />Gerar aqui por {visto ? GlobalVar.usdFino(visto.custoPrevistoUsd) : ''}
                         </button>
                     </>
                 )}
@@ -629,25 +664,6 @@ export default function GeracaoSimples({ ativaResp }) {
                 ) : <p className="dlg-nota">O servidor não devolveu o pedido completo.</p>}
             </Dialogo>
 
-            <ConfirmarCusto
-                aberto={Boolean(cot)}
-                titulo="Gerar vídeo avulso"
-                descricao={cot ? `${cot.nomeModelo || cot.modelo} · ${cot.parametros ? `${cot.parametros.duracaoS} s · ${cot.parametros.proporcao || ''} · ${cot.parametros.resolucao || ''}` : ''}` : ''}
-                itens={cot ? (Array.isArray(cot.detalhe) && cot.detalhe.length
-                    ? cot.detalhe.map((d) => ({ descricao: d.item, usd: d.usd }))
-                    : [{ descricao: 'Vídeo', usd: cot.custoPrevistoUsd }]) : []}
-                totalUsd={cot ? cot.custoPrevistoUsd : 0}
-                estimativa={cot ? cot.estimativa : false}
-                teto={cot && cot.orcamento && cot.orcamento.tetos && cot.orcamento.tetos.plano != null ? { rotulo: 'Teto por geração', tetoUsd: cot.orcamento.tetos.plano, gastoUsd: 0 } : undefined}
-                avisos={cot ? cot.avisos || [] : []}
-                simulado={cot ? cot.simulado : false}
-                arquivos={cot ? [`geracao-simples/${cot.id}/resultado.mp4`] : []}
-                ocupado={gerando}
-                progresso={progresso}
-                erro={erro}
-                onCancelar={() => { setCot(null); setErro(''); }}
-                onConfirmar={confirmar}
-            />
         </main>
     );
 }

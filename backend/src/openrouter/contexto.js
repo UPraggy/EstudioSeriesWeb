@@ -23,9 +23,12 @@ function pastaSerie(raiz, serie) {
     return path.join(raiz, 'series', serie);
 }
 
+// Geração simples SEM teto por padrão (pedido do Rafael em 06/11/2026: "quero poder mandar independente do custo").
+// O custo continua sendo calculado e mostrado antes, e nada é cobrado sem o clique em "Gerar por US$ X".
+// Quem quiser um teto por geração define ESTUDIO_TETO_SIMPLES_USD (ex.: 1.5). Séries seguem com os tetos do serie.json.
 function tetosSimples() {
     const v = Number(process.env.ESTUDIO_TETO_SIMPLES_USD);
-    return { plano: Number.isFinite(v) && v > 0 ? v : 1.0 };
+    return Number.isFinite(v) && v > 0 ? { plano: v } : {};
 }
 
 async function tetosDaSerie(base) {

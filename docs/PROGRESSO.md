@@ -59,6 +59,13 @@ Registro vivo do trabalho. Sempre atualizado: o que ficou pronto, o que estou fa
 - Publicação #3 do Actions (com a atualização do original) passou: testes, build e deploy.
 - Os dados das séries no navegador ficam por endereço: o que foi criado em `upraggy.github.io` não aparece em `series.rafaelmr.com.br` (exportar/importar `.zip` é a etapa 8).
 
+### Geração simples sem teto e em dois botões (06/11, noite)
+- **Pedido do Rafael** (com print: "Custo previsto US$ 1,36 passa do teto por plano (US$ 1,00)"): "arrume essa parte de limite, deixe um botão para calcular custo e depois mandar, quero poder mandar independente do custo quando for na geração simples".
+- **Backend** (`backend/src/openrouter/contexto.js`, `tetosSimples`): a geração simples não tem mais teto por padrão. Quem quiser um teto define `ESTUDIO_TETO_SIMPLES_USD`. As séries continuam com os tetos do `serie.json`. Teste novo em `openrouter-controllers.test.js` com o caso do print (MiniMax H3, 8 s, 2K, 8 referências = US$ 1,36).
+- **Tela** (`GeracaoSimples.jsx`): no painel "Custo e gerar", **Calcular custo** (grátis; mostra o valor exato, o detalhe e os avisos) e **Gerar por US$ X** (envia e cobra; o clique é a confirmação). Qualquer mudança no pedido apaga o cálculo e o "Gerar" volta a pedir o cálculo. O diálogo de confirmação antigo saiu desta tela. "Ver pedido completo" → "Gerar aqui por US$ X" envia direto.
+- Conferido no navegador (modo simulado): MiniMax H3 15 s 2K calculou US$ 1,95 sem erro, mudar o áudio invalidou, gerar entrou nos resultados. `npm test` 323/323.
+- Só nesta pasta. O `EstudioSeries` original (Estúdio do PC) ainda tem o teto de US$ 1 e o botão único.
+
 ### Como trazer as atualizações do original (da próxima vez)
 1. `git worktree add <pasta-temporária> original` (o ramo `original` guarda o último retrato do `EstudioSeries`).
 2. Na pasta temporária: apagar tudo menos `.git` e `.githooks`, copiar o `EstudioSeries` sem `node_modules`, `logs`, `frontend/dist*` e `.tmp`.
